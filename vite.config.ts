@@ -7,8 +7,8 @@ export default defineConfig({
     react(),
     VitePWA({
       manifest: {
-        name: 'Mi PWA',
-        short_name: 'PWA',
+        name: 'CONTROL DE GASTOS',
+        short_name: 'CDG',
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff',
