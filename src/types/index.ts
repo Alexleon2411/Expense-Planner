@@ -16,5 +16,5 @@ export type Value = ValuePiece | [ValuePiece, ValuePiece];
 export type Category = {
   id: string
   name: string
-  icon: string 
+  icon: string
 }

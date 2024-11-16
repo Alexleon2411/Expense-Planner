@@ -7,6 +7,7 @@ import 'react-date-picker/dist/DatePicker.css'
 import { DraftExpense, Value } from "../types";
 import ErrorMessage from "./ErrorMessage";
 import { useBudget } from "../hooks/useBudget";
+import { NumericFormat } from 'react-number-format';
 
 export default function ExpenseForm() {
 
@@ -98,8 +99,7 @@ export default function ExpenseForm() {
       </div>
       <div className="flex flex-col gap-2">
         <label htmlFor="amount" className="text-xl">Cantidad Del gasto: </label>
-        <input
-          type="number"
+        <NumericFormat
           id="amount"
           placeholder="Añadir Cantidad ej. 300"
           className="bg-slate-100 p-2"
