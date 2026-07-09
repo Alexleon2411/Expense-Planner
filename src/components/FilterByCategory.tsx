@@ -1,10 +1,11 @@
-import { categories } from "../data/categories";
 import { useBudget } from "../hooks/useBudget";
+import { useCategories } from "../hooks/useCategories";
 
 
 export default function FilterByCategory() {
 
   const {dispatch} = useBudget()
+  const { categories } = useCategories()
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     dispatch({type: 'add-filter-category', payload: {id: e.target.value}})
   }

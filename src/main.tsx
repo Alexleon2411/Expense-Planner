@@ -3,11 +3,18 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { BudgetProvider } from './context/BudgetContext.tsx'
+import { AuthProvider } from './context/AuthContext.tsx'
+import { CategoriesProvider } from './context/CategoriesContext.tsx'
+
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BudgetProvider>
-      <App />
-    </BudgetProvider>
+    <AuthProvider>
+      <BudgetProvider>
+        <CategoriesProvider>
+          <App />
+        </CategoriesProvider>
+      </BudgetProvider>
+    </AuthProvider>
   </StrictMode>,
 )

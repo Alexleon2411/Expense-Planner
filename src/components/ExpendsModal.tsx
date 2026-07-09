@@ -4,7 +4,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { useBudget } from '../hooks/useBudget'
 import ExpenseForm from './ExpenseForm'
 
-export default function ExpenseModal() {
+export default function ExpenseModal({isOpen, onClose}) {
   const { state, dispatch } = useBudget()
 
   return (
@@ -19,7 +19,7 @@ export default function ExpenseModal() {
       </div>
 
       <Transition appear show={state.modal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={() => dispatch({type: 'close-modal'})}>
+        <Dialog as="div" className="relative z-[1000]" onClose={() => dispatch({type: 'close-modal'})}>
           <Transition.Child
             as={Fragment}
             enter="ease-out duration-300"

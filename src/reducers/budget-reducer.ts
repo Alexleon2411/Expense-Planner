@@ -10,7 +10,9 @@ export type  BudgetAction =
   {type: 'get-expense-by-id', payload: {id: Expense['id']}} |
   {type: 'edit-expense', payload: {expense: Expense}} |
   {type: 'restart-app'} |
-  {type: 'add-filter-category', payload: {id: Category['id']}}
+  {type: 'add-filter-category', payload: {id: Category['id']}} |
+  {type: 'get-expenses', payload: { expenses: Expense[] }} |
+  {type: 'update-expense-partial-amount', payload: { id: Expense['id'], partialAmount: number }}
 
 export type BudgetState = {
   budget: number
@@ -114,6 +116,13 @@ export const budgetReducer = (state: BudgetState = initialState, action: BudgetA
     return {
       ...state,
       currentCategory: action.payload.id
+    }
+  }
+
+  if(action.type === 'get-expenses'){
+    return {
+      ...state,
+      expenses: action.payload.expenses
     }
   }
 

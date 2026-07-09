@@ -1,25 +1,20 @@
-
 import { useMemo, useState } from "react"
 import { useBudget } from "../hooks/useBudget"
-import {NumericFormat} from 'react-number-format'
-
-
+import { NumericFormat } from 'react-number-format'
 
 export default function BudgetForm() {
 
-
   const [budgetInput, setBudgetInput] = useState('')
-  const { dispatch } = useBudget()
+  const { addBudget, apiLoading } = useBudget()
   const isValid = useMemo(() => {
     const numericBudget = parseFloat(budgetInput);
     return isNaN(numericBudget) || numericBudget <= 0;
   }, [budgetInput]);
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const numericBudget = parseFloat(budgetInput); // Convertir a número antes de enviar
-    dispatch({ type: "add-budget", payload: { budget: numericBudget } });
-    setBudgetInput(""); // Reiniciar el campo de input
-
+    const numericBudget = parseFloat(budgetInput);
+    await addBudget(numericBudget)
+    setBudgetInput("");
   }
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setBudgetInput(e.target.value)
@@ -40,10 +35,9 @@ export default function BudgetForm() {
       </div>
       <input
         type="submit"
-        value='Definir presupuesto'
+        value={apiLoading ? 'Guardando...' : 'Definir presupuesto'}
         className={"bg-blue-600 hover:bg-blue-700 cursor-pointer w-full p-2 text-white font-black uppercase disabled:opacity-10"}
-        disabled={isValid}
-
+        disabled={isValid || apiLoading}
       />
     </form>
   )

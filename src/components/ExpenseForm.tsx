@@ -1,5 +1,5 @@
 import { Select } from "@headlessui/react"
-import { categories } from "../data/categories"
+import { useCategories } from "../hooks/useCategories"
 import { useEffect, useState } from 'react';
 import DatePicker from 'react-date-picker';
 import 'react-calendar/dist/Calendar.css'
@@ -8,6 +8,7 @@ import { DraftExpense, Value } from "../types";
 import ErrorMessage from "./ErrorMessage";
 import { useBudget } from "../hooks/useBudget";
 import { NumericFormat } from 'react-number-format';
+import NewCategoryForm from "./category/NewCatgoryForm";
 
 export default function ExpenseForm() {
 
@@ -17,76 +18,103 @@ export default function ExpenseForm() {
     amount: 0,
     expenseName: '',
     category: '',
-    date: new Date()
+    date: new Date(),
+    comment: '',
+    status: 'pending',
+    partialAmount: 0,
   })
+const [showCategoryForm, setShowCategoryForm] = useState(false)
 
-  const { state, dispatch, reminderBudget } = useBudget()
+  const { state, reminderBudget, addExpense, editExpense, apiLoading } = useBudget()
+  const { categories, refreshCategories } = useCategories()
+
+  const updateCategoryList = async (categoryId?: string) => {
+    await refreshCategories()
+    if (categoryId) {
+      setExpense(prev => ({ ...prev, category: categoryId }))
+    }
+    setShowCategoryForm(false)
+  }
 
   useEffect(() => {
-    if(state.editingId){
+    if (state.editingId) {
       const editingExpense = state.expenses.filter(item => item.id === state.editingId)[0]
-      setExpense(editingExpense)
+      setExpense({
+        ...editingExpense,
+        comment: editingExpense.comment || '',
+        status: editingExpense.status || 'pending',
+        partialAmount: editingExpense.partialAmount || 0,
+      })
       setPreviousBudget(editingExpense.amount)
     }
   }, [state.editingId])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    const isAmoundField = ['amount'].includes(name)
-    console.log(isAmoundField)
-    setExpense({...expense,
-        [name]: isAmoundField ? +value : value // si el fild es numero entonces lo convertimos a numero sino se deja en string y se coloca name dentro de un array para que tome su valor no la variable entera
-    })
-  }
-  const handleDate = (value : Value) => {
+    const numericFields = ['amount', 'partialAmount']
     setExpense({
       ...expense,
-      date: value
+      [name]: numericFields.includes(name) ? +value : value
     })
   }
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    //validar que sea un expense valido
-    if(Object.values(expense).includes('')){
-      setError('Todos los campos son obligatorios')
-      return
-    }
-    if(Object.values(expense).includes('')){
-      setError('Todos los campos son obligatorios')
-      return
-    }
-    /// validar que no exceda el limite
 
-    if((expense.amount - previousBudget ) > reminderBudget){
+  const handleDate = (value: Value) => {
+    setExpense({ ...expense, date: value })
+  }
+
+  const showCreateCategoryForm = () => {
+
+    setShowCategoryForm((prev) => !prev)
+
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (Object.values(expense).includes('') && !expense.comment && expense.status) {
+      const { comment, status, partialAmount, ...rest } = expense
+      if (Object.values(rest).includes('')) {
+        setError('Todos los campos son obligatorios')
+        return
+      }
+    }
+    if (expense.amount === 0) {
+      setError('El monto debe ser mayor a 0')
+      return
+    }
+
+    if ((expense.amount - previousBudget) > reminderBudget) {
       setError('Este gasto excede el presupuesto')
       return
     }
-    //agregar o actualizar
-    if(state.editingId){
-      dispatch({type: 'edit-expense', payload: {expense: {id: state.editingId, ...expense}}})
-    }else{
 
-      dispatch({type: 'add-expense', payload: {expenses: expense}})
+    if (state.editingId) {
+      await editExpense({ id: state.editingId, ...expense })
+    } else {
+      await addExpense(expense)
     }
-    ///reiniciar el state
+
     setError('')
     setExpense({
       amount: 0,
       expenseName: '',
       category: '',
-      date: new Date()
+      date: new Date(),
+      comment: '',
+      status: 'pending',
+      partialAmount: 0,
     })
     setPreviousBudget(0)
   }
 
   return (
-    <form className="space-y-5" onSubmit={ handleSubmit}>
-      <legend className="uppercase text-center text-2xl font-black border-b-4 border-blue-500 py-2">{state.editingId ? 'Actualizar gasto': 'Nuevo Gasto'}</legend>
-      {error && (
-        <ErrorMessage>{error}</ErrorMessage>
-      )}
+    <form className="space-y-5" onSubmit={handleSubmit}>
+      <legend className="uppercase text-center text-2xl font-black border-b-4 border-blue-500 py-2">
+        {state.editingId ? 'Actualizar gasto' : 'Nuevo Gasto'}
+      </legend>
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+
       <div className="flex flex-col gap-2">
-        <label htmlFor="ExpenseName" className="text-xl">Nombre Del gasto: </label>
+        <label htmlFor="expenseName" className="text-xl">Nombre Del gasto: </label>
         <input
           type="text"
           id="expenseName"
@@ -97,6 +125,7 @@ export default function ExpenseForm() {
           onChange={handleChange}
         />
       </div>
+
       <div className="flex flex-col gap-2">
         <label htmlFor="amount" className="text-xl">Cantidad Del gasto: </label>
         <NumericFormat
@@ -108,6 +137,7 @@ export default function ExpenseForm() {
           onChange={handleChange}
         />
       </div>
+
       <div className="flex flex-col gap-2">
         <label htmlFor="category" className="text-xl">Categoria: </label>
         <Select
@@ -122,19 +152,73 @@ export default function ExpenseForm() {
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
         </Select>
+        {/* {!showCategoryForm && <button type="button" onClick={showCreateCategoryForm} className="text-sm text-blue-600 hover:underline mt-1 border border-blue-600">Agregar nueva categoria</button>}
+        {showCategoryForm && <button type="button" onClick={showCreateCategoryForm} className="text-sm text-red-600 hover:underline mt-1 border border-red-600">Cerrar formulario</button>} */}
+        <div className="flex items-center gap-2 mt-1">
+
+          <input type="checkbox" checked={showCategoryForm} onChange={showCreateCategoryForm} />
+          <label>Añadir nueva categoria</label>
+        </div>
+        {showCategoryForm && <NewCategoryForm updateCategoryList={updateCategoryList} />}
       </div>
+
       <div className="flex flex-col gap-2">
-        <label htmlFor="amount" className="text-xl">Fecha Del gasto: </label>
+        <label htmlFor="expenseDate" className="text-xl">Fecha Del gasto: </label>
         <DatePicker
-          className="bg-slate-100 p-2 border-"
+          id="expenseDate"
+          className="bg-slate-100 p-2"
           value={expense.date}
           onChange={handleDate}
         />
       </div>
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="status" className="text-xl">Estado de pago: </label>
+        <Select
+          id="status"
+          className="bg-slate-100 p-2"
+          name="status"
+          value={expense.status}
+          onChange={handleChange}
+        >
+          <option value="pending">Pendiente</option>
+          <option value="paid">Pagado</option>
+          <option value="partial">Pago Parcial</option>
+        </Select>
+      </div>
+
+      {expense.status === 'partial' && (
+        <div className="flex flex-col gap-2">
+          <label htmlFor="partialAmount" className="text-xl">Monto parcial pagado: </label>
+          <NumericFormat
+            id="partialAmount"
+            placeholder="Ej. 150"
+            className="bg-slate-100 p-2"
+            name="partialAmount"
+            value={expense.partialAmount}
+            onChange={handleChange}
+          />
+        </div>
+      )}
+
+      <div className="flex flex-col gap-2">
+        <label htmlFor="comment" className="text-xl">Comentario (opcional): </label>
+        <textarea
+          id="comment"
+          className="bg-slate-100 p-2 border rounded"
+          name="comment"
+          rows={3}
+          placeholder="Agregar comentario..."
+          value={expense.comment}
+          onChange={handleChange}
+        />
+      </div>
+
       <input
         type="submit"
-        className="bg-blue-600 cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg"
-        value={state.editingId? "Guardar Cambio":"Registrar gasto"}
+        disabled={apiLoading}
+        className="bg-blue-600 cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg disabled:opacity-50"
+        value={apiLoading ? "Guardando..." : state.editingId ? "Guardar Cambio" : "Registrar gasto"}
       />
     </form>
   )
