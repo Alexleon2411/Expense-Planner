@@ -188,7 +188,7 @@ export default function UserProfile() {
                 </div>
             </div>
             {showProfile && user && (
-                <EditUserProfile user={user} handeEditeProfile={handeEditeProfile} onClose={() => setShowProfile(false)}/>
+                <EditUserProfile user={user} handeEditeProfile={handeEditeProfile}/>
             )}
             {showPassword && (
                 <EditPassword onClose={() => setShowPassword(false)} />

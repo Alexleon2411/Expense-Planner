@@ -220,15 +220,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                         <option value="French (Français)">French (Français)</option>
                                     </select>
                                 </div>
-                                {/* <div>
-                                    <label className="block text-body-sm font-bold mb-xs">Timezone</label>
-                                    <select className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all" defaultValue="(GMT+01:00) Madrid, Spain">
-                                        <option value="(GMT+01:00) Madrid, Spain">(GMT+01:00) Madrid, Spain</option>
-                                        <option value="(GMT-05:00) New York, USA">(GMT-05:00) New York, USA</option>
-                                        <option value="(GMT+00:00) London, UK">(GMT+00:00) London, UK</option>
-                                        <option value="(GMT+09:00) Tokyo, Japan">(GMT+09:00) Tokyo, Japan</option>
-                                    </select>
-                                </div> */}
+                                
                             </div>
                         </div>
                         {/* <!-- Actions --> */}

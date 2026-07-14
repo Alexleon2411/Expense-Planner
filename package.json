@@ -28,6 +28,7 @@
     "react-number-format": "^5.4.2",
     "react-swipeable-list": "^1.10.0",
     "recharts": "^3.8.1",
+    "tesseract.js": "^7.0.0",
     "uuid": "^11.0.3"
   },
   "devDependencies": {

@@ -12,6 +12,7 @@ export type  BudgetAction =
   {type: 'restart-app'} |
   {type: 'add-filter-category', payload: {id: Category['id']}} |
   {type: 'get-expenses', payload: { expenses: Expense[] }} |
+  {type: 'append-expenses', payload: { expenses: Expense[] }} |
   {type: 'update-expense-partial-amount', payload: { id: Expense['id'], partialAmount: number }}
 
 export type BudgetState = {
@@ -73,7 +74,7 @@ export const budgetReducer = (state: BudgetState = initialState, action: BudgetA
     const expense = createExpense(action.payload.expenses)
     return  {
       ...state,
-      expenses: [...state.expenses, expense],
+      expenses: [expense, ...state.expenses],
       modal: false,
     }
   }
@@ -123,6 +124,13 @@ export const budgetReducer = (state: BudgetState = initialState, action: BudgetA
     return {
       ...state,
       expenses: action.payload.expenses
+    }
+  }
+
+  if(action.type === 'append-expenses'){
+    return {
+      ...state,
+      expenses: [...state.expenses, ...action.payload.expenses]
     }
   }
 

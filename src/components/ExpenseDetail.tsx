@@ -1,4 +1,4 @@
-import { faChevronDown, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useMemo, useState } from "react"
 import 'react-swipeable-list/dist/styles.css'
@@ -31,19 +31,13 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
   )
   const { removeExpense, editExpense } = useBudget()
   const [expanded, setExpanded] = useState(false)
-  const [editingComment, setEditingComment] = useState(false)
-  const [comment, setComment] = useState(expense.comment || '')
+  // const [_comment, setComment] = useState(expense.comment || '')
   const [editingStatus, setEditingStatus] = useState(false)
   const [status, setStatus] = useState(expense.status || 'pending')
   const [partialAmount, setPartialAmount] = useState(expense.partialAmount || 0)
   const [showPartialModal, setShowPartialModal] = useState(false)
 
   const currentStatus = STATUS_CONFIG[expense.status || 'pending']
-
-  const handleSaveComment = async () => {
-    await editExpense({ ...expense, comment: comment || '' })
-    setEditingComment(false)
-  }
 
   const handleSaveStatus = async () => {
     await editExpense({

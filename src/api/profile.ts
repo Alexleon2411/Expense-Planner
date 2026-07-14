@@ -1,6 +1,6 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import api from './axios';
-import { UpdateProfileData } from '../types/user';
+import { UpdateProfileData, User } from '../types/user';
 
 export function useProfile() {
     const [loading, setLoading] = useState(false);
@@ -8,11 +8,13 @@ export function useProfile() {
     const editProfile = async (data: UpdateProfileData): Promise<User> => {
         setLoading(true);
         try {
-        const updatedUser = await api.updateProfile(data);
-        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
-        return updatedUser;
+            const { data: updatedUser } = await api.post<User>('/profile', data);
+            localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+            return updatedUser;
         } finally {
-        setLoading(false);
-        }      
-    }     
+            setLoading(false);
+        }
+    };
+
+    return { loading, editProfile };
 }

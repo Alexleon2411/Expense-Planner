@@ -16,7 +16,8 @@ type BudgetContextProps = {
   removeExpense: (id: Expense['id']) => Promise<void>,
   restartApp: () => Promise<void>,
   syncBudgetWithSalary: () => Promise<void>,
-  getAllExpenses: () => Promise<Expense[] | undefined>,
+  getAllExpenses: (page?: number, limit?: number) => Promise<{ expenses: Expense[]; totalPages: number } | undefined>,
+  loadMoreExpenses: (page: number, limit?: number) => Promise<{ expenses: Expense[]; totalPages: number } | undefined>,
   updateExpensePartialAmount: (id: Expense['id'], partialAmount: number) => Promise<true | undefined>,
   createExpenseComment: (expenseId: Expense['id'], comment: string) => Promise<any>,
   listExpenseComments: (expenseId: string) => Promise<any>,
@@ -51,12 +52,13 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
     }
   }
 
-  const getAllExpenses = useCallback(async () => {
+  const getAllExpenses = useCallback(async (page = 1, limit = 6) => {
     if (!user) return
     try {
       setApiLoading(true)
-      const resp = await expensesApi.listExpenses({month, year })
+      const resp = await expensesApi.listExpenses({ month, year, page, limit })
       const rawExpenses = Array.isArray(resp) ? resp : (resp as any).expenses || (resp as any).data || []
+      const totalPages = (resp as any).totalPages ?? 1
       const serverExpenses: Expense[] = rawExpenses.map((e: any) => ({
         id: e.id,
         expenseName: e.name,
@@ -68,25 +70,42 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
         partialAmount: e.partialAmount,
       }))
 
-      // const localRaw = localStorage.getItem('expenses')
-      // const localExpenses: Expense[] = localRaw ? JSON.parse(localRaw) : []
-      // const serverIds = new Set(serverExpenses.map(e => e.id))
-      // const merged = [
-      //   ...serverExpenses,
-      //   ...localExpenses.filter(e => !serverIds.has(e.id))
-      // ]
-
-      // dispatch({ type: 'get-expenses', payload: { expenses: merged } })
-      // const resp = await expensesApi.listExpenses({ month, year })
-      state.expenses = serverExpenses
-      return serverExpenses
+      dispatch({ type: 'get-expenses', payload: { expenses: serverExpenses } })
+      return { expenses: serverExpenses, totalPages }
     }
     catch (error) {
       console.log('Error al obtener los gastos del servidor, se mantendrán los locales', error)
     } finally {
       setApiLoading(false)
     }
-  }, [user, month, year, state])
+  }, [user, month, year])
+
+  const loadMoreExpenses = useCallback(async (page: number, limit = 6) => {
+    if (!user) return
+    try {
+      setApiLoading(true)
+      const resp = await expensesApi.listExpenses({ month, year, page, limit })
+      const rawExpenses = Array.isArray(resp) ? resp : (resp as any).expenses || (resp as any).data || []
+      const totalPages = (resp as any).totalPages ?? 1
+      const serverExpenses: Expense[] = rawExpenses.map((e: any) => ({
+        id: e.id,
+        expenseName: e.name,
+        amount: e.amount,
+        category: e.category,
+        date: e.date,
+        comment: e.comment,
+        status: (e.status as Expense['status']) || 'pending',
+        partialAmount: e.partialAmount,
+      }))
+
+      dispatch({ type: 'append-expenses', payload: { expenses: serverExpenses } })
+      return { expenses: serverExpenses, totalPages }
+    } catch (error) {
+      console.log('Error al obtener más gastos del servidor', error)
+    } finally {
+      setApiLoading(false)
+    }
+  }, [user, month, year])
 
   const syncBudgetWithSalary = useCallback(async () => {
     if (!user) return
@@ -228,7 +247,7 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
 
   return (
     <BudgetContext.Provider
-      value={{ state, dispatch, totalExpense, reminderBudget, apiLoading, addBudget, addExpense, editExpense, removeExpense, restartApp, syncBudgetWithSalary, getAllExpenses, updateExpensePartialAmount, createExpenseComment, listExpenseComments, deleteExpenseComment }}
+      value={{ state, dispatch, totalExpense, reminderBudget, apiLoading, addBudget, addExpense, editExpense, removeExpense, restartApp, syncBudgetWithSalary, getAllExpenses, loadMoreExpenses, updateExpensePartialAmount, createExpenseComment, listExpenseComments, deleteExpenseComment }}
     >
       {children}
     </BudgetContext.Provider>

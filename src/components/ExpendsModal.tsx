@@ -4,7 +4,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { useBudget } from '../hooks/useBudget'
 import ExpenseForm from './ExpenseForm'
 
-export default function ExpenseModal({isOpen, onClose}) {
+export default function ExpenseModal({ isOpen: _isOpen, onClose: _onClose }: { isOpen: boolean; onClose: () => void }) {
   const { state, dispatch } = useBudget()
 
   return (

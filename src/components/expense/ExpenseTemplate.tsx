@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useBudget } from "../../hooks/useBudget"
-import { formatCurrecy } from "../../helpers"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faSpinner, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons'
 
 type ExpenseCommentsProps = {
   expenseId: string
@@ -11,7 +10,7 @@ type ExpenseCommentsProps = {
   category?: string
 }
 
-export default function ExpenseComments({ expenseId, expenseName, amount, category }: ExpenseCommentsProps) {
+export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
   const { createExpenseComment, listExpenseComments, deleteExpenseComment } = useBudget()
   const [comments, setComments] = useState<any[]>([])
   const [newComment, setNewComment] = useState("")

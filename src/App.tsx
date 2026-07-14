@@ -26,6 +26,7 @@ function App() {
   // y App (que decide qué renderizar según su valor).
   const [view, setView] = useState<View>('tracker')
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const isValidBudget = useMemo(() => state.budget > 0, [state])
 
@@ -99,8 +100,9 @@ function App() {
             onAddTransaction={() => setIsModalOpen(true)}
             currentView={view}
             onNavigate={setView}
+            onCollapsedChange={setSidebarCollapsed}
           />
-          <div className="md:ml-64 pt-16 h-screen overflow-y-auto">
+          <div className={`pt-16 h-screen overflow-y-auto transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}>
             {renderView()}
           </div>
         </div>

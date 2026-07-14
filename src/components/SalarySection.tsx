@@ -13,7 +13,7 @@ export default function SalarySection() {
 
   useEffect(() => {
     userApi.getProfile().then((p) => {
-      setSalary(p.salary)
+      setSalary(p.salary ?? null)
       setInput(p.salary ? String(p.salary) : '')
     }).catch(() => {})
   }, [])
