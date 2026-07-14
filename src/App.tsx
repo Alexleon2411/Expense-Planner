@@ -85,7 +85,6 @@ function App() {
               {isValidBudget ? <BudgetTracker /> : <BudgetForm />}
             </div> */}
             <ExpenseFeed />
-            <ExpenseModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
           </>
         )
     }

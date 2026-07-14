@@ -20,3 +20,26 @@ export type Category = {
   icon: string
   color?: string
 }
+
+export type PaymentRecord = {
+  month: string
+  paid: boolean
+  paidDate?: string
+  templateItemId?: string
+}
+
+export type FixedExpense = {
+  id: string
+  templateId: string
+  name: string
+  amount: number
+  category: string
+  categoryId: string
+  dueDay: number | null
+  icon: string
+  status: 'pending' | 'paid' | 'partial'
+  lastPaidDate?: string
+  history: PaymentRecord[]
+  comment?: string
+  partialAmount?: number
+}
