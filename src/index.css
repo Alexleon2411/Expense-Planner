@@ -27,6 +27,14 @@
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
+.fixed-expenses-calendar .react-calendar__month-view__days {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+}
+
+.fixed-expenses-calendar .react-calendar__tile {
+  max-width: 100% !important;
+}
  
 .bento-card {
     background-color: #ffffff;
@@ -146,4 +154,48 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.25s ease-out;
+}
+
+.fixed-expenses-calendar {
+  width: 100% !important;
+  border: none !important;
+  font-family: 'Inter', sans-serif !important;
+}
+.fixed-expenses-calendar .react-calendar__navigation {
+  margin-bottom: 0.5rem;
+}
+.fixed-expenses-calendar .react-calendar__tile {
+  padding: 0.5rem 0.25rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+.fixed-expenses-calendar .react-calendar__tile:hover {
+  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.1);
+}
+.fixed-expenses-calendar .react-calendar__tile--active {
+  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.2) !important;
+}
+.fixed-expenses-calendar .react-calendar__month-view__days {
+  gap: 2px;
+}
+.fixed-expenses-calendar .react-calendar__month-view__weekdays {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
 }

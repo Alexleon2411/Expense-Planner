@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useFixedExpenses } from '../hooks/useFixedExpenses';
-import { categoriesApi } from '../api';
+import { categoriesApi, statsApi } from '../api';
 import FixedExpensesCalendar from './FixedExpensesCalendar';
+import CategoryIcon from './CategoryIcon';
 
 export default function FixedExpenses() {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -20,6 +21,8 @@ export default function FixedExpenses() {
     const [itemDay, setItemDay] = useState('');
     const [existingTemplateId, setExistingTemplateId] = useState('');
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+    const [trends, setTrends] = useState<{ month: number; total: number }[]>([]);
+    const [overview, setOverview] = useState<{ totalSpent: number; budgeted: number; remaining: number; percentage: number } | null>(null);
 
     const MONTH_NAMES = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -66,6 +69,11 @@ export default function FixedExpenses() {
     useEffect(() => {
         categoriesApi.listCategories().then(setCategories).catch(() => {});
     }, []);
+
+    useEffect(() => {
+        statsApi.getMonthlyTrend(selectedYear).then(setTrends).catch(() => {});
+        statsApi.getOverview(selectedMonth, selectedYear).then(setOverview).catch(() => {});
+    }, [selectedMonth, selectedYear]);
 
     function resetForm() {
         setGroupName('');
@@ -148,7 +156,7 @@ export default function FixedExpenses() {
         <div className="p-lg space-y-lg">
             <main className="p-lg space-y-xl">
                 {/* Header */}
-                <div className="flex justify-between items-end">
+                <div className="block lg:flex justify-between items-end">
                     <div>
                         <h2 className="text-headline-lg font-headline-lg text-primary">Fixed Expenses</h2>
                         <p className="text-body-md font-body-md text-on-surface-variant">Manage your monthly recurring costs and payment templates.</p>
@@ -249,7 +257,7 @@ export default function FixedExpenses() {
                     <section>
                         <div className="flex items-center justify-between mb-md">
                             <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase tracking-widest">Calendar</h3>
-                            <div className="flex items-center space-x-sm">
+                            <div className="flex items-center">
                                 <button
                                     type="button"
                                     onClick={() => navigateMonth(-1)}
@@ -274,6 +282,8 @@ export default function FixedExpenses() {
                             onMarkAsPaid={handleMarkAsPaid}
                             selectedMonth={selectedMonth}
                             selectedYear={selectedYear}
+                            trends={trends}
+                            overview={overview}
                         />
                     </section>
                 )}
@@ -330,7 +340,7 @@ export default function FixedExpenses() {
 
                             <div className="p-lg">
                                 {viewMode === 'grid' ? (
-                                    <div className="grid grid-cols-4 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-gutter">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2">
                                         {group.expenses.map((expense) => {
                                             const isPaid = expense.status === 'paid';
                                             const isFlipped = flippedId === expense.id;
@@ -355,9 +365,12 @@ export default function FixedExpenses() {
                                                         >
                                                             <div>
                                                                 <div className="flex justify-between items-start mb-sm">
-                                                                    <div className={`p-xs rounded-lg ${isPaid ? 'bg-primary/10' : 'bg-surface-container-high'}`}>
-                                                                        <span className={`material-symbols-outlined text-lg ${isPaid ? 'text-primary' : 'text-on-surface-variant'}`}>{expense.icon}</span>
-                                                                    </div>
+                                                                    <CategoryIcon
+                                                                        icon={expense.categoryIcon}
+                                                                        color={expense.categoryColor}
+                                                                        name={expense.category}
+                                                                        size="md"
+                                                                    />
                                                                     {isPaid ? (
                                                                         <span className="status-gain px-2 py-0.5 rounded-full text-label-caps">Paid</span>
                                                                     ) : (
@@ -424,7 +437,7 @@ export default function FixedExpenses() {
                                         })}
                                     </div>
                                 ) : (
-                                    <table className="w-full border-collapse">
+                                    <table className="w-full border-collapse sm:table-fixed sm:overflow-auto sm:max-h-[400px]">
                                         <thead>
                                             <tr className="text-left border-b border-outline-variant">
                                                 <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Name</th>
@@ -441,9 +454,14 @@ export default function FixedExpenses() {
 
                                                 return (
                                                     <tr key={expense.id} className="hover:bg-surface-container-lowest transition-colors">
-                                                        <td className="px-md py-sm">
+                                                        <td className="px-lg py-sm">
                                                             <div className="flex items-center space-x-sm">
-                                                                <span className="material-symbols-outlined text-primary text-sm">{expense.icon}</span>
+                                                                <CategoryIcon
+                                                                    icon={expense.categoryIcon}
+                                                                    color={expense.categoryColor}
+                                                                    name={expense.category}
+                                                                    size="sm"
+                                                                />
                                                                 <span className="text-body-sm">{expense.name}</span>
                                                             </div>
                                                         </td>

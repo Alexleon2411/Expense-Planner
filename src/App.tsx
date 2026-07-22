@@ -27,6 +27,7 @@ function App() {
   const [view, setView] = useState<View>('tracker')
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const isValidBudget = useMemo(() => state.budget > 0, [state])
 
@@ -94,12 +95,14 @@ function App() {
     <>
       {isValidBudget ? (
         <div>
-          <HeaderTop onNavigate={setView} />
+          <HeaderTop onNavigate={setView} onToggleSidebar={() => setMobileSidebarOpen(true)} />
           <SideBar
             onAddTransaction={() => setIsModalOpen(true)}
             currentView={view}
             onNavigate={setView}
             onCollapsedChange={setSidebarCollapsed}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
           />
           <div className={`pt-16 h-screen overflow-y-auto transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}>
             {renderView()}

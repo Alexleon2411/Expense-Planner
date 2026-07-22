@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useCategories } from '../../context/CategoriesContext'
 import { categoriesApi } from '../../api'
+import IconPicker from '../IconPicker'
 
 
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16']
@@ -8,6 +9,7 @@ const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'
 export default function CategoryManager({ updateCategoryList }: { updateCategoryList: (action: string, categoryId?: string) => void }) {
   const [name, setName] = useState('')
   const [color, setColor] = useState('#3b82f6')
+  const [icon, setIcon] = useState('')
   const { addCategory } = useCategories()
 
 const handleCreate = async () => {
@@ -16,6 +18,7 @@ const handleCreate = async () => {
     const newCategory = await categoriesApi.createCategory({
       name: name.trim(),
       color,
+      icon: icon || undefined,
     })
     console.log('Categoria creada:', newCategory)
     updateCategoryList('add', newCategory.id)
@@ -51,6 +54,7 @@ const handleCreate = async () => {
                 ))}
                 </div>
             </div>
+            <IconPicker value={icon} onChange={setIcon} />
             <button onClick={handleCreate} className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700">
                 Crear
             </button>

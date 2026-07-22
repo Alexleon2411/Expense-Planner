@@ -35,6 +35,8 @@ export type FixedExpense = {
   amount: number
   category: string
   categoryId: string
+  categoryIcon?: string | null
+  categoryColor?: string | null
   dueDay: number | null
   icon: string
   status: 'pending' | 'paid' | 'partial'

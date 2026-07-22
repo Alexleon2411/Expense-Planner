@@ -3,6 +3,7 @@ import { useBudget } from '../../hooks/useBudget';
 import { useCategories } from '../../hooks/useCategories';
 import { Expense } from '../../types';
 import { scanReceipt } from '../../services/receiptScanner';
+import CategoryIcon from '../CategoryIcon';
 
 export interface TransactionDetail {
     merchant: string;
@@ -189,9 +190,12 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                 <div className="flex-1 space-y-lg overflow-y-auto hide-scrollbar">
                     {/* Header */}
                     <div className="flex items-center gap-md">
-                        <div className="w-16 h-16 rounded-xl bg-surface-container flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[32px] text-primary" data-icon="receipt_long">receipt_long</span>
-                        </div>
+                        <CategoryIcon
+                            icon={categoryById[expense.category]?.icon}
+                            color={categoryById[expense.category]?.color}
+                            name={categoryById[expense.category]?.name || expense.category}
+                            size="lg"
+                        />
                         <div className="flex-1">
                             {editing ? (
                                 <input

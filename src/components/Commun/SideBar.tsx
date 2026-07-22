@@ -8,9 +8,11 @@ interface SideBarProps {
     currentView: View;
     onNavigate: (view: View) => void;
     onCollapsedChange?: (collapsed: boolean) => void;
+    mobileOpen?: boolean;
+    onMobileClose?: () => void;
 }
 
-export default function SideBar({ currentView, onNavigate, onCollapsedChange }: SideBarProps) {
+export default function SideBar({ currentView, onNavigate, onCollapsedChange, mobileOpen = false, onMobileClose }: SideBarProps) {
     const [contextStatus, setContextStatus] = useState<Context>(null);
     const [showContext, setShowContext] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
@@ -53,8 +55,13 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange }: 
 
     const sidebarWidth = collapsed ? 'w-[72px]' : 'w-64';
 
-    return (
-        <aside className={`hidden md:fixed md:left-0 md:top-16 md:h-[calc(100vh-64px)] md:flex md:flex-col bg-surface shadow-md py-md transition-all duration-300 ${sidebarWidth}`}>
+    const handleNavigate = (view: View) => {
+        onNavigate(view);
+        onMobileClose?.();
+    };
+
+    const navContent = (
+        <>
             {/* Context Switcher */}
             {!collapsed && (
                 <div className="px-lg mb-xl">
@@ -92,23 +99,23 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange }: 
 
             {/* Navigation */}
             <nav className="flex-1 px-sm space-y-xs">
-                <button className={navLinkClasses('dashboard')} onClick={() => onNavigate('dashboard')} title="Dashboard">
+                <button className={navLinkClasses('dashboard')} onClick={() => handleNavigate('dashboard')} title="Dashboard">
                     <span className="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
                     {!collapsed && <span className="text-body-md font-body-md">Dashboard</span>}
                 </button>
-                <button className={navLinkClasses('dashboard')} onClick={() => onNavigate('dashboard2')} title="Dashboard 2">
+                <button className={navLinkClasses('dashboard')} onClick={() => handleNavigate('dashboard2')} title="Dashboard 2">
                     <span className="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
                     {!collapsed && <span className="text-body-md font-body-md">Dashboard - 2</span>}
                 </button>
-                <button className={navLinkClasses('tracker')} onClick={() => onNavigate('tracker')} title="Expenses Feed">
+                <button className={navLinkClasses('tracker')} onClick={() => handleNavigate('tracker')} title="Expenses Feed">
                     <span className="material-symbols-outlined shrink-0" data-icon="receipt_long">receipt_long</span>
                     {!collapsed && <span className="text-body-md font-body-md">Expenses Feed</span>}
                 </button>
-                <button className={navLinkClasses('fixedExpenses')} onClick={() => onNavigate('fixedExpenses')} title="Fixed Expenses">
+                <button className={navLinkClasses('fixedExpenses')} onClick={() => handleNavigate('fixedExpenses')} title="Fixed Expenses">
                     <span className="material-symbols-outlined shrink-0" data-icon="calendar_month">calendar_month</span>
                     {!collapsed && <span className="text-body-md font-body-md">Fixed Expenses</span>}
                 </button>
-                <button className={navLinkClasses('report')} onClick={() => onNavigate('report')} title="Reports">
+                <button className={navLinkClasses('report')} onClick={() => handleNavigate('report')} title="Reports">
                     <span className="material-symbols-outlined shrink-0" data-icon="bar_chart">bar_chart</span>
                     {!collapsed && <span className="text-body-md font-body-md">Reports</span>}
                 </button>
@@ -116,18 +123,18 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange }: 
 
             {/* Bottom section */}
             <div className="mt-auto px-sm pt-md border-t border-outline-variant space-y-xs">
-                <button className={navLinkClasses('settings')} onClick={() => onNavigate('settings')} title="Settings">
+                <button className={navLinkClasses('settings')} onClick={() => handleNavigate('settings')} title="Settings">
                     <span className="material-symbols-outlined shrink-0" data-icon="settings">settings</span>
                     {!collapsed && <span className="text-body-md font-body-md">Settings</span>}
                 </button>
-                <button className={navLinkClasses('support')} onClick={() => onNavigate('support')} title="Support">
+                <button className={navLinkClasses('support')} onClick={() => handleNavigate('support')} title="Support">
                     <span className="material-symbols-outlined shrink-0" data-icon="help">help</span>
                     {!collapsed && <span className="text-body-md font-body-md">Support</span>}
                 </button>
 
-                {/* Collapse toggle */}
+                {/* Collapse toggle - hidden on mobile */}
                 <button
-                    className="flex items-center gap-md py-sm transition-colors pl-4 rounded-lg w-full text-left hover:bg-surface-container text-on-surface-variant"
+                    className="hidden md:flex items-center gap-md py-sm transition-colors pl-4 rounded-lg w-full text-left hover:bg-surface-container text-on-surface-variant"
                     onClick={toggleCollapsed}
                     title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 >
@@ -137,6 +144,45 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange }: 
                     {!collapsed && <span className="text-body-md font-body-md">Collapse</span>}
                 </button>
             </div>
-        </aside>
+        </>
+    );
+
+    return (
+        <>
+            {/* Desktop sidebar */}
+            <aside className={`hidden md:fixed md:left-0 md:top-16 md:h-[calc(100vh-64px)] md:flex md:flex-col bg-surface shadow-md py-md transition-all duration-300 ${sidebarWidth}`}>
+                {navContent}
+            </aside>
+
+            {/* Mobile sidebar overlay */}
+            {mobileOpen && (
+                <div className="md:hidden fixed inset-0 z-[200]">
+                    {/* Opaque backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                        onClick={onMobileClose}
+                    />
+                    {/* Sidebar panel */}
+                    <aside className="absolute left-0 top-0 h-full w-72 bg-surface shadow-xl flex flex-col py-md animate-slide-in-left">
+                        {/* Mobile close button */}
+                        <div className="flex items-center justify-between px-lg mb-md mt-sm">
+                            <div className="flex items-center gap-xs">
+                                <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-on-primary text-[20px]" data-icon="account_balance">account_balance</span>
+                                </div>
+                                <h1 className="text-headline-md font-headline-md font-bold text-on-surface">AccounterFlow</h1>
+                            </div>
+                            <button
+                                className="p-xs text-on-surface-variant hover:text-primary transition-colors"
+                                onClick={onMobileClose}
+                            >
+                                <span className="material-symbols-outlined" data-icon="close">close</span>
+                            </button>
+                        </div>
+                        {navContent}
+                    </aside>
+                </div>
+            )}
+        </>
     )
 }

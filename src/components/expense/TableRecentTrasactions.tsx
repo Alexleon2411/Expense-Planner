@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useCategories } from "../../hooks/useCategories"
 import { useBudget } from "../../hooks/useBudget"
 import { Expense } from '../../types';
+import CategoryIcon from '../CategoryIcon';
 
 interface TableRecentTransactionsProps {
     expenses: Expense[];
@@ -162,13 +163,12 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                   </td>
                   <td className="px-lg py-md">
                     <div className="flex items-center gap-sm">
-                      <div className="rounded-lg flex items-center justify-center">
-                        {row.icon ? (
-                          <img src={`/icono_${row.icon}.svg`} alt="" className="w-6 h-6" />
-                        ) : (
-                          <span className="material-symbols-outlined text-primary">{row.category?.charAt(0) || '?'}</span>
-                        )} 
-                      </div>
+                      <CategoryIcon
+                        icon={row.icon}
+                        color={row.categoryColor}
+                        name={row.category}
+                        size="sm"
+                      />
                       -
                     <span className="py-xs rounded-full text-body-sm text-on-surface-variant">{row.category}</span>
                     </div>

@@ -7,6 +7,7 @@ import { useBudget } from "../hooks/useBudget"
 import { useCategories } from "../hooks/useCategories"
 import { Expense } from "../types"
 import AmountDisplay from "./AmountDisplay"
+import CategoryIcon from "./CategoryIcon"
 import ExpenseComments from "./expense/ExpenseTemplate"
 import PartialPaymentModal from "./PartialPaymentModal"
 
@@ -96,16 +97,12 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
         <div className="flex items-center gap-3">
           {categoryInfo && (
             <div className="shrink-0">
-              {categoryInfo.icon ? (
-                <img src={`/icono_${categoryInfo.icon}.svg`} alt="Icono de categoria" className="w-10 h-10" />
-              ) : (
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm"
-                  style={{ backgroundColor: categoryInfo.color || '#3b82f6' }}
-                >
-                  {categoryInfo.name.charAt(0)}
-                </div>
-              )}
+              <CategoryIcon
+                icon={categoryInfo.icon}
+                color={categoryInfo.color}
+                name={categoryInfo.name}
+                size="md"
+              />
             </div>
           )}
           <div className="flex-1 min-w-0">

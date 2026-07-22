@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { templatesApi } from '../api'
+import { templatesApi, categoriesApi } from '../api'
 import { useBudget } from './useBudget'
 import { useAuth } from './useAuth'
 import { FixedExpense } from '../types'
@@ -25,6 +25,47 @@ function getIconForCategory(categoryId: string, categoryName: string): string {
   return 'receipt_long'
 }
 
+// cada mes los fixed expenses que estén en estado "paid" o "partial" deben renovarse a "pending" 
+// para el nuevo mes. Esto se hace una vez al mes, y se guarda la fecha de la última renovación en 
+// localStorage para no repetir la operación.
+
+// en el futuro debo cambiar esta logica para 
+function getLastRenewalMonth(): string | null {
+  return localStorage.getItem('fixedExpenses_lastRenewal')
+}
+
+function setLastRenewalMonth(month: string) {
+  localStorage.setItem('fixedExpenses_lastRenewal', month)
+}
+
+function getCurrentMonthKey(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+async function renewPaidItemsIfNeeded(templates: { id: string; items: { id: string; status: string }[] }[]) {
+  const currentMonth = getCurrentMonthKey()
+  const lastRenewal = getLastRenewalMonth()
+
+  if (lastRenewal === currentMonth) return
+
+  const paidItems = templates.flatMap((group) =>
+    group.items
+      .filter((item) => item.status === 'paid' || item.status === 'partial')
+      .map((item) => ({ templateId: group.id, itemId: item.id }))
+  )
+
+  if (paidItems.length > 0) {
+    await Promise.all(
+      paidItems.map(({ templateId, itemId }) =>
+        templatesApi.updateItem(templateId, itemId, { status: 'pending', partialAmount: null })
+      )
+    )
+  }
+
+  setLastRenewalMonth(currentMonth)
+}
+
 export function useFixedExpenses() {
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [loading, setLoading] = useState(false)
@@ -37,8 +78,18 @@ export function useFixedExpenses() {
     try {
       setLoading(true)
       setError(null)
-      const templates = await templatesApi.listTemplates()
-      const allItems = templates.flatMap((group) =>
+      const [templates, categories] = await Promise.all([
+        templatesApi.listTemplates(),
+        categoriesApi.listCategories(),
+      ])
+
+      const categoryMap = new Map<string, { icon: string | null; color: string | null }>()
+      categories.forEach((c) => categoryMap.set(c.id, { icon: c.icon, color: c.color }))
+
+      await renewPaidItemsIfNeeded(templates)
+
+      const refreshedTemplates = await templatesApi.listTemplates()
+      const allItems = refreshedTemplates.flatMap((group) =>
         group.items.map((item) => ({
           id: item.id,
           templateId: group.id,
@@ -53,6 +104,7 @@ export function useFixedExpenses() {
       const fixedExpenses: FixedExpense[] = allItems.map((item) => {
         const isPaid = item.status === 'paid'
         const isPartial = item.status === 'partial'
+        const catInfo = categoryMap.get(item.categoryId)
 
         return {
           id: item.id,
@@ -61,6 +113,8 @@ export function useFixedExpenses() {
           amount: item.amount,
           category: item.category.name,
           categoryId: item.categoryId,
+          categoryIcon: catInfo?.icon ?? null,
+          categoryColor: catInfo?.color ?? null,
           dueDay: item.dayOfMonth,
           icon: getIconForCategory(item.categoryId, item.category.name),
           status: isPaid ? 'paid' : isPartial ? 'partial' : 'pending',

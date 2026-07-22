@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { categoriesApi } from '../api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
+import IconPicker from './IconPicker'
 
 
 interface Category {
@@ -19,6 +20,7 @@ export default function CategoryManager() {
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
   const [color, setColor] = useState('#3b82f6')
+  const [icon, setIcon] = useState('')
 
   useEffect(() => {
     categoriesApi.listCategories().then(setCategories).catch(() => {})
@@ -27,7 +29,7 @@ export default function CategoryManager() {
   const handleCreate = async () => {
     if (!name.trim()) return
     try {
-      const created = await categoriesApi.createCategory({ name: name.trim(), color })
+      const created = await categoriesApi.createCategory({ name: name.trim(), color, icon: icon || undefined })
       setCategories((prev) => [...prev, created])
       setName('')
       setShowForm(false)
@@ -77,6 +79,7 @@ export default function CategoryManager() {
               ))}
             </div>
           </div>
+          <IconPicker value={icon} onChange={setIcon} />
           <button onClick={handleCreate} className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700">
             Crear
           </button>
@@ -87,7 +90,11 @@ export default function CategoryManager() {
         {categories.map((cat) => (
           <div key={cat.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg">
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 rounded-full" style={{ backgroundColor: cat.color || '#999' }} />
+              {cat.icon ? (
+                <span className="material-symbols-outlined text-[20px]" style={{ color: cat.color || '#999' }}>{cat.icon}</span>
+              ) : (
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: cat.color || '#999' }} />
+              )}
               <span className={cat.isDefault ? 'font-semibold' : ''}>{cat.name}</span>
               {cat.isDefault && <span className="text-xs text-gray-400">(defecto)</span>}
             </div>
