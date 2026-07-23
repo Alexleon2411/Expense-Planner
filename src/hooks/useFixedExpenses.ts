@@ -89,48 +89,42 @@ export function useFixedExpenses() {
       await renewPaidItemsIfNeeded(templates)
 
       const refreshedTemplates = await templatesApi.listTemplates()
-      const allItems = refreshedTemplates.flatMap((group) =>
-        group.items.map((item) => ({
-          id: item.id,
-          templateId: group.id,
-          templateGroupName: group.name,
-          ...item,
-        }))
-      )
-
       const now = new Date()
       const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
-      const fixedExpenses: FixedExpense[] = allItems.map((item) => {
-        const isPaid = item.status === 'paid'
-        const isPartial = item.status === 'partial'
-        const catInfo = categoryMap.get(item.categoryId)
+      const fixedExpenses: FixedExpense[] = refreshedTemplates.flatMap((group) =>
+        group.items.map((item) => {
+          const isPaid = item.status === 'paid'
+          const isPartial = item.status === 'partial'
+          const catInfo = categoryMap.get(item.categoryId)
 
-        return {
-          id: item.id,
-          templateId: item.templateId,
-          name: item.name,
-          amount: item.amount,
-          category: item.category.name,
-          categoryId: item.categoryId,
-          categoryIcon: catInfo?.icon ?? null,
-          categoryColor: catInfo?.color ?? null,
-          dueDay: item.dayOfMonth,
-          icon: getIconForCategory(item.categoryId, item.category.name),
-          status: isPaid ? 'paid' : isPartial ? 'partial' : 'pending',
-          lastPaidDate: isPaid ? currentMonth : undefined,
-          history: [
-            {
-              month: currentMonth,
-              paid: isPaid,
-              paidDate: isPaid ? currentMonth : undefined,
-              templateItemId: item.id,
-            },
-          ],
-          comment: item.comment || undefined,
-          partialAmount: item.partialAmount || undefined,
-        }
-      })
+          return {
+            id: item.id,
+            templateId: group.id,
+            templateGroupName: group.name,
+            name: item.name,
+            amount: item.amount,
+            category: item.category.name,
+            categoryId: item.categoryId,
+            categoryIcon: catInfo?.icon ?? null,
+            categoryColor: catInfo?.color ?? null,
+            dueDay: item.dayOfMonth,
+            icon: getIconForCategory(item.categoryId, item.category.name),
+            status: isPaid ? 'paid' : isPartial ? 'partial' : 'pending',
+            lastPaidDate: isPaid ? currentMonth : undefined,
+            history: [
+              {
+                month: currentMonth,
+                paid: isPaid,
+                paidDate: isPaid ? currentMonth : undefined,
+                templateItemId: item.id,
+              },
+            ],
+            comment: item.comment || undefined,
+            partialAmount: item.partialAmount || undefined,
+          }
+        })
+      )
 
       setFixedExpenses(fixedExpenses)
     } catch (err) {

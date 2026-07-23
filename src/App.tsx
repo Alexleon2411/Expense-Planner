@@ -24,7 +24,11 @@ function App() {
   const { user, loading } = useAuth()
   // 'view' ahora vive aquí y se comparte entre SideBar (que la cambia)
   // y App (que decide qué renderizar según su valor).
-  const [view, setView] = useState<View>('tracker')
+  const [view, setView] = useState<View>(() => {
+    const saved = localStorage.getItem('current_view');
+    const validViews: View[] = ['tracker', 'dashboard', 'fixedExpenses', 'settings', 'support', 'profile', 'dashboard2', 'report'];
+    return saved && validViews.includes(saved as View) ? saved as View : 'tracker';
+  })
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -35,6 +39,11 @@ function App() {
     localStorage.setItem('expenses', JSON.stringify(state.expenses))
     localStorage.setItem('budget', JSON.stringify(state.budget))
   })
+
+  // Persist current view on reload
+  useEffect(() => {
+    localStorage.setItem('current_view', view);
+  }, [view]);
 
   // Sync budget from salary when user logs in
   useEffect(() => {

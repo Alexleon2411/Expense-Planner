@@ -74,7 +74,7 @@ function filterExpenses(expenses: Expense[], category: string, status: FilterSta
 const ExpenseFeed: React.FC<ExpenseFeedProps> = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [partialData, setPartialData] = useState<{ category: string; amount: number } | null>(null);
-  const { state, getAllExpenses, loadMoreExpenses, apiLoading } = useBudget();
+  const { state, getAllExpenses, loadMoreExpenses } = useBudget();
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);

@@ -31,6 +31,7 @@ export type PaymentRecord = {
 export type FixedExpense = {
   id: string
   templateId: string
+  templateGroupName: string
   name: string
   amount: number
   category: string
@@ -44,4 +45,5 @@ export type FixedExpense = {
   history: PaymentRecord[]
   comment?: string
   partialAmount?: number
+  templateItemId?: string
 }
