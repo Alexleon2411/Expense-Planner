@@ -28,6 +28,7 @@ export default function LoginForm() {
     try {
       await login(loginEmail, loginPassword);
     } catch (err: unknown) {
+      console.log('Error during login:', err);
       const msg =
         err && typeof err === 'object' && 'response' in err
           ? (err as { response: { data: { error: string } } }).response?.data?.error
@@ -45,6 +46,7 @@ export default function LoginForm() {
     try {
       await register(regEmail, regPassword, `${firstName} ${lastName}`.trim());
     } catch (err: unknown) {
+      console.log('Registration error:', err);
       const msg =
         err && typeof err === 'object' && 'response' in err
           ? (err as { response: { data: { error: string } } }).response?.data?.error
@@ -95,7 +97,7 @@ export default function LoginForm() {
             </div>
           </div>
           {/* image */}
-          <div className="mt-5 rounded-xl overflow-hidden shadow-2xl border border-white/20">
+          <div className="mt-5 rounded-xl overflow-hidden shadow-2xl border border-white/20 sm:display-none">
             <img
               alt="Financial Data Dashboard"
               className="w-full h-64 object-cover"
