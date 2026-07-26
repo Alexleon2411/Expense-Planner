@@ -7,7 +7,7 @@ import CategoryIcon from './CategoryIcon';
 export default function FixedExpenses() {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
     const [flippedId, setFlippedId] = useState<string | null>(null);
-    const [showCalendar, setShowCalendar] = useState(true);
+    const [showCalendar, setShowCalendar] = useState(false);
     const now = new Date();
     const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
     const [selectedYear, setSelectedYear] = useState(now.getFullYear());
@@ -228,7 +228,7 @@ export default function FixedExpenses() {
                 )}
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+                <div className="hidden md:grid md:grid-cols-3 gap-gutter">
                     <div className="bg-surface-container-lowest rounded-xl p-md border border-outline-variant">
                         <div className="flex items-center space-x-sm mb-sm">
                             <span className="material-symbols-outlined text-primary">receipt_long</span>
@@ -311,8 +311,8 @@ export default function FixedExpenses() {
                     return (
                         <section key={group.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
                             <div className="flex items-center justify-between px-lg py-md bg-surface-container-low border-b border-outline-variant">
-                                <div className="flex items-center space-x-sm">
                                     <span className="material-symbols-outlined text-primary">folder</span>
+                                <div className="hidden md:flex items-center space-x-sm">
                                     <h3 className="text-headline-sm font-headline-sm text-on-surface">{group.name}</h3>
                                     <span className="text-body-xs text-on-surface-variant bg-surface-container-highest px-xs py-0.5 rounded">
                                         {group.expenses.length} expense{group.expenses.length !== 1 ? 's' : ''}

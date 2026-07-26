@@ -33,7 +33,7 @@ export default function Filter({
   return (
     <div>
       <div className="bento-card !p-md flex flex-wrap items-center gap-md">
-        <div className="flex flex-col gap-xs min-w-[200px]">
+        <div className="flex flex-col gap-xs min-w-[200px] w-[100%] md:w-auto lg:w-auto">
           <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">Date Range</span>
           <div className="relative">
             <select
@@ -50,7 +50,7 @@ export default function Filter({
             <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-outline" data-icon="expand_more">expand_more</span>
           </div>
         </div>
-        <div className="flex flex-col gap-xs min-w-[200px]">
+        <div className="flex flex-col gap-xs min-w-[200px] w-[100%] md:w-auto lg:w-auto">
           <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">Category</span>
           <div className="relative">
             <select

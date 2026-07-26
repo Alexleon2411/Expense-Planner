@@ -10,6 +10,7 @@ type BudgetContextProps = {
   totalExpense: number,
   reminderBudget: number,
   apiLoading: boolean,
+  syncingBudget: boolean,
   addBudget: (budget: number) => Promise<void>,
   addExpense: (expense: DraftExpense) => Promise<void>,
   editExpense: (expense: Expense) => Promise<void>,
@@ -34,6 +35,7 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
   const { user } = useAuth()
   const [state, dispatch] = useReducer(budgetReducer, initialState)
   const [apiLoading, setApiLoading] = useState(false)
+  const [syncingBudget, setSyncingBudget] = useState(false)
 
   const totalExpense = useMemo(() => state.expenses.reduce((total, expense) => expense.amount + total, 0), [state.expenses])
   const reminderBudget = state.budget - totalExpense
@@ -109,6 +111,7 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
 
   const syncBudgetWithSalary = useCallback(async () => {
     if (!user) return
+    setSyncingBudget(true)
     try {
       const profile = await userApi.getProfile()
       if (profile.salary && state.budget === 0) {
@@ -117,6 +120,8 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
       }
     } catch (error){
       console.log('Error al sincronizar el presupuesto con el salario, se mantendrá el valor local', error)
+    } finally {
+      setSyncingBudget(false)
     }
   }, [user, state.budget, month, year])
 
@@ -247,7 +252,7 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
 
   return (
     <BudgetContext.Provider
-      value={{ state, dispatch, totalExpense, reminderBudget, apiLoading, addBudget, addExpense, editExpense, removeExpense, restartApp, syncBudgetWithSalary, getAllExpenses, loadMoreExpenses, updateExpensePartialAmount, createExpenseComment, listExpenseComments, deleteExpenseComment }}
+      value={{ state, dispatch, totalExpense, reminderBudget, apiLoading, syncingBudget, addBudget, addExpense, editExpense, removeExpense, restartApp, syncBudgetWithSalary, getAllExpenses, loadMoreExpenses, updateExpensePartialAmount, createExpenseComment, listExpenseComments, deleteExpenseComment }}
     >
       {children}
     </BudgetContext.Provider>

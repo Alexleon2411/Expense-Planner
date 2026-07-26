@@ -130,7 +130,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
     <div className="bento-card !p-0 overflow-hidden relative">
       <div className="p-lg flex justify-between items-center">
         <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase">Recent Transactions</h3>
-        <span className="text-body-sm font-body-sm text-outline">Showing {rows.length} items</span>
+        <span className="text-body-sm font-body-sm text-outline sm:display-none">Showing {rows.length} items</span>
       </div>
       <div className="overflow-x-auto max-h-[480px] overflow-y-auto relative">
         <table className="w-full text-left border-collapse">

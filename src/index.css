@@ -138,12 +138,12 @@
   top: 40%;
   left: 0%;
   transform: translate(50%, -50%);
-  right: -5%;
+  right: 1%;
   animation: anim-rotate 90s linear infinite;
 }
 @media (max-width: 1199.98px) {
   header .img-header-bg {
-    width: 42%;
+    width: 50%;
   }
 }
 

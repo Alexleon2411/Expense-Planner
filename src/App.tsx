@@ -102,7 +102,7 @@ function App() {
 
   return (
     <>
-      {isValidBudget ? (
+      {/* {isValidBudget ? (
         <div>
           <HeaderTop onNavigate={setView} onToggleSidebar={() => setMobileSidebarOpen(true)} />
           <SideBar
@@ -120,8 +120,21 @@ function App() {
       ) : (
         <BudgetForm />
       )}
-      {renderView().key == ''}
-      
+      {renderView().key == ''} */}
+      <div>
+          <HeaderTop onNavigate={setView} onToggleSidebar={() => setMobileSidebarOpen(true)} />
+          <SideBar
+            onAddTransaction={() => setIsModalOpen(true)}
+            currentView={view}
+            onNavigate={setView}
+            onCollapsedChange={setSidebarCollapsed}
+            mobileOpen={mobileSidebarOpen}
+            onMobileClose={() => setMobileSidebarOpen(false)}
+          />
+          <div className={`pt-16 h-screen overflow-y-auto transition-all duration-300 ${sidebarCollapsed ? 'md:ml-[72px]' : 'md:ml-64'}`}>
+            {renderView()}
+          </div>
+        </div>
     </>
   )
 }

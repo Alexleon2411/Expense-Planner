@@ -97,7 +97,7 @@ export default function LoginForm() {
             </div>
           </div>
           {/* image */}
-          <div className="mt-5 rounded-xl overflow-hidden shadow-2xl border border-white/20 sm:display-none">
+          <div className="mt-5 rounded-xl overflow-hidden shadow-2xl border border-white/20 ">
             <img
               alt="Financial Data Dashboard"
               className="w-full h-64 object-cover"
@@ -105,11 +105,11 @@ export default function LoginForm() {
             />
           </div>
         </div>
+      <img src="/17062026_img-header-bg.svg" className="img-fluid img-header-bg sm:display-none"/>
       </section>
 
       {/* Right Side: Forms */}
       <section className="w-screen lg:w-1/2 flex items-center justify-center bg-surface p-5">
-      <img src="/17062026_img-header-bg.svg" className="img-fluid img-header-bg"/>
         <div className="w-full max-w-md bg-surface-container-lowest p-5 rounded-xl bento-card border border-outline-variant/30">
           {/* Tabs */}
           <div className="flex gap-4 mb-4 border-b-2 border-outline-variant">
