@@ -8,6 +8,12 @@ export default function Dashboard2() {
         
         {/* <!-- Content Canvas --> */}
         <div className="p-container-margin max-w-7xl mx-auto space-y-gutter">
+            <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+                        <div className="relative z-10">
+                            <h2 className="text-headline-lg font-xl mb-xs">Report</h2>
+                            <p className="text-lg opacity-80 max-w-2xl mx-auto">Generate and view your financial reports.</p>
+                        </div>
+                    </div>
             {/* <!-- Enhanced Header Stats --> */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
                 <div className="bento-card">

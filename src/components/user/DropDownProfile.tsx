@@ -6,18 +6,22 @@ export type View = 'tracker' | 'dashboard' | 'fixedExpenses' | 'settings' | 'sup
 type Props = { onNavigate: (view: View) => void }
 
 export default function Example({ onNavigate }: Props) {
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
+
+  const initials = user?.name
+    ?.split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(n => n[0].toUpperCase())
+    .join('') ?? '?'
 
   return (
     <Menu as="div" className="relative inline-block">
-      <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white  text-sm font-semibold text-gray-900 shadow-xs inset-ring-1 inset-ring-gray-300 hover:bg-gray-50">
-        <img
-            alt="User Profile"
-            className="w-full h-full object-cover rounded-lg"
-            data-alt="A high-quality professional headshot of a person with a friendly expression. The lighting is soft and corporate, with a clean, light-colored blurred background. The individual is dressed in a smart navy blue blazer, fitting the modern financial platform's aesthetic and professional branding."
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBioX94GimufCU8wekHh-c-KUSZJyuGG3vCWAhQTnuvqqrGpiM31ZBosODZonWbWcbDmhi5a-OY7EAWMnW0nSYNEbdQHCYQF8f-Tixok9a037QQp7f5Fmm6at-2LaCKg3uDA0lLm_iSrwZhUPlhCDxviippHG3dzy8LIDN7xzD4lWlAlHTSGQkPpOqn_309D6rJ9cWQ_ucCfIPVHshhE3xPe5K9iZOzBpz1jwhkq8i_n3QqMH1W_dB_j-XKbbaL9MAIt4v81dM-gcM"
-        />
-        <ChevronDownIcon aria-hidden="true" className="-mr-1 size-5 text-gray-400" />
+      <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white text-sm font-semibold text-gray-900 shadow-xs inset-ring-1 inset-ring-gray-300 hover:bg-gray-50 items-center px-1 py-1">
+        <div className="w-8 h-8 rounded-md bg-black text-white flex items-center justify-center text-xs font-bold">
+          {initials}
+        </div>
+        <ChevronDownIcon aria-hidden="true" className="size-5 text-gray-400" />
       </MenuButton>
 
       <MenuItems

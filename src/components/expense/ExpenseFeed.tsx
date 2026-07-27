@@ -132,7 +132,13 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = () => {
     <section>
       <main className="min-h-screen">
         <div className="p-lg space-y-lg">
-            <div className="flex justify-end">
+            <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+                <div className="relative z-10">
+                    <h2 className="text-headline-lg font-headline-lg mb-xs">Expenses</h2>
+                    <p className="text-body-md opacity-80 max-w-2xl mx-auto">Manage your expenses and track your spending.</p>
+                </div>
+            </div>
+            <div className="flex justify-start">
               <button
                 className="py-md px-lg bg-primary text-on-primary rounded-lg font-body-md font-bold flex items-center gap-xs shadow-md hover:opacity-90"
                 onClick={openEmptyModal}>

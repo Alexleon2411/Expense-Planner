@@ -15,6 +15,12 @@ export default function UserProfile() {
     const handeEditeProfile = () => {
         setShowProfile(!showProfile);
     }
+    const initials = user?.name
+    ?.split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(n => n[0].toUpperCase())
+    .join('') ?? '?'
 
 
   return (
@@ -22,25 +28,30 @@ export default function UserProfile() {
     <main className=" p-lg min-h-screen">
         <div className="max-w-6xl mx-auto">
             {/* <!-- Page Title --> */}
-            <div className="mb-xl">
+            <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+                <div className="relative z-10">
+                    <h2 className="text-headline-lg font-headline-lg mb-xs">Perfil de Usuario</h2>
+                    <p className="text-body-md opacity-80 max-w-2xl mx-auto">Gestiona tu información personal y configuración de cuenta.</p>
+                </div>
+
+            </div>
+            {/* <div className="mb-xl">
                 <h2 className="text-headline-lg font-headline-lg text-on-surface">Perfil de Usuario</h2>
                 <p className="text-body-md text-on-surface-variant">Gestiona tu información personal y configuración de cuenta.</p>
-            </div>
+            </div> */}
             {/* <!-- Bento Grid Layout --> */}
             <div className="grid grid-cols-12 gap-gutter">
                 {/* <!-- Profile Header Card (8 cols) --> */}
                 <div className="col-span-12 lg:col-span-12 bento-card flex flex-col md:flex-row items-center gap-xl">
-                    <div className="relative group">
-                        <div className="w-32 h-32 rounded-full overflow-hidden ring-4 ring-primary-container">
-                            <img alt="User avatar" className="w-full h-full object-cover" data-alt="A close-up professional portrait of a successful financial controller in his late 40s. He has short, styled hair and wears modern glasses. The lighting is bright and crisp, highlighting a clean, sophisticated atmosphere. He is set against a minimalist architectural background with neutral tones, embodying stability and corporate precision." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMpNlSNntWKUlKhcQsPS_tgbTOe2ymbzYEZ25yyBzZR7sYZSKIXyMLzyU2z3nwshn-e2LYETaA3s30l4kxfhXw83iapHvh5J8FBIGDE0qcaNWBeVhm6VzxxmUU7gzrdgKS0yuHCUWdCIYCDFmH6vyJ7llbw2Zt7XCGP8Dyr_QjVOR3iOg-Srha-hAP5aXyxNA3DbzBNTWw2GyxVTud8WP8apzbhC289MgzbWgEs5UJMSjHZ3KAzv9xMWyMt252aUn2ivGpXnrcOzM" />
+                    <div >
+                        <div className="w-14 h-14 rounded-md bg-black text-white flex items-center justify-center text-xl font-bold">
+                            {initials}
                         </div>
-                        <button className="absolute bottom-0 right-0 bg-primary text-on-primary p-2 rounded-full shadow-lg hover:scale-105 transition-transform">
-                            <span className="material-symbols-outlined text-sm">edit</span>
-                        </button>
+                        
                     </div>
                     <div className="flex-1 text-center md:text-left">
-                        <h3 className="text-headline-md font-headline-md text-on-surface mb-1">Alejandro Martínez</h3>
-                        <p className="text-body-md text-on-surface-variant mb-4">Chief Financial Officer @ NexaCorp</p>
+                        <h3 className="text-headline-md font-headline-md text-on-surface text- mb-1 font-bold">{user?.name}</h3>
+                        {/* <p className="text-body-md text-on-surface-variant mb-4">Chief Financial Officer @ NexaCorp</p> */}
                         <div className="flex flex-wrap justify-center md:justify-start gap-sm">
                             <span className="inline-flex items-center px-3 py-1 bg-secondary-container text-on-secondary-container rounded-full text-label-caps font-label-caps">
                                 <span className="material-symbols-outlined text-sm mr-1" style={verifiedIconStyle}>
@@ -48,10 +59,10 @@ export default function UserProfile() {
                                 </span>
                                 Verificado
                             </span>
-                            <span className="inline-flex items-center px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-label-caps font-label-caps">
+                            {/* <span className="inline-flex items-center px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-label-caps font-label-caps">
                                 <span className="material-symbols-outlined text-sm mr-1">business_center</span>
                                 Enterprise
-                            </span>
+                            </span> */}
                         </div>
                     </div>
                     <div className="flex flex-col gap-sm">

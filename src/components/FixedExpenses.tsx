@@ -156,11 +156,13 @@ export default function FixedExpenses() {
         <div className="p-lg space-y-lg">
             <main className="p-lg space-y-xl">
                 {/* Header */}
-                <div className="block lg:flex justify-between items-end">
-                    <div className="text-center lg:text-left">
-                        <h2 className="text-headline-lg font-headline-lg text-primary">Fixed Expenses</h2>
-                        <p className="text-body-md font-body-md text-on-surface-variant">Manage your monthly recurring costs and payment templates.</p>
+                <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+                        <div className="relative z-10">
+                            <h2 className="text-headline-lg font-headline-lg mb-xs">Fixed Expenses</h2>
+                            <p className="text-body-md opacity-80 max-w-2xl mx-auto">Manage your monthly recurring costs and payment templates.</p>
+                        </div>
                     </div>
+                <div className="block lg:flex justify-between items-end">
                     <div className="flex items-center space-x-md mt-4 lg:mt-0 justify-center lg:justify-end">
                         <div className="flex bg-surface-container-highest rounded-lg overflow-hidden ">
                             <button

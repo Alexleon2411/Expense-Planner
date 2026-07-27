@@ -4,6 +4,12 @@ export default function Settings() {
             <main className="flex-1 flex min-h-screen  w-full">
                 {/* <!-- Scrollable Canvas --> */}
                 <div className="p-lg space-y-lg">
+                    <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+                        <div className="relative z-10">
+                            <h2 className="text-headline-lg font-headline-lg mb-xs">Settings</h2>
+                            <p className="text-body-md opacity-80 max-w-2xl mx-auto">Configure your account preferences and manage your settings.</p>
+                        </div>
+                    </div>
                     {/* <!-- Bento Grid Layout --> */}
                     <div className="lg:grid lg:grid-cols-12 gap-gutter ">
                         {/* <!-- Profile Management Card (Large) --> */}
