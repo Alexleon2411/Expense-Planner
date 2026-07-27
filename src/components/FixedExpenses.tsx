@@ -157,12 +157,12 @@ export default function FixedExpenses() {
             <main className="p-lg space-y-xl">
                 {/* Header */}
                 <div className="block lg:flex justify-between items-end">
-                    <div>
+                    <div className="text-center lg:text-left">
                         <h2 className="text-headline-lg font-headline-lg text-primary">Fixed Expenses</h2>
                         <p className="text-body-md font-body-md text-on-surface-variant">Manage your monthly recurring costs and payment templates.</p>
                     </div>
-                    <div className="flex items-center space-x-md">
-                        <div className="flex bg-surface-container-highest rounded-lg overflow-hidden">
+                    <div className="flex items-center space-x-md mt-4 lg:mt-0 justify-center lg:justify-end">
+                        <div className="flex bg-surface-container-highest rounded-lg overflow-hidden ">
                             <button
                                 className={`flex items-center space-x-xs px-md py-sm font-bold transition-colors ${viewMode === 'grid' ? 'bg-primary text-on-primary' : 'text-on-surface hover:bg-surface-container-high'}`}
                                 type="button"
@@ -179,7 +179,7 @@ export default function FixedExpenses() {
                             </button>
                         </div>
                         <button
-                            className={`flex items-center space-x-xs px-md py-sm rounded-lg font-bold transition-colors ${showCalendar ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface hover:bg-surface-container-high'}`}
+                            className={`hidden md:flex lg:flex items-center space-x-xs px-md py-sm rounded-lg font-bold transition-colors ${showCalendar ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface hover:bg-surface-container-high'}`}
                             type="button"
                             onClick={() => setShowCalendar(!showCalendar)}
                         >
@@ -305,14 +305,13 @@ export default function FixedExpenses() {
                 )}
 
                 {templateGroups.map((group) => {
-                    const groupPending = group.expenses.filter((e) => e.status !== 'paid').length;
                     const groupTotal = group.expenses.reduce((s, e) => s + e.amount, 0);
 
                     return (
                         <section key={group.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
                             <div className="flex items-center justify-between px-lg py-md bg-surface-container-low border-b border-outline-variant">
                                     <span className="material-symbols-outlined text-primary">folder</span>
-                                <div className="hidden md:flex items-center space-x-sm">
+                                {/* <div className="hidden md:flex items-center space-x-sm">
                                     <h3 className="text-headline-sm font-headline-sm text-on-surface">{group.name}</h3>
                                     <span className="text-body-xs text-on-surface-variant bg-surface-container-highest px-xs py-0.5 rounded">
                                         {group.expenses.length} expense{group.expenses.length !== 1 ? 's' : ''}
@@ -322,7 +321,7 @@ export default function FixedExpenses() {
                                             {groupPending} pending
                                         </span>
                                     )}
-                                </div>
+                                </div> */}
                                 <div className="flex items-center space-x-md">
                                     <span className="text-body-sm font-data-mono text-on-surface-variant">
                                         ${groupTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}/mo

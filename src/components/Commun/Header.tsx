@@ -19,12 +19,12 @@ export default function Header({ onNavigate, onToggleSidebar }: HeaderProps) {
               >
                 <span className="material-symbols-outlined" data-icon="menu">menu</span>
               </button>
-              <div className="hidden md:flex items-center gap-xs">
+              <button onClick={() => onNavigate('tracker')} className="hidden md:flex items-center gap-xs cursor-pointer">
                 <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
                     <span className="material-symbols-outlined text-on-primary text-[20px]" data-icon="account_balance">account_balance</span>
                 </div>
                 <h1 className="text-headline-md font-headline-md font-bold text-on-surface">AccounterFlow</h1>
-              </div>
+              </button>
            </div>
 
            {/* Center: Search bar */}

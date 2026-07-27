@@ -21,7 +21,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
-      window.location.reload();
+      if (!error.config.url?.includes('/auth/')) {
+        window.location.reload();
+      }
     }
     return Promise.reject(error);
   },
