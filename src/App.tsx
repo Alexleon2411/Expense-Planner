@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react"
-import BudgetForm from "./components/BudgetForm"
+import { useEffect, useState } from "react"
+// import BudgetForm from "./components/BudgetForm"
 import { useBudget } from "./hooks/useBudget"
 // import BudgetTracker from "./components/BudgetTracker"
 import ExpenseModal from "./components/ExpendsModal"
@@ -33,7 +33,7 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  const isValidBudget = useMemo(() => state.budget > 0, [state])
+  // const isValidBudget = useMemo(() => state.budget > 0, [state])
 
   useEffect(() => {
     localStorage.setItem('expenses', JSON.stringify(state.expenses))
