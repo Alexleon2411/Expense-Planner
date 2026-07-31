@@ -3,6 +3,7 @@ import { categoriesApi } from '../api'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import IconPicker from './IconPicker'
+import CategoryIcon from './CategoryIcon'
 
 
 interface Category {
@@ -90,13 +91,13 @@ export default function CategoryManager() {
         {categories.map((cat) => (
           <div key={cat.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg">
             <div className="flex items-center gap-3">
-              {cat.icon ? (
-                <span className="material-symbols-outlined text-[20px]" style={{ color: cat.color || '#999' }}>{cat.icon}</span>
-              ) : (
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: cat.color || '#999' }} />
-              )}
+              <CategoryIcon
+                icon={cat.icon}
+                color={cat.color}
+                name={cat.name}
+                size="sm"
+              />
               <span className={cat.isDefault ? 'font-semibold' : ''}>{cat.name}</span>
-              {cat.isDefault && <span className="text-xs text-gray-400">(defecto)</span>}
             </div>
             {!cat.isDefault && (
               <button onClick={() => handleDelete(cat.id)} className="text-red-600 hover:text-red-800">
