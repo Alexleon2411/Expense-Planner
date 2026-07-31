@@ -15,8 +15,8 @@ import Settings from "./components/settings"
 import { useAuth } from "./hooks/useAuth"
 import Support from "./components/Support"
 import UserProfile from "./components/user/UserProfile"
-import Dashboard2 from "./components/Dashboard2"
-import Report from "./components/Report"
+import Dashboard2 from "./components/Dashboard3"
+import Report from "./components/Report2"
 
 function App() {
 

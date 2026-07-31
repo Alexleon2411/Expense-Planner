@@ -148,7 +148,7 @@ export default function Dashboard2() {
                                 </div>
                                 <div className="h-10 w-24">
                                     <svg className="w-full h-full" viewBox="0 0 100 40">
-                                        <path d="M0 35 L20 30 L40 32 L60 20 L80 15 L100 5" fill="none" stroke="#006c49" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+                                        <path d="M0 35 L20 30 L40 32 L60 20 L80 15 L100 5" fill="none" stroke="#006c49" strokeWidth="2" vectorEffect="non-scaling-stroke"></path>
                                     </svg>
                                 </div>
                                 <div className="text-right">
@@ -169,7 +169,7 @@ export default function Dashboard2() {
                                 </div>
                                 <div className="h-10 w-24">
                                     <svg className="w-full h-full" viewBox="0 0 100 40">
-                                        <path d="M0 5 L20 15 L40 10 L60 25 L80 20 L100 35" fill="none" stroke="#ba1a1a" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+                                        <path d="M0 5 L20 15 L40 10 L60 25 L80 20 L100 35" fill="none" stroke="#ba1a1a" strokeWidth="2" vectorEffect="non-scaling-stroke"></path>
                                     </svg>
                                 </div>
                                 <div className="text-right">

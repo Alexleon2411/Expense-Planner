@@ -252,7 +252,28 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
 
   return (
     <BudgetContext.Provider
-      value={{ state, dispatch, totalExpense, reminderBudget, apiLoading, syncingBudget, addBudget, addExpense, editExpense, removeExpense, restartApp, syncBudgetWithSalary, getAllExpenses, loadMoreExpenses, updateExpensePartialAmount, createExpenseComment, listExpenseComments, deleteExpenseComment }}
+      value={
+        { 
+          state, 
+          dispatch, 
+          totalExpense, 
+          reminderBudget, 
+          apiLoading, 
+          syncingBudget, 
+          addBudget, 
+          addExpense, 
+          editExpense, 
+          removeExpense, 
+          restartApp, 
+          syncBudgetWithSalary, 
+          getAllExpenses, 
+          loadMoreExpenses, 
+          updateExpensePartialAmount, 
+          createExpenseComment, 
+          listExpenseComments, 
+          deleteExpenseComment 
+        }
+      }
     >
       {children}
     </BudgetContext.Provider>
