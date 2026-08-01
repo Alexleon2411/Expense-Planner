@@ -3,21 +3,23 @@ import { statsApi } from '../api'
 import type { OverviewResponse, CategoryBreakdown, MonthlyTrend } from '../api/stats'
 import { useBudget } from '../hooks/useBudget'
 import { useCategories } from '../hooks/useCategories'
+import { useFixedExpenses } from '../hooks/useFixedExpenses'
 import { formatCurrecy } from '../helpers'
 import SalarySection from './SalarySection'
 import ExpenseTemplates from './ExpenseTemplates'
 import CategoryManager from './CategoryManager'
-import CalendarView from './CalendarView'
+// import CalendarView from './CalendarView'
 import Statistics from './Statistics'
 import PaymentStatusBadge from './PaymentStatusBadge'
 import CategoryIcon from './CategoryIcon'
 
 type MainTab = 'dashboard' | 'insights'
-type InnerTab = 'resumen' | 'plantillas' | 'categorias' | 'calendario' | 'estadisticas'
+type InnerTab = 'resumen' | 'plantillas' | 'categorias' | 'estadisticas'
 
 const PIE_COLORS = ['#6750a4', '#625b71', '#7d5260', '#006c49', '#ba1a1a', '#00639b']
 const MONTHS_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 const MONTHS_LONG = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
 
 export default function Dashboard3() {
   const [mainTab, setMainTab] = useState<MainTab>('dashboard')
@@ -27,6 +29,7 @@ export default function Dashboard3() {
 
   const { state, totalExpense, reminderBudget } = useBudget()
   const { categories } = useCategories()
+  const { fixedExpenses } = useFixedExpenses()
 
   const [overview, setOverview] = useState<OverviewResponse | null>(null)
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown[]>([])
@@ -54,11 +57,20 @@ export default function Dashboard3() {
 
   const totalSpent = overview?.totalSpent ?? 0
   const budgeted = overview?.budgeted ?? 0
-  const percentage = overview?.percentage ?? (budgeted > 0 ? (totalSpent / budgeted) * 100 : 0)
   const savings = budgeted - totalSpent
 
+  const fixedTotal = fixedExpenses.reduce((s, f) => s + f.amount, 0)
+  const regularSpent = overview ? overview.totalSpent : totalExpense
+  const totalSpentAll = regularSpent + fixedTotal
+  const totalBudget = budgeted > 0 ? budgeted : state.budget
+  const available = totalBudget - totalSpentAll
+  const usagePct = totalBudget > 0 ? (totalSpentAll / totalBudget) * 100 : 0
   const getCategoryInfo = (categoryId: string) => {
-    return categories.find(c => c.id === categoryId)
+    if (!categoryId) return undefined
+    return (
+      categories.find(c => c.id === categoryId) ||
+      categories.find(c => c.name.toLowerCase() === categoryId.toLowerCase())
+    )
   }
 
   const recentExpenses = useMemo(() => {
@@ -96,6 +108,60 @@ export default function Dashboard3() {
 
   const highestCategory = sortedCategories.length > 0 ? sortedCategories[0] : null
   const highestPct = highestCategory && totalSpent > 0 ? (highestCategory.total / totalSpent) * 100 : 0
+
+  const insights = useMemo(() => {
+    const items: { icon: string; title: string; detail: string; tone: 'error' | 'warn' }[] = []
+    if (totalBudget <= 0) return items
+
+    const now = new Date()
+    const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate()
+    const isCurrent = selectedYear === now.getFullYear() && selectedMonth === now.getMonth() + 1
+    const elapsedDay = Math.min(isCurrent ? now.getDate() : daysInMonth, daysInMonth)
+    const elapsedPct = elapsedDay / daysInMonth
+
+    if (totalSpentAll > totalBudget) {
+      items.push({
+        icon: 'warning',
+        title: 'Superaste tu presupuesto',
+        detail: `Llevas ${formatCurrecy(totalSpentAll)} de ${formatCurrecy(totalBudget)}. Estás ${formatCurrecy(totalSpentAll - totalBudget)} por encima.`,
+        tone: 'error',
+      })
+    } else if (usagePct > elapsedPct * 100 + 15) {
+      const projected = (totalSpentAll / elapsedDay) * daysInMonth
+      items.push({
+        icon: 'speed',
+        title: 'Ritmo de gasto muy rápido',
+        detail: `Has usado el ${usagePct.toFixed(0)}% del presupuesto con solo el ${(elapsedPct * 100).toFixed(0)}% del mes. Al ritmo actual terminarás gastando ${formatCurrecy(projected)}.`,
+        tone: 'warn',
+      })
+    }
+
+    if (sortedCategories.length > 0) {
+      const top = sortedCategories[0]
+      const share = (top.total / totalBudget) * 100
+      if (share >= 30) {
+        const name = getCategoryInfo(top.category)?.name || top.category
+        items.push({
+          icon: 'pie_chart',
+          title: `Mucho gasto en ${name}`,
+          detail: `${name} consume el ${share.toFixed(0)}% de tu presupuesto (${formatCurrecy(top.total)}). Revisa si puedes recortarlo.`,
+          tone: 'warn',
+        })
+      }
+    }
+
+    const fixedShare = (fixedTotal / totalBudget) * 100
+    if (fixedShare >= 50) {
+      items.push({
+        icon: 'lock',
+        title: 'Gastos fijos muy altos',
+        detail: `Tus gastos fijos representan el ${fixedShare.toFixed(0)}% del presupuesto (${formatCurrecy(fixedTotal)}). Intenta renegociarlos.`,
+        tone: 'warn',
+      })
+    }
+
+    return items
+  }, [totalBudget, totalSpentAll, usagePct, sortedCategories, fixedTotal, selectedMonth, selectedYear])
 
   const distribution = useMemo(() => {
     const top = sortedCategories.slice(0, 5)
@@ -160,7 +226,6 @@ export default function Dashboard3() {
     { id: 'resumen', label: 'Resumen' },
     { id: 'plantillas', label: 'Plantillas' },
     { id: 'categorias', label: 'Categorías' },
-    { id: 'calendario', label: 'Calendario' },
     { id: 'estadisticas', label: 'Estadísticas' },
   ]
 
@@ -195,24 +260,27 @@ export default function Dashboard3() {
           </div>
           <div className="relative">
             <select
-              className="appearance-none pl-md pr-xl py-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-medium focus:ring-2 focus:ring-primary"
+              className="mr-1 appearance-none pl-md pr-xl py-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-medium focus:ring-2 focus:ring-primary"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
             >
               {MONTHS_LONG.map((m, i) => (
-                <option key={i + 1} value={i + 1}>{m} {selectedYear}</option>
+                <option key={i + 1} value={i + 1}>{m} </option>
               ))}
             </select>
-            <span className="material-symbols-outlined absolute right-xs top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
-          </div>
-          <input
-            type="number"
+          <select
             className="appearance-none pl-md pr-xl py-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-medium focus:ring-2 focus:ring-primary w-24"
             value={selectedYear}
             onChange={(e) => setSelectedYear(Number(e.target.value))}
-            min={2020}
-            max={2100}
-          />
+          >
+            {YEARS.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+            <span className="material-symbols-outlined absolute right-xs top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+          </div>
         </section>
 
         {mainTab === 'dashboard' ? (
@@ -229,25 +297,69 @@ export default function Dashboard3() {
                 <div className="space-y-md">
                   <div className="flex justify-between items-baseline">
                     <span className="text-body-sm text-on-surface-variant">Presupuesto</span>
-                    <span className="text-headline-sm font-data-mono font-bold">{formatCurrecy(state.budget)}</span>
+                    <span className="text-headline-sm font-data-mono font-bold">{formatCurrecy(totalBudget)}</span>
+                  </div>
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-body-sm text-on-surface-variant">Gastos Fijos</span>
+                    <span className="text-headline-sm font-data-mono font-bold text-on-surface-variant">{formatCurrecy(fixedTotal)}</span>
                   </div>
                   <div className="flex justify-between items-baseline">
                     <span className="text-body-sm text-on-surface-variant">Gastado</span>
-                    <span className="text-headline-sm font-data-mono font-bold text-primary">{formatCurrecy(totalExpense)}</span>
+                    <span className="text-headline-sm font-data-mono font-bold text-primary">{formatCurrecy(totalSpentAll)}</span>
                   </div>
                   <div className="flex justify-between items-baseline">
                     <span className="text-body-sm text-on-surface-variant">Disponible</span>
-                    <span className={`text-headline-sm font-data-mono font-bold ${reminderBudget < 0 ? 'text-error' : 'text-secondary'}`}>
-                      {formatCurrecy(reminderBudget)}
+                    <span className={`text-headline-sm font-data-mono font-bold ${available < 0 ? 'text-error' : 'text-secondary'}`}>
+                      {formatCurrecy(available)}
                     </span>
                   </div>
                   <div className="w-full bg-surface-container-high h-3 rounded-full mt-md overflow-hidden">
                     <div
-                      className={`h-3 rounded-full ${percentage >= 100 ? 'bg-error' : 'bg-primary'}`}
-                      style={{ width: `${Math.min(percentage, 100)}%` }}
+                      className={`h-3 rounded-full ${usagePct >= 100 ? 'bg-error' : 'bg-primary'}`}
+                      style={{ width: `${Math.min(usagePct, 100)}%` }}
                     />
                   </div>
-                  <p className="text-body-sm text-on-surface-variant text-center">{percentage.toFixed(2)}% utilizado</p>
+                  <p className="text-body-sm text-on-surface-variant text-center">{usagePct.toFixed(2)}% utilizado</p>
+                </div>
+
+                <div className="mt-lg pt-md border-t border-outline-variant">
+                  <p className="text-label-caps font-label-caps text-on-surface-variant mb-sm">
+                    {insights.length > 0 ? 'QUÉ ESTÁS HACIENDO MAL' : 'QUÉ ESTÁS HACIENDO BIEN'}
+                  </p>
+                  {insights.length > 0 ? (
+                    <div className="space-y-sm">
+                      {insights.map((ins, i) => (
+                        <div
+                          key={i}
+                          className={`p-sm rounded-lg flex items-start gap-sm ${
+                            ins.tone === 'error' ? 'bg-error/10' : 'bg-secondary-container/20'
+                          }`}
+                        >
+                          <span
+                            className={`material-symbols-outlined text-[18px] shrink-0 ${
+                              ins.tone === 'error' ? 'text-error' : 'text-secondary'
+                            }`}
+                          >
+                            {ins.icon}
+                          </span>
+                          <div>
+                            <p className="text-body-sm font-bold text-on-surface">{ins.title}</p>
+                            <p className="text-[11px] text-on-surface-variant">{ins.detail}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-sm rounded-lg bg-primary-container/10 flex items-start gap-sm">
+                      <span className="material-symbols-outlined text-[18px] text-primary shrink-0">check_circle</span>
+                      <div>
+                        <p className="text-body-sm font-bold text-on-surface">Vas por buen camino</p>
+                        <p className="text-[11px] text-on-surface-variant">
+                          No se detectaron gastos excesivos. Sigue respetando tu presupuesto.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -258,7 +370,7 @@ export default function Dashboard3() {
                   <button
                     key={t.id}
                     onClick={() => setInnerTab(t.id)}
-                    className={`flex-1 min-w-[120px] py-sm text-center font-label-caps font-label-caps transition-colors ${
+                    className={`flex-1 min-w-[120px] py-sm text-center font-label-caps transition-colors ${
                       innerTab === t.id ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-low'
                     }`}
                   >
@@ -297,8 +409,8 @@ export default function Dashboard3() {
                 )}
                 {innerTab === 'plantillas' && <ExpenseTemplates />}
                 {innerTab === 'categorias' && <CategoryManager />}
-                {innerTab === 'calendario' && <CalendarView year={selectedYear} month={selectedMonth} />}
-                {innerTab === 'estadisticas' && <Statistics />}
+                {/* {innerTab === 'calendario' && <CalendarView year={selectedYear} month={selectedMonth} />} */}
+                {innerTab === 'estadisticas' && <Statistics fixedExpenses={fixedExpenses} />}
               </div>
             </div>
           </div>
@@ -331,15 +443,14 @@ export default function Dashboard3() {
                   <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">HIGHEST CATEGORY</p>
                   <div className="flex items-center gap-md mt-sm">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center">
-                      {/* <span className="material-symbols-outlined text-on-primary-fixed">
-                        {getCategoryInfo(highestCategory?.category || '')?.icon || 'category'}
-                      </span> */}
-                      <CategoryIcon
-                        icon={getCategoryInfo(highestCategory?.category || '')?.icon}
-                        color={getCategoryInfo(highestCategory?.category || '')?.color}
-                        name={getCategoryInfo(highestCategory?.category || '')!.name}
-                        size="md"
-                      />
+                      {highestCategory && (
+                        <CategoryIcon
+                          icon={getCategoryInfo(highestCategory.category)?.icon}
+                          color={getCategoryInfo(highestCategory.category)?.color}
+                          name={getCategoryInfo(highestCategory.category)?.name || highestCategory.category}
+                          size="md"
+                        />
+                      )}
                     </div>
                     <div>
                       <h4 className="text-headline-md font-headline-md">

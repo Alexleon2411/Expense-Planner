@@ -20,7 +20,7 @@ import Report from "./components/Report2"
 
 function App() {
 
-  const { state, syncBudgetWithSalary } = useBudget()
+  const { syncBudgetWithSalary, getAllExpenses } = useBudget()
   const { user, loading } = useAuth()
   // 'view' ahora vive aquí y se comparte entre SideBar (que la cambia)
   // y App (que decide qué renderizar según su valor).
@@ -35,20 +35,16 @@ function App() {
 
   // const isValidBudget = useMemo(() => state.budget > 0, [state])
 
-  useEffect(() => {
-    localStorage.setItem('expenses', JSON.stringify(state.expenses))
-    localStorage.setItem('budget', JSON.stringify(state.budget))
-  })
-
   // Persist current view on reload
   useEffect(() => {
     localStorage.setItem('current_view', view);
   }, [view]);
 
-  // Sync budget from salary when user logs in
+  // Load budget and expenses from the database when user logs in
   useEffect(() => {
     if (user) {
       syncBudgetWithSalary()
+      getAllExpenses(1, 100)
     }
   }, [user])
 
@@ -70,7 +66,7 @@ function App() {
       case 'dashboard':
         return (
           <>
-            <Dashboard />
+            <Dashboard2/>
             <ExpenseModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
           </>
         )
@@ -83,8 +79,8 @@ function App() {
           return <Support/>
         case 'profile':
           return <UserProfile/>
-        case 'dashboard2':
-          return <Dashboard2/>
+        // case 'dashboard2':
+        //   return <Dashboard2/>
         case 'report':
           return <Report/>
       case 'tracker':

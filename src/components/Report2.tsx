@@ -1,117 +1,165 @@
 import { useState, useEffect, useMemo } from 'react'
-import { statsApi } from '../api'
+import { statsApi, expensesApi } from '../api'
 import type { OverviewResponse, CategoryBreakdown, DailyData, MonthlyTrend, YearlyStats } from '../api/stats'
-import { useBudget } from '../hooks/useBudget'
 import { useCategories } from '../hooks/useCategories'
+import { useFixedExpenses } from '../hooks/useFixedExpenses'
+import { isCurrentMonth, summarizePaidFixed } from '../helpers/fixedExpensesStats'
 import { formatCurrecy } from '../helpers'
-import CategoryIcon from './CategoryIcon' 
+import CategoryIcon from './CategoryIcon'
+
+const MONTHS_LONG = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
 
 export default function Report2() {
+  const now = new Date()
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear())
+
   const [overview, setOverview] = useState<OverviewResponse | null>(null)
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown[]>([])
   const [dailyData, setDailyData] = useState<DailyData[]>([])
   const [monthlyTrend, setMonthlyTrend] = useState<MonthlyTrend[]>([])
+  const [prevYearTrend, setPrevYearTrend] = useState<MonthlyTrend[]>([])
   const [yearlyStats, setYearlyStats] = useState<YearlyStats | null>(null)
+  const [prevYearStats, setPrevYearStats] = useState<YearlyStats | null>(null)
+  const [recentExpenses, setRecentExpenses] = useState<{ id: string; expenseName: string; amount: number; category: string; date: Date }[]>([])
   const [loading, setLoading] = useState(true)
 
-  const { state } = useBudget()
   const { categories } = useCategories()
+  const { fixedExpenses } = useFixedExpenses()
 
-  const now = new Date()
-  const currentYear = now.getFullYear()
-  const currentMonth = now.getMonth() + 1
-  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate()
-  const daysElapsed = now.getDate()
+  const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate()
+  const isCurrent = now.getFullYear() === selectedYear && now.getMonth() + 1 === selectedMonth
+  const daysElapsed = isCurrent ? now.getDate() : daysInMonth
 
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      statsApi.getOverview(currentMonth, currentYear),
-      statsApi.getCategoryBreakdown(currentMonth, currentYear),
-      statsApi.getDailyStats(currentYear, currentMonth),
-      statsApi.getMonthlyTrend(currentYear),
-      statsApi.getYearlyStats(currentYear),
+      statsApi.getOverview(selectedMonth, selectedYear),
+      statsApi.getCategoryBreakdown(selectedMonth, selectedYear),
+      statsApi.getDailyStats(selectedYear, selectedMonth),
+      statsApi.getMonthlyTrend(selectedYear),
+      statsApi.getMonthlyTrend(selectedYear - 1),
+      statsApi.getYearlyStats(selectedYear),
+      statsApi.getYearlyStats(selectedYear - 1),
+      expensesApi.listExpenses({ month: selectedMonth, year: selectedYear, page: 1, limit: 5 }),
     ])
-      .then(([ov, cat, daily, trend, yearly]) => {
+      .then(([ov, cat, daily, trend, prevTrend, yearly, prevYear, recent]) => {
         setOverview(ov)
         setCategoryBreakdown(cat)
         setDailyData(daily)
         setMonthlyTrend(trend)
+        setPrevYearTrend(prevTrend)
         setYearlyStats(yearly)
+        setPrevYearStats(prevYear)
+        setRecentExpenses(
+          recent.expenses.map((e) => ({
+            id: e.id,
+            expenseName: e.name,
+            amount: e.amount,
+            category: e.category,
+            date: new Date(e.date),
+          })),
+        )
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [])
+  }, [selectedMonth, selectedYear])
 
-  const totalSpent = overview?.totalSpent ?? 0
+  const paidFixed = useMemo(() => {
+    if (!isCurrentMonth(selectedMonth, selectedYear)) {
+      return { total: 0, count: 0, byCategory: new Map<string, { total: number; count: number }>(), byDay: new Map<number, { total: number; count: number }>() }
+    }
+    return summarizePaidFixed(fixedExpenses)
+  }, [fixedExpenses, selectedMonth, selectedYear])
+
+  const totalSpent = (overview?.totalSpent ?? 0) + paidFixed.total
   const budgeted = overview?.budgeted ?? 0
   const budgetPct = budgeted > 0 ? Math.round((totalSpent / budgeted) * 100) : 0
   const avgDaily = daysElapsed > 0 ? totalSpent / daysElapsed : 0
   const predictedEom = avgDaily * daysInMonth
-  const dailyRate = budgeted > 0 ? ((totalSpent / daysElapsed) / budgeted * 100) : 0
+  const dailyRate = budgeted > 0 ? ((totalSpent / daysElapsed) / budgeted) * 100 : 0
 
-  const prevMonthTrend = monthlyTrend.length >= 2 ? monthlyTrend[monthlyTrend.length - 2] : null
-  const monthlyChange = prevMonthTrend && prevMonthTrend.total > 0
-    ? ((totalSpent - prevMonthTrend.total) / prevMonthTrend.total) * 100
-    : 0
+  const currentTrendByMonth = useMemo(() => {
+    const map = new Map<number, number>()
+    monthlyTrend.forEach((t) => map.set(t.month, t.total))
+    return map
+  }, [monthlyTrend])
+
+  const prevTrendByMonth = useMemo(() => {
+    const map = new Map<number, number>()
+    prevYearTrend.forEach((t) => map.set(t.month, t.total))
+    return map
+  }, [prevYearTrend])
+
+  const prevMonthTotal = selectedMonth === 1
+    ? (prevTrendByMonth.get(12) ?? 0)
+    : (currentTrendByMonth.get(selectedMonth - 1) ?? 0)
+  const monthlyChange = prevMonthTotal > 0 ? ((totalSpent - prevMonthTotal) / prevMonthTotal) * 100 : 0
 
   const yearToDate = yearlyStats?.total ?? 0
-  const previousYear = currentYear - 1
-  const [prevYearStats, setPrevYearStats] = useState<YearlyStats | null>(null)
-
-  useEffect(() => {
-    statsApi.getYearlyStats(previousYear).then(setPrevYearStats).catch(() => {})
-  }, [])
-
   const prevYearTotal = prevYearStats?.total ?? 0
   const yearlyChange = prevYearTotal > 0 ? ((yearToDate - prevYearTotal) / prevYearTotal) * 100 : 0
 
   const getCategoryInfo = (categoryId: string) => {
-    return categories.find(c => c.id === categoryId)
+    return categories.find((c) => c.id === categoryId)
   }
 
-  const recentExpenses = useMemo(() => {
-    return [...state.expenses]
-      .sort((a, b) => {
-        const dateA = a.date instanceof Date ? a.date.getTime() : new Date().getTime()
-        const dateB = b.date instanceof Date ? b.date.getTime() : new Date().getTime()
-        return dateB - dateA
-      })
-      .slice(0, 5)
-  }, [state.expenses])
-
-  const maxDailyTotal = useMemo(() => {
-    if (dailyData.length === 0) return 1
-    return Math.max(...dailyData.map(d => d.total))
-  }, [dailyData])
-
-  const DAY_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+  const today = now.getDate()
 
   const weekDays = useMemo(() => {
-    if (dailyData.length === 0) {
-      return Array.from({ length: 7 }, (_, i) => ({
-        label: DAY_LABELS[i],
-        current: 0,
+    const byDay = new Map<number, number>()
+    dailyData.forEach((d) => byDay.set(d.day, d.total))
+    paidFixed.byDay.forEach((v, day) => {
+      byDay.set(day, (byDay.get(day) ?? 0) + v.total)
+    })
+
+    const anchorDate = new Date(selectedYear, selectedMonth - 1, isCurrent ? today : daysInMonth)
+    const monday = new Date(anchorDate)
+    monday.setDate(anchorDate.getDate() - ((anchorDate.getDay() + 6) % 7))
+    monday.setHours(0, 0, 0, 0)
+
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday)
+      d.setDate(monday.getDate() + i)
+      const inMonth = d.getMonth() === selectedMonth - 1
+      const dayNum = d.getDate()
+      return {
+        label: d.toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric' }),
+        inMonth,
+        current: inMonth ? (byDay.get(dayNum) ?? 0) : 0,
         previous: 0,
-      }))
-    }
-    return dailyData.slice(0, 7).map((d, i) => ({
-      label: DAY_LABELS[i] || `DAY ${d.day}`,
-      current: d.total,
-      previous: 0,
-    }))
-  }, [dailyData])
+      }
+    })
+  }, [dailyData, paidFixed, isCurrent, today, daysInMonth, selectedYear, selectedMonth])
+
+  const maxDailyTotal = useMemo(() => {
+    if (weekDays.length === 0) return 1
+    return Math.max(...weekDays.map((d) => d.current))
+  }, [weekDays])
+
+  const mergedCategoryBreakdown = useMemo(() => {
+    const map = new Map<string, CategoryBreakdown>()
+    categoryBreakdown.forEach((c) => map.set(c.category, { ...c }))
+    paidFixed.byCategory.forEach((v, categoryId) => {
+      const cur = map.get(categoryId) ?? { category: categoryId, total: 0, count: 0 }
+      cur.total += v.total
+      cur.count += v.count
+      map.set(categoryId, cur)
+    })
+    return [...map.values()].filter((c) => c.total > 0)
+  }, [categoryBreakdown, paidFixed])
 
   const sortedByValue = useMemo(() => {
-    return [...categoryBreakdown].sort((a, b) => b.total - a.total)
-  }, [categoryBreakdown])
+    return [...mergedCategoryBreakdown].sort((a, b) => b.total - a.total)
+  }, [mergedCategoryBreakdown])
 
   const sortedByCount = useMemo(() => {
-    return [...categoryBreakdown].sort((a, b) => b.count - a.count)
-  }, [categoryBreakdown])
+    return [...mergedCategoryBreakdown].sort((a, b) => b.count - a.count)
+  }, [mergedCategoryBreakdown])
 
-  const maxValue = sortedByValue.length > 0 ? Math.max(...sortedByValue.map(c => c.total)) : 1
-  const maxCount = sortedByCount.length > 0 ? Math.max(...sortedByCount.map(c => c.count)) : 1
+  const maxValue = sortedByValue.length > 0 ? Math.max(...sortedByValue.map((c) => c.total)) : 1
+  const maxCount = sortedByCount.length > 0 ? Math.max(...sortedByCount.map((c) => c.count)) : 1
 
   if (loading) {
     return (
@@ -125,10 +173,38 @@ export default function Report2() {
     <div>
       <main className="min-h-screen pb-xl">
         <div className="p-container-margin max-w-7xl mx-auto space-y-gutter">
-          <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
-            <div className="relative z-10">
-              <h2 className="text-headline-lg font-xl mb-xs">Report</h2>
-              <p className="text-lg opacity-80 max-w-2xl mx-auto">Generate and view your financial reports.</p>
+          <div className="mb-xl">
+            <div className="text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+              <div className="relative z-10">
+                <h2 className="text-headline-lg font-xl mb-xs">Report</h2>
+                <p className="text-lg opacity-80 max-w-2xl mx-auto">Generate and view your financial reports.</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-2 mt-4">
+              <div className="relative">
+                <select
+                  className="mr-1 appearance-none pl-md pr-xl py-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-medium focus:ring-2 focus:ring-primary"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                >
+                  {MONTHS_LONG.map((m, i) => (
+                    <option key={i + 1} value={i + 1}>{m}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-xs top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+              </div>
+              <div className="relative">
+                <select
+                  className="mr-1 appearance-none pl-md pr-xl py-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-medium focus:ring-2 focus:ring-primary w-24"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                >
+                  {YEARS.map((year) => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined absolute right-xs top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+              </div>
             </div>
           </div>
 
@@ -189,10 +265,14 @@ export default function Report2() {
                 {weekDays.map((day, i) => {
                   const pct = maxDailyTotal > 0 ? (day.current / maxDailyTotal) * 100 : 0
                   return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                      <div className="relative w-full flex flex-col items-center justify-end h-full">
-                        <div className="w-full bg-primary h-[${pct}%] rounded-t-sm relative z-10 hover:opacity-80 cursor-pointer"
-                          style={{ height: `${Math.max(pct, 2)}%` }}>
+                    <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full">
+                      <div className="relative w-full flex-1 flex flex-col items-center justify-end">
+                        <div
+                          className={`w-full rounded-t-sm relative z-10 cursor-pointer ${
+                            day.inMonth ? 'bg-primary hover:opacity-80' : 'bg-outline-variant/30'
+                          }`}
+                          style={{ height: `${Math.max(pct, day.inMonth ? 2 : 1)}%` }}
+                        >
                           {day.current > 0 && (
                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-on-primary text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap">
                               {formatCurrecy(day.current)}
@@ -200,7 +280,7 @@ export default function Report2() {
                           )}
                         </div>
                       </div>
-                      <span className="text-label-caps text-on-surface-variant">{day.label}</span>
+                      <span className={`text-label-caps ${day.inMonth ? 'text-on-surface-variant' : 'text-outline'}`}>{day.label}</span>
                     </div>
                   )
                 })}
@@ -222,7 +302,7 @@ export default function Report2() {
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-headline-md font-data-mono">{formatCurrecy(totalSpent)}</p>
-                      <p className="text-[10px] text-on-surface-variant">Current Month</p>
+                      <p className="text-[10px] text-on-surface-variant">{MONTHS_LONG[selectedMonth - 1]} {selectedYear}</p>
                     </div>
                     <div className="h-10 w-24">
                       <svg className="w-full h-full" viewBox="0 0 100 40">
@@ -231,7 +311,7 @@ export default function Report2() {
                     </div>
                     <div className="text-right">
                       <p className="text-body-sm font-data-mono text-on-surface-variant">
-                        {prevMonthTrend ? formatCurrecy(prevMonthTrend.total) : 'N/A'}
+                        {prevMonthTotal > 0 ? formatCurrecy(prevMonthTotal) : 'N/A'}
                       </p>
                       <p className="text-[10px] text-on-surface-variant">Previous</p>
                     </div>
@@ -249,7 +329,7 @@ export default function Report2() {
                   <div className="flex items-end justify-between">
                     <div>
                       <p className="text-headline-md font-data-mono">{formatCurrecy(yearToDate)}</p>
-                      <p className="text-[10px] text-on-surface-variant">YTD {currentYear}</p>
+                      <p className="text-[10px] text-on-surface-variant">YTD {selectedYear}</p>
                     </div>
                     <div className="h-10 w-24">
                       <svg className="w-full h-full" viewBox="0 0 100 40">
@@ -260,7 +340,7 @@ export default function Report2() {
                       <p className="text-body-sm font-data-mono text-on-surface-variant">
                         {prevYearTotal > 0 ? formatCurrecy(prevYearTotal) : 'N/A'}
                       </p>
-                      <p className="text-[10px] text-on-surface-variant">YTD {previousYear}</p>
+                      <p className="text-[10px] text-on-surface-variant">YTD {selectedYear - 1}</p>
                     </div>
                   </div>
                 </div>
@@ -356,12 +436,14 @@ export default function Report2() {
                             className="material-symbols-outlined text-primary text-[18px]">
                               {cat?.icon || 'receipt'}
                             </span> */}
-                          <CategoryIcon 
-                           icon={cat?.icon}
-                           color={cat?.color}
-                           name={cat!.name}
-                           size="sm"
-                           />
+                            {cat && (
+                              <CategoryIcon 
+                               icon={cat?.icon}
+                               color={cat?.color}
+                               name={cat!.name}
+                                size="sm"
+                              />
+                            )}
                         </div>
                         <div>
                           <p className="font-bold text-on-surface text-body-sm">{expense.expenseName}</p>

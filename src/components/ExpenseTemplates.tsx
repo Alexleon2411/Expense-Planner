@@ -36,6 +36,10 @@ export default function ExpenseTemplates() {
   const [itemCategory, setItemCategory] = useState('')
   const [itemDay, setItemDay] = useState('')
 
+  // Edit group state
+  const [editingGroup, setEditingGroup] = useState<string | null>(null)
+  const [groupNameEdit, setGroupNameEdit] = useState('')
+
   // Edit item state
   const [editingItem, setEditingItem] = useState<string | null>(null)
   const [editStatus, setEditStatus] = useState('')
@@ -69,7 +73,17 @@ export default function ExpenseTemplates() {
     } catch {}
   }
 
+  const handleRenameGroup = async (id: string) => {
+    if (!groupNameEdit.trim()) return
+    try {
+      const updated = await templatesApi.updateTemplate(id, { name: groupNameEdit.trim() })
+      setGroups((prev) => prev.map((g) => (g.id === id ? updated : g)))
+      setEditingGroup(null)
+    } catch {}
+  }
+
   const handleDeleteGroup = async (id: string) => {
+    if (!window.confirm('¿Seguro que deseas eliminar esta plantilla?')) return
     await templatesApi.deleteTemplate(id)
     setGroups((prev) => prev.filter((g) => g.id !== id))
   }
@@ -93,6 +107,7 @@ export default function ExpenseTemplates() {
   }
 
   const handleDeleteItem = async (groupId: string, itemId: string) => {
+    if (!window.confirm('¿Seguro que deseas eliminar este gasto fijo?')) return
     await templatesApi.deleteItem(groupId, itemId)
     setGroups((prev) =>
       prev.map((g) => (g.id === groupId ? { ...g, items: g.items.filter((i) => i.id !== itemId) } : g)),
@@ -113,15 +128,6 @@ export default function ExpenseTemplates() {
       )
       setEditingItem(null)
     } catch {}
-  }
-
-  const handleApply = async (groupId: string) => {
-    try {
-      await templatesApi.applyTemplate(groupId)
-      alert('Gastos creados desde la plantilla')
-    } catch {
-      alert('Error al aplicar la plantilla')
-    }
   }
 
   return (
@@ -159,22 +165,50 @@ export default function ExpenseTemplates() {
               className="flex items-center justify-between bg-slate-100 p-4 cursor-pointer"
               onClick={() => setExpandedGroup(expandedGroup === group.id ? null : group.id)}
             >
-              <div>
-                <h4 className="font-bold text-lg">{group.name}</h4>
-                <p className="text-sm text-gray-500">{group.items.length} gastos fijos</p>
+              <div className="flex-1">
+                {editingGroup === group.id ? (
+                  <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      className="flex-1 bg-white p-2 border rounded text-sm"
+                      value={groupNameEdit}
+                      onChange={(e) => setGroupNameEdit(e.target.value)}
+                      placeholder="Nombre de la plantilla"
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => handleRenameGroup(group.id)}
+                      className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold hover:bg-green-700"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      onClick={() => setEditingGroup(null)}
+                      className="bg-gray-300 px-3 py-1 rounded text-sm"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <h4 className="font-bold text-lg">{group.name}</h4>
+                    <p className="text-sm text-gray-500">{group.items.length} gastos fijos</p>
+                  </>
+                )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleApply(group.id) }}
-                  className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold hover:bg-green-700"
+                  onClick={() => { setEditingGroup(group.id); setGroupNameEdit(group.name) }}
+                  title="Editar plantilla"
+                  className="p-2 rounded text-gray-600 hover:bg-gray-200"
                 >
-                  Aplicar
+                  <span className="material-symbols-outlined text-[20px]">edit</span>
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.id) }}
-                  className="text-red-600 text-sm hover:underline"
+                  onClick={() => handleDeleteGroup(group.id)}
+                  title="Eliminar plantilla"
+                  className="p-2 rounded text-red-600 hover:bg-red-100"
                 >
-                  Eliminar
+                  <span className="material-symbols-outlined text-[20px]">delete</span>
                 </button>
               </div>
             </div>
@@ -247,7 +281,9 @@ export default function ExpenseTemplates() {
                           >
                             Estado / Comentario
                           </button>
-                          <button onClick={() => handleDeleteItem(group.id, item.id)} className="text-xs text-red-600 hover:underline">Eliminar</button>
+                          <button onClick={() => handleDeleteItem(group.id, item.id)} title="Eliminar gasto fijo" className="text-red-600 hover:text-red-800">
+                            <span className="material-symbols-outlined text-[20px]">delete</span>
+                          </button>
                         </div>
                       </div>
                     )}

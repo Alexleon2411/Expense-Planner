@@ -214,6 +214,20 @@ export function useFixedExpenses() {
     }
   }, [user, loadFixedExpenses])
 
+  const updateItem = useCallback(async (templateId: string, itemId: string, data: { name?: string; amount?: number; categoryId?: string; dayOfMonth?: number }) => {
+    if (!user) return
+    try {
+      setLoading(true)
+      await templatesApi.updateItem(templateId, itemId, data)
+      await loadFixedExpenses()
+    } catch (err) {
+      setError('Error al actualizar el gasto fijo')
+      console.error('Error updating item:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [user, loadFixedExpenses])
+
   const deleteItem = useCallback(async (templateId: string, itemId: string) => {
     if (!user) return
     try {
@@ -249,6 +263,7 @@ export function useFixedExpenses() {
     loadFixedExpenses,
     createTemplate,
     createItem,
+    updateItem,
     deleteItem,
     deleteTemplate,
     markAsPaid,
