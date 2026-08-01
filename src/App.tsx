@@ -9,7 +9,7 @@ import ExpenseFeed from "./components/expense/ExpenseFeed"
 import SideBar, { type View } from './components/Commun/SideBar';
 import HeaderTop from "./components/Commun/Header"
 import LoginForm from "./components/LoginForm"
-import Dashboard from "./components/Dashboard"
+// import Dashboard from "./components/Dashboard"
 import FixedExpenses from "./components/FixedExpenses"
 import Settings from "./components/settings"
 import { useAuth } from "./hooks/useAuth"
