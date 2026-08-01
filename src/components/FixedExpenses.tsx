@@ -14,6 +14,7 @@ export default function FixedExpenses() {
 
     const [showForm, setShowForm] = useState(false);
     const [formMode, setFormMode] = useState<'template' | 'item'>('item');
+    const [editingExpense, setEditingExpense] = useState<typeof fixedExpenses[number] | null>(null);
     const [groupName, setGroupName] = useState('');
     const [itemName, setItemName] = useState('');
     const [itemAmount, setItemAmount] = useState('');
@@ -43,7 +44,7 @@ export default function FixedExpenses() {
         })
     }
 
-    const { fixedExpenses, loading, error, markItemAsPaid, getPendingExpenses, getPaidExpenses, getTotalFixedExpenses, createTemplate, createItem, deleteItem } = useFixedExpenses();
+    const { fixedExpenses, loading, error, markItemAsPaid, getPendingExpenses, getPaidExpenses, getTotalFixedExpenses, createTemplate, createItem, updateItem, deleteItem } = useFixedExpenses();
 
     const pendingExpenses = useMemo(() => getPendingExpenses(), [getPendingExpenses]);
     const paidExpenses = useMemo(() => getPaidExpenses(), [getPaidExpenses]);
@@ -82,6 +83,7 @@ export default function FixedExpenses() {
         setItemCategory('');
         setItemDay('');
         setExistingTemplateId('');
+        setEditingExpense(null);
     }
 
     function openNewItemForm() {
@@ -103,8 +105,28 @@ export default function FixedExpenses() {
         setShowForm(true);
     }
 
+    function openEditItemForm(expense: typeof fixedExpenses[number]) {
+        resetForm();
+        setFormMode('item');
+        setEditingExpense(expense);
+        setExistingTemplateId(expense.templateId);
+        setItemName(expense.name);
+        setItemAmount(String(expense.amount));
+        setItemCategory(expense.categoryId);
+        setItemDay(expense.dueDay ? String(expense.dueDay) : '');
+        setShowForm(true);
+    }
+
     async function handleSubmit() {
-        if (formMode === 'template') {
+        if (editingExpense) {
+            if (!itemName.trim() || !itemAmount || !itemCategory) return;
+            await updateItem(editingExpense.templateId, editingExpense.id, {
+                name: itemName.trim(),
+                amount: parseFloat(itemAmount),
+                categoryId: itemCategory,
+                dayOfMonth: itemDay ? parseInt(itemDay) : undefined,
+            });
+        } else if (formMode === 'template') {
             if (!groupName.trim() || !itemName.trim() || !itemAmount || !itemCategory) return;
             const template = await createTemplate(groupName.trim());
             if (template) {
@@ -312,18 +334,11 @@ export default function FixedExpenses() {
                     return (
                         <section key={group.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
                             <div className="flex items-center justify-between px-lg py-md bg-surface-container-low border-b border-outline-variant">
+                                <div className="hidden md:flex items-center space-x-sm">
                                     <span className="material-symbols-outlined text-primary">folder</span>
-                                {/* <div className="hidden md:flex items-center space-x-sm">
                                     <h3 className="text-headline-sm font-headline-sm text-on-surface">{group.name}</h3>
-                                    <span className="text-body-xs text-on-surface-variant bg-surface-container-highest px-xs py-0.5 rounded">
-                                        {group.expenses.length} expense{group.expenses.length !== 1 ? 's' : ''}
-                                    </span>
-                                    {groupPending > 0 && (
-                                        <span className="text-body-xs text-red-600 bg-red-500/10 px-xs py-0.5 rounded">
-                                            {groupPending} pending
-                                        </span>
-                                    )}
-                                </div> */}
+                                    
+                                </div>
                                 <div className="flex items-center space-x-md">
                                     <span className="text-body-sm font-data-mono text-on-surface-variant">
                                         ${groupTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}/mo
@@ -372,11 +387,21 @@ export default function FixedExpenses() {
                                                                         name={expense.category}
                                                                         size="md"
                                                                     />
-                                                                    {isPaid ? (
-                                                                        <span className="status-gain px-2 py-0.5 rounded-full text-label-caps">Paid</span>
-                                                                    ) : (
-                                                                        <span className="status-loss px-2 py-0.5 rounded-full text-label-caps">Pending</span>
-                                                                    )}
+                                                                    <div className="flex items-center gap-xs">
+                                                                        {isPaid ? (
+                                                                            <span className="status-gain px-2 py-0.5 rounded-full text-label-caps">Paid</span>
+                                                                        ) : (
+                                                                            <span className="status-loss px-2 py-0.5 rounded-full text-label-caps">Pending</span>
+                                                                        )}
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={(e) => { e.stopPropagation(); openEditItemForm(expense); }}
+                                                                            className="p-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <span className="material-symbols-outlined text-sm">edit</span>
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                                 <h4 className="text-body-md font-body-md mb-xs">{expense.name}</h4>
                                                                 <p className="text-data-mono font-data-mono text-lg text-primary">${expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
@@ -438,70 +463,80 @@ export default function FixedExpenses() {
                                         })}
                                     </div>
                                 ) : (
-                                    <table className="w-full border-collapse sm:table-fixed sm:overflow-auto sm:max-h-[400px]">
-                                        <thead>
-                                            <tr className="text-left border-b border-outline-variant">
-                                                <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Name</th>
-                                                <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Category</th>
-                                                <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Amount</th>
-                                                <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Due</th>
-                                                <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Status</th>
-                                                <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-outline-variant">
-                                            {group.expenses.map((expense) => {
-                                                const isPaid = expense.status === 'paid';
+                                    <div className="overflow-x-auto overflow-y-auto sm:max-h-[400px]">
+                                        <table className="w-full min-w-[900px] border-collapse sm:table-fixed">
+                                            <thead>
+                                                <tr className="text-left border-b border-outline-variant">
+                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Name</th>
+                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Category</th>
+                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Amount</th>
+                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Due</th>
+                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Status</th>
+                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-outline-variant">
+                                                {group.expenses.map((expense) => {
+                                                    const isPaid = expense.status === 'paid';
 
-                                                return (
-                                                    <tr key={expense.id} className="hover:bg-surface-container-lowest transition-colors">
-                                                        <td className="px-lg py-sm">
-                                                            <div className="flex items-center space-x-sm">
-                                                                <CategoryIcon
-                                                                    icon={expense.categoryIcon}
-                                                                    color={expense.categoryColor}
-                                                                    name={expense.category}
-                                                                    size="sm"
-                                                                />
-                                                                <span className="text-body-sm">{expense.name}</span>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-md py-sm text-body-sm text-on-surface-variant">{expense.category}</td>
-                                                        <td className="px-md py-sm text-body-sm font-data-mono text-data-mono">${expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                                                        <td className="px-md py-sm text-body-sm text-on-surface-variant">
-                                                            {expense.dueDay ? `${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : '-'}
-                                                        </td>
-                                                        <td className="px-md py-sm">
-                                                            <span className={`px-xs py-0.5 rounded text-body-xs ${getStatusColor(expense.status)}`}>
-                                                                {expense.status === 'paid' ? 'Paid' : expense.status === 'partial' ? 'Partial' : 'Pending'}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-md py-sm">
-                                                            <div className="flex items-center space-x-xs">
-                                                                {!isPaid && (
+                                                    return (
+                                                        <tr key={expense.id} className="hover:bg-surface-container-lowest transition-colors">
+                                                            <td className="px-lg py-sm">
+                                                                <div className="flex items-center space-x-sm">
+                                                                    <CategoryIcon
+                                                                        icon={expense.categoryIcon}
+                                                                        color={expense.categoryColor}
+                                                                        name={expense.category}
+                                                                        size="sm"
+                                                                    />
+                                                                    <span className="text-body-sm">{expense.name}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-md py-sm text-body-sm text-on-surface-variant">{expense.category}</td>
+                                                            <td className="px-md py-sm text-body-sm font-data-mono text-data-mono">${expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                                            <td className="px-md py-sm text-body-sm text-on-surface-variant">
+                                                                {expense.dueDay ? `${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : '-'}
+                                                            </td>
+                                                            <td className="px-md py-sm">
+                                                                <span className={`px-xs py-0.5 rounded text-body-xs ${getStatusColor(expense.status)}`}>
+                                                                    {expense.status === 'paid' ? 'Paid' : expense.status === 'partial' ? 'Partial' : 'Pending'}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-md py-sm">
+                                                                <div className="flex items-center space-x-xs">
+                                                                    {!isPaid && (
+                                                                        <button
+                                                                            className="px-sm py-xs bg-primary text-on-primary font-bold rounded hover:opacity-90 transition-opacity text-body-xs"
+                                                                            type="button"
+                                                                            onClick={() => handleMarkAsPaid(expense.templateId, expense.id)}
+                                                                        >
+                                                                            Pay
+                                                                        </button>
+                                                                    )}
                                                                     <button
-                                                                        className="px-sm py-xs bg-primary text-on-primary font-bold rounded hover:opacity-90 transition-opacity text-body-xs"
+                                                                        className="p-0.5 text-on-surface-variant hover:text-primary transition-colors"
                                                                         type="button"
-                                                                        onClick={() => handleMarkAsPaid(expense.templateId, expense.id)}
+                                                                        onClick={() => openEditItemForm(expense)}
+                                                                        title="Edit"
                                                                     >
-                                                                        Pay
+                                                                        <span className="material-symbols-outlined text-sm">edit</span>
                                                                     </button>
-                                                                )}
-                                                                <button
-                                                                    className="p-0.5 text-on-surface-variant hover:text-red-500 transition-colors"
-                                                                    type="button"
-                                                                    onClick={() => deleteItem(expense.templateId, expense.id)}
-                                                                    title="Remove"
-                                                                >
-                                                                    <span className="material-symbols-outlined text-sm">delete</span>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
+                                                                    <button
+                                                                        className="p-0.5 text-on-surface-variant hover:text-red-500 transition-colors"
+                                                                        type="button"
+                                                                        onClick={() => deleteItem(expense.templateId, expense.id)}
+                                                                        title="Remove"
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-sm">delete</span>
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 )}
                             </div>
                         </section>
@@ -516,7 +551,7 @@ export default function FixedExpenses() {
                     <div className="relative bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-lg mx-4 p-lg space-y-lg">
                         <div className="flex items-center justify-between">
                             <h3 className="text-headline-sm font-headline-sm text-on-surface">
-                                {formMode === 'template' ? 'New Template + Expense' : 'Add Fixed Expense'}
+                                {formMode === 'template' ? 'New Template + Expense' : editingExpense ? 'Edit Fixed Expense' : 'Add Fixed Expense'}
                             </h3>
                             <button
                                 type="button"
@@ -541,7 +576,7 @@ export default function FixedExpenses() {
                                 </div>
                             )}
 
-                            {formMode === 'item' && (
+                            {formMode === 'item' && !editingExpense && (
                                 <div>
                                     <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">Template Group</label>
                                     <select
@@ -623,10 +658,12 @@ export default function FixedExpenses() {
                                 onClick={handleSubmit}
                                 disabled={formMode === 'template'
                                     ? !groupName.trim() || !itemName.trim() || !itemAmount || !itemCategory
-                                    : !existingTemplateId || !itemName.trim() || !itemAmount || !itemCategory}
+                                    : editingExpense
+                                        ? !itemName.trim() || !itemAmount || !itemCategory
+                                        : !existingTemplateId || !itemName.trim() || !itemAmount || !itemCategory}
                                 className="px-md py-sm bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {formMode === 'template' ? 'Create Template' : 'Add Expense'}
+                                {formMode === 'template' ? 'Create Template' : editingExpense ? 'Save Changes' : 'Add Expense'}
                             </button>
                         </div>
                     </div>

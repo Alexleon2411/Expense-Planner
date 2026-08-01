@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { NumericFormat } from 'react-number-format'
 import { userApi } from '../api'
 import { useBudget } from '../hooks/useBudget'
+import {formatCurrecy} from '../helpers'
 
 export default function SalarySection() {
   const [salary, setSalary] = useState<number | null>(null)
@@ -40,7 +41,7 @@ export default function SalarySection() {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6">
+    <div >
       <h3 className="text-xl font-bold mb-4">Ingreso Mensual Fijo</h3>
       {editing ? (
         <div className="flex gap-3 items-end">
@@ -70,7 +71,7 @@ export default function SalarySection() {
       ) : (
         <div className="flex items-center justify-between">
           <p className="text-3xl font-black text-blue-600">
-            {salary ? `$${salary.toLocaleString('es-MX')}` : 'No definido'}
+            {salary ? `${formatCurrecy(salary)}` : 'No definido'}
           </p>
           <button
             onClick={() => setEditing(true)}
@@ -86,6 +87,38 @@ export default function SalarySection() {
           El presupuesto se establece automáticamente según tu ingreso.
         </p>
       )}
+
+      <div className="mt-6 pt-4 border-t border-slate-200">
+        <p className="text-sm font-bold text-gray-700 mb-3">Consejos de finanzas</p>
+
+        {salary && (
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+            <p className="text-xs font-bold text-blue-800 mb-2">Regla 50/30/20</p>
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-600">50% Necesidades</span>
+                <span className="font-bold text-gray-800">{formatCurrecy(salary * 0.5)}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-600">30% Finanzas/Inversiones</span>
+                <span className="font-bold text-gray-800">{formatCurrecy(salary * 0.3)}</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-gray-600">20% Ahorro</span>
+                <span className="font-bold text-gray-800">{formatCurrecy(salary * 0.2)}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <ul className="text-xs text-gray-500 space-y-1.5 list-disc pl-4">
+          <li>Ahorra al menos el 20% de tu ingreso cada mes.</li>
+          <li>Mantén un fondo de emergencia de 3 a 6 meses de gastos.</li>
+          <li>No gastes más del 30% de tu ingreso en vivienda.</li>
+          <li>Revisa tus suscripciones y elimina las que no uses.</li>
+          <li>Prioriza pagar deudas con los intereses más altos primero.</li>
+        </ul>
+      </div>
     </div>
   )
 }

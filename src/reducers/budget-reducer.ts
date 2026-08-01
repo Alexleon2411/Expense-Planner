@@ -23,19 +23,10 @@ export type BudgetState = {
   currentCategory: Category['id']
 }
 
-const localStorageExpenses = () : Expense[] => {
-  const localstorage  = localStorage.getItem('expenses')
-  return localstorage ? JSON.parse(localstorage) : []
-}
-const localStorafeBudget = () : number => {
-  const localstorage = localStorage.getItem('budget')
-  return localstorage ? +localstorage : 0
-}
-
 export const initialState : BudgetState = {
-  budget: localStorafeBudget(),
+  budget: 0,
   modal: false,
-  expenses: localStorageExpenses(),
+  expenses: [],
   editingId: '',
   currentCategory: ''
 }
@@ -51,7 +42,6 @@ const createExpense = (draftExpense: DraftExpense) : Expense => {
 export const budgetReducer = (state: BudgetState = initialState, action: BudgetAction) => {
 
   if(action.type === 'add-budget'){
-    console.log(action.payload.budget)
     return {
       ...state,
       budget: action.payload.budget

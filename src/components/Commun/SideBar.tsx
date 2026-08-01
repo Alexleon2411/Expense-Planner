@@ -62,7 +62,7 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange, mo
 
     const navContent = (
         <>
-            {/* Context Switcher */}
+            {/* Context Switcher
             {!collapsed && (
                 <div className="px-lg mb-xl">
                     <div className="px-md mb-lg mt-10" ref={switcherRef}>
@@ -93,7 +93,7 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange, mo
                         }
                     </div>
                 </div>
-            )}
+            )} */}
 
             {collapsed && <div className="mt-10" />}
 
@@ -103,10 +103,10 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange, mo
                     <span className="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
                     {!collapsed && <span className="text-body-md font-body-md">Dashboard</span>}
                 </button>
-                <button className={navLinkClasses('dashboard')} onClick={() => handleNavigate('dashboard2')} title="Dashboard 2">
+                {/* <button className={navLinkClasses('dashboard')} onClick={() => handleNavigate('dashboard2')} title="Dashboard 2">
                     <span className="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
                     {!collapsed && <span className="text-body-md font-body-md">Dashboard - 2</span>}
-                </button>
+                </button> */}
                 <button className={navLinkClasses('tracker')} onClick={() => handleNavigate('tracker')} title="Expenses Feed">
                     <span className="material-symbols-outlined shrink-0" data-icon="receipt_long">receipt_long</span>
                     {!collapsed && <span className="text-body-md font-body-md">Expenses Feed</span>}

@@ -133,7 +133,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
         <span className="text-body-sm font-body-sm text-outline sm:display-none">Showing {rows.length} items</span>
       </div>
       <div className="overflow-x-auto max-h-[480px] overflow-y-auto relative">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
             <tr className="bg-surface-container-low border-b border-outline-variant">
               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">Date</th>
