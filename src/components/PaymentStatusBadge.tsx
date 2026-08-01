@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useBudget } from '../hooks/useBudget';
 import { Expense } from "../types"
 
@@ -11,77 +11,105 @@ interface Props {
   onPartialAmountUpdated?: () => void
 }
 
-const styles: Record<Status, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  paid: 'bg-green-100 text-green-800 border-green-300',
-  partial: 'bg-blue-100 text-blue-800 border-blue-300',
-}
-
-const labels: Record<Status, string> = {
-  pending: 'Pendiente',
-  paid: 'Pagado',
-  partial: 'Parcial',
+const STATUS_CONFIG: Record<Status, { label: string; icon: string; badge: string }> = {
+  pending: {
+    label: 'Pendiente',
+    icon: 'schedule',
+    badge: 'bg-yellow-100 text-yellow-800',
+  },
+  paid: {
+    label: 'Pagado',
+    icon: 'check_circle',
+    badge: 'bg-secondary-container/40 text-on-secondary-container',
+  },
+  partial: {
+    label: 'Parcial',
+    icon: 'pie_chart',
+    badge: 'bg-primary-fixed/70 text-on-primary-fixed',
+  },
 }
 
 export default function PaymentStatusBadge({ status, partialAmount, expense, onPartialAmountUpdated }: Props) {
+  const [state, setState] = useState<Status>(status || 'pending')
+  const [localPartialAmount, setLocalPartialAmount] = useState<number | undefined>(partialAmount)
+  const [saving, setSaving] = useState(false)
+  const { updateExpensePartialAmount, editExpense } = useBudget()
 
-    const [state, setState] = useState(status || 'pending')
-    const [localPartialAmount, setLocalPartialAmount] = useState(partialAmount);
-    const { updateExpensePartialAmount, editExpense } = useBudget()
+  useEffect(() => {
+    setState(status)
+    setLocalPartialAmount(partialAmount)
+  }, [status, partialAmount])
 
-    const HandlePartialAmount =  async() => {
+  const interactive = Boolean(expense)
+  const config = STATUS_CONFIG[state]
 
-      if (localPartialAmount != partialAmount && localPartialAmount !== undefined) {
-        if (!expense) return;
-
-        if (state === 'partial' && localPartialAmount >= 0 && localPartialAmount < expense.amount!) {
-          const newPartialAmount = localPartialAmount + (expense.partialAmount || 0)
-          setLocalPartialAmount(newPartialAmount)
-          console.log("partial amount", partialAmount)
-          console.log("estado parcial nuevo #1", localPartialAmount + (partialAmount || 0))
-          await updateExpensePartialAmount(expense.id, newPartialAmount)
-          onPartialAmountUpdated!()
-        }
-       
-      }else if (state === 'paid'){
-        if (!expense) return;
-          console.log("entering to paid")
-          const newPartialAmount = expense.amount
-          setLocalPartialAmount(newPartialAmount)
-          await editExpense({...expense, status: state as 'pending' | 'partial' | 'paid', partialAmount: newPartialAmount})
-          onPartialAmountUpdated!()
-          console.log("estado parcial nuevo #2", localPartialAmount)
-        
+  const handleSave = async () => {
+    if (!expense) return
+    setSaving(true)
+    try {
+      if (state === 'paid') {
+        await editExpense({ ...expense, status: 'paid', partialAmount: expense.amount })
+      } else if (state === 'partial') {
+        await updateExpensePartialAmount(expense.id, localPartialAmount ?? 0)
+      } else {
+        await editExpense({ ...expense, status: 'pending', partialAmount: 0 })
       }
+      onPartialAmountUpdated?.()
+    } finally {
+      setSaving(false)
     }
+  }
 
   return (
-    <span className={`text-xs font-bold px-2 py-1 rounded border ${styles[state]}`}>
-      {labels[state]}
-      {state === 'partial' && partialAmount ? ` $${partialAmount}` : ''}
-      <div className="flex gap-2 items-center flex-wrap">
-          <select
-            className="bg-slate-100 p-1 text-sm border rounded"
-            value={status}
-            onChange={(e) => setState(e.target.value as 'pending' | 'paid' | 'partial')}
-          >
-            <option value="pending">Pendiente</option>
-            <option value="paid">Pagado</option>
-            <option value="partial">Pago Parcial</option>
-          </select>
+    <div className="inline-flex items-center gap-sm flex-wrap">
+      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${config.badge}`}>
+        <span className="material-symbols-outlined text-[14px] leading-none">{config.icon}</span>
+        {config.label}
+        {state === 'partial' && partialAmount !== undefined && partialAmount > 0 && (
+          <span className="font-data-mono font-semibold">${partialAmount.toLocaleString('es-MX')}</span>
+        )}
+      </span>
+
+      {interactive && (
+        <div className="inline-flex items-center gap-xs">
+          <div className="relative">
+            <select
+              aria-label="Estado de pago"
+              className="appearance-none pr-6 pl-2.5 py-1.5 text-xs font-bold rounded-md border border-outline-variant bg-surface-container-lowest cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none"
+              value={state}
+              onChange={(e) => setState(e.target.value as Status)}
+            >
+              <option value="pending">Pendiente</option>
+              <option value="paid">Pagado</option>
+              <option value="partial">Pago Parcial</option>
+            </select>
+            <span className="material-symbols-outlined absolute right-1 top-1/2 -translate-y-1/2 text-[14px] text-outline pointer-events-none">
+              expand_more
+            </span>
+          </div>
+
           {state === 'partial' && (
             <input
               type="number"
-              className="bg-slate-100 p-1 text-sm border rounded w-24"
+              min={0}
+              aria-label="Monto parcial"
+              className="w-24 px-2.5 py-1.5 text-xs font-data-mono rounded-md border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none"
+              value={localPartialAmount ?? ''}
               onChange={(e) => setLocalPartialAmount(Number(e.target.value))}
-              placeholder="Monto parcial"
+              placeholder="Monto"
             />
           )}
-          {/* <button onClick={handleSaveStatus} className="text-xs bg-green-600 text-white px-2 py-1 rounded">Guardar</button>
-          <button onClick={() => setEditingStatus(false)} className="text-xs bg-gray-300 px-2 py-1 rounded">Cancelar</button> */}
-          <button onClick={HandlePartialAmount}>Complete it</button>
+
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold text-on-primary bg-primary hover:opacity-85 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span className="material-symbols-outlined text-[14px] leading-none">{saving ? 'sync' : 'save'}</span>
+            {saving ? 'Guardando' : 'Guardar'}
+          </button>
         </div>
-    </span>
-    
+      )}
+    </div>
   )
 }

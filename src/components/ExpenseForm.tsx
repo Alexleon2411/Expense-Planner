@@ -25,7 +25,7 @@ export default function ExpenseForm() {
   })
 const [showCategoryForm, setShowCategoryForm] = useState(false)
 
-  const { state, reminderBudget, addExpense, editExpense, apiLoading } = useBudget()
+  const { state, reminderBudget, addExpense, editExpense, apiLoading, dispatch } = useBudget()
   const { categories, refreshCategories } = useCategories()
 
   const updateCategoryList = async (categoryId?: string) => {
@@ -108,10 +108,20 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
-      <legend className="uppercase text-center text-2xl font-black border-b-4 border-blue-500 py-2">
+              <button
+                type="button"
+                onClick={() => dispatch({ type: 'close-modal' })}
+                className=" hover:bg-black text-md font-boldn absolute top-4 right-5 px-3 py-2 rounded-lg text-white bg-zinc-900"
+                aria-label="Cerrar modal"
+              >
+                X
+              </button>
+      <legend className="uppercase text-center text-2xl font-black border-b-4 border-zinc-700 py-2">
         {state.editingId ? 'Actualizar gasto' : 'Nuevo Gasto'}
       </legend>
       {error && <ErrorMessage>{error}</ErrorMessage>}
+      <div className="flex justify-end">
+      </div>
 
       <div className="flex flex-col gap-2">
         <label htmlFor="expenseName" className="text-xl">Nombre Del gasto: </label>
@@ -217,7 +227,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
       <input
         type="submit"
         disabled={apiLoading}
-        className="bg-blue-600 cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg disabled:opacity-50"
+        className="bg-zinc-900 cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg disabled:opacity-50"
         value={apiLoading ? "Guardando..." : state.editingId ? "Guardar Cambio" : "Registrar gasto"}
       />
     </form>

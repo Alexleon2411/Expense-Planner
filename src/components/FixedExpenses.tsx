@@ -176,7 +176,7 @@ export default function FixedExpenses() {
 
     return (
         <div className="p-lg space-y-lg">
-            <main className="p-lg space-y-xl">
+            <main className="space-y-xl">
                 {/* Header */}
                 <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
                         <div className="relative z-10">

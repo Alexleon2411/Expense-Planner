@@ -27,7 +27,7 @@ export default function Dashboard3() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  const { state, totalExpense, reminderBudget } = useBudget()
+  const { state, totalExpense, reminderBudget, getAllExpenses } = useBudget()
   const { categories } = useCategories()
   const { fixedExpenses } = useFixedExpenses()
 
@@ -381,24 +381,66 @@ export default function Dashboard3() {
               <div className="p-lg">
                 {innerTab === 'resumen' && (
                   recentExpenses.length > 0 ? (
-                    <div className="space-y-sm">
-                      <h4 className="text-headline-sm font-bold mb-md">Últimos Gastos</h4>
-                      {recentExpenses.map((exp) => (
-                        <div key={exp.id} className="flex items-center justify-between bg-surface-container-low p-sm rounded-lg">
-                          <div>
-                            <p className="font-bold text-body-md">{exp.expenseName}</p>
-                            <div className="flex items-center gap-sm">
-                              <span className="text-body-sm text-on-surface-variant">
-                                {exp.date instanceof Date
-                                  ? exp.date.toLocaleDateString('es-MX')
-                                  : new Date(String(exp.date)).toLocaleDateString('es-MX')}
-                              </span>
-                              <PaymentStatusBadge status={exp.status || 'pending'} partialAmount={exp.partialAmount} />
+                    <div>
+                      <div className="flex items-center justify-between mb-md">
+                        <h4 className="text-headline-sm font-bold">Últimos Gastos</h4>
+                        <span className="px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-label-caps font-label-caps">
+                          {recentExpenses.length} recientes
+                        </span>
+                      </div>
+                      <div className="divide-y divide-outline-variant rounded-xl border border-outline-variant overflow-hidden bg-surface-container-lowest shadow-sm">
+                        {recentExpenses.map((exp) => {
+                          const category = getCategoryInfo(exp.category)
+                          return (
+                            <div key={exp.id} className="flex items-center gap-md p-md hover:bg-surface-container-low transition-colors">
+                              <CategoryIcon
+                                icon={category?.icon}
+                                color={category?.color}
+                                name={category?.name || exp.category}
+                                size="md"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-md">
+                                  <p className="font-bold text-body-md truncate">{exp.expenseName}</p>
+                                  <div className="text-right shrink-0">
+                                    {exp.status === 'partial' && (exp.partialAmount ?? 0) > 0 ? (
+                                      <>
+                                        <p className="text-headline-sm font-black text-primary font-data-mono">
+                                          {formatCurrecy(Math.max(0, exp.amount - (exp.partialAmount ?? 0)))}
+                                        </p>
+                                        <p className="text-[11px] text-on-surface-variant font-data-mono whitespace-nowrap">
+                                          Pagado {formatCurrecy(exp.partialAmount ?? 0)} de {formatCurrecy(exp.amount)}
+                                        </p>
+                                      </>
+                                    ) : (
+                                      <p className="text-headline-sm font-black text-primary font-data-mono">{formatCurrecy(exp.amount)}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-sm mt-1 flex-wrap">
+                                  {category && (
+                                    <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container-highest text-on-surface-variant">
+                                      {category.name}
+                                    </span>
+                                  )}
+                                  <span className="text-body-sm text-on-surface-variant inline-flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                                    {exp.date instanceof Date
+                                      ? exp.date.toLocaleDateString('es-MX')
+                                      : new Date(String(exp.date)).toLocaleDateString('es-MX')}
+                                  </span>
+                                  <PaymentStatusBadge
+                                    status={exp.status || 'pending'}
+                                    partialAmount={exp.partialAmount}
+                                    expense={exp}
+                                    onPartialAmountUpdated={() => getAllExpenses(1, 100)}
+                                  />
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <p className="text-headline-sm font-black text-primary font-data-mono">{formatCurrecy(exp.amount)}</p>
-                        </div>
-                      ))}
+                          )
+                        })}
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center text-on-surface-variant py-lg">
