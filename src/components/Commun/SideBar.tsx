@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-type Context = 'individuo' | 'family' | 'company' | null;
+// type Context = 'individuo' | 'family' | 'company' | null;
 export type View = 'tracker' | 'dashboard' | 'fixedExpenses' | 'settings' | 'support' | 'profile' | 'dashboard2' | 'report';
 
 interface SideBarProps {
@@ -13,7 +13,7 @@ interface SideBarProps {
 }
 
 export default function SideBar({ currentView, onNavigate, onCollapsedChange, mobileOpen = false, onMobileClose }: SideBarProps) {
-    const [contextStatus, setContextStatus] = useState<Context>(null);
+    // const [contextStatus, setContextStatus] = useState<Context>(null);
     const [showContext, setShowContext] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
     const switcherRef = useRef<HTMLDivElement | null>(null);
@@ -24,7 +24,7 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange, mo
         onCollapsedChange?.(next);
     };
 
-    const handleShowcontext = () => setShowContext((prev) => !prev);
+    // const handleShowcontext = () => setShowContext((prev) => !prev);
 
     useEffect(() => {
         if (!showContext) return;
@@ -39,12 +39,12 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange, mo
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showContext]);
 
-    const handleContextSelection = (btnStatus: Context) =>
-        `p-xs hover:bg-surface-container-low rounded cursor-pointer text-body-sm w-full text-left transition-colors ${
-            contextStatus === btnStatus
-            ? 'text-primary font-bold border-l-4 border-primary pl-4'
-            : 'text-on-surface-variant'
-        }`;
+    // const handleContextSelection = (btnStatus: Context) =>
+    //     `p-xs hover:bg-surface-container-low rounded cursor-pointer text-body-sm w-full text-left transition-colors ${
+    //         contextStatus === btnStatus
+    //         ? 'text-primary font-bold border-l-4 border-primary pl-4'
+    //         : 'text-on-surface-variant'
+    //     }`;
 
     const navLinkClasses = (view: View) =>
         `flex items-center gap-md py-sm transition-colors pl-4 rounded-lg w-full text-left ${
