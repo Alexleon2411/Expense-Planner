@@ -167,17 +167,17 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
     return (
         <div>
             <div
-                className={`fixed inset-0 drawer-overlay z-[100] transition-opacity duration-300 ${
-                    isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                }`}
+                className="fixed inset-0 drawer-overlay z-[100] transition-opacity duration-300 bg-black/50 backdrop-blur-sm"
                 onClick={onClose}
             ></div>
 
             <div
-                className={`fixed right-0 top-0 h-full w-full max-w-md bg-surface shadow-2xl z-[101] transition-transform duration-300 ease-in-out p-lg flex flex-col ${
-                    isOpen ? 'translate-x-0' : 'translate-x-full'
-                }`}
+                className="fixed inset-0 z-[101] flex items-center justify-center p-lg"
+                role="dialog"
+                aria-modal="true"
+                onClick={onClose}
             >
+            <div className="w-full max-w-md max-h-[90vh] bg-surface shadow-2xl rounded-xl flex flex-col p-lg" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-xl">
                     <h3 className="text-headline-md font-headline-md">
                         {editing ? 'Edit Transaction' : 'Transaction Details'}
@@ -223,7 +223,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                     </div>
 
                     {/* Amount & Status */}
-                    <div className="grid grid-cols-2 gap-md p-lg bg-surface-container-low rounded-xl">
+                    <div className={editing ? "space-y-md p-lg bg-surface-container-low rounded-xl" : "grid grid-cols-2 gap-md p-lg bg-surface-container-low rounded-xl"}>
                         <div>
                             <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">Amount</p>
                             {editing ? (
@@ -245,10 +245,10 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                         <div>
                             <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">Status</p>
                             {editing ? (
-                                <div className="flex flex-wrap gap-1">
-                                    <button className={statusBtnClass('paid')} onClick={() => setStatus('paid')} type="button">Paid</button>
-                                    <button className={statusBtnClass('pending')} onClick={() => setStatus('pending')} type="button">Pending</button>
-                                    <button className={statusBtnClass('partial')} onClick={() => setStatus('partial')} type="button">Partial</button>
+                                <div className="flex gap-1">
+                                    <button className={`${statusBtnClass('paid')} flex-1`} onClick={() => setStatus('paid')} type="button">Paid</button>
+                                    <button className={`${statusBtnClass('pending')} flex-1`} onClick={() => setStatus('pending')} type="button">Pending</button>
+                                    <button className={`${statusBtnClass('partial')} flex-1`} onClick={() => setStatus('partial')} type="button">Partial</button>
                                 </div>
                             ) : (
                                 <span className={`px-sm py-xs rounded-full text-label-caps font-label-caps uppercase ${statusClass(expense.status || 'pending')}`}>
@@ -427,6 +427,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                         </>
                     )}
                 </div>
+            </div>
             </div>
         </div>
     );

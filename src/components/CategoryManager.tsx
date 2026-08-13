@@ -11,8 +11,6 @@ interface Category {
   isDefault: boolean
 }
 
-const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16']
-
 export default function CategoryManager() {
   const [categories, setCategories] = useState<Category[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -93,14 +91,20 @@ export default function CategoryManager() {
           <div>
             <label className="text-sm">Color</label>
             <div className="flex gap-2 flex-wrap mt-1">
-              {COLORS.map((c) => (
+              {/* {COLORS.map((c) => (
                 <button
                   key={c}
                   onClick={() => setColor(c)}
                   className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-gray-800' : 'border-transparent'}`}
                   style={{ backgroundColor: c }}
                 />
-              ))}
+              ))} */}
+              <input
+                type="color"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+                className="w-[200px] h-10 p-0  cursor-pointer rounded-lg"
+              />
             </div>
           </div>
           <IconPicker value={icon} onChange={setIcon} />

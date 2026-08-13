@@ -49,6 +49,14 @@ export default function FixedExpenses() {
     const pendingExpenses = useMemo(() => getPendingExpenses(), [getPendingExpenses]);
     const paidExpenses = useMemo(() => getPaidExpenses(), [getPaidExpenses]);
     const totalFixed = useMemo(() => getTotalFixedExpenses(), [getTotalFixedExpenses]);
+    const paidFixedAmount = useMemo(() => {
+        return fixedExpenses.reduce((sum, expense) => {
+            if (expense.status === 'paid') return sum + expense.amount;
+            if (expense.status === 'partial') return sum + (expense.partialAmount || 0);
+            return sum;
+        }, 0);
+    }, [fixedExpenses]);
+    const remainingFixedAmount = totalFixed - paidFixedAmount;
 
     const templateGroups = useMemo(() => {
         const groupMap = new Map<string, { id: string; name: string; expenses: typeof fixedExpenses }>();
@@ -251,28 +259,34 @@ export default function FixedExpenses() {
                     </div>
                 )}
 
-                {/* Summary Cards */}
-                <div className="hidden md:grid md:grid-cols-3 gap-gutter">
-                    <div className="bg-surface-container-lowest rounded-xl p-md border border-outline-variant">
-                        <div className="flex items-center space-x-sm mb-sm">
+                {/* Summary */}
+                <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+                    <div className="flex items-center justify-between px-md py-sm bg-surface-container-low border-b border-outline-variant">
+                        <div className="flex items-center space-x-sm">
                             <span className="material-symbols-outlined text-primary">receipt_long</span>
                             <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">Total Fixed</span>
                         </div>
-                        <p className="text-headline-md font-headline-md text-primary">${totalFixed.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                        <span className="text-headline-md font-headline-md text-primary">${totalFixed.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                     </div>
-                    <div className="bg-surface-container-lowest rounded-xl p-md border border-outline-variant">
-                        <div className="flex items-center space-x-sm mb-sm">
-                            <span className="material-symbols-outlined text-green-500">check_circle</span>
-                            <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">Paid</span>
+                    <div className="p-md space-y-sm">
+                        <div className="flex justify-between items-baseline">
+                            <span className="text-body-sm text-on-surface-variant">
+                                Pagado <span className="text-on-surface-variant/60">· {paidExpenses.length} {paidExpenses.length === 1 ? 'item' : 'items'}</span>
+                            </span>
+                            <span className="text-headline-sm font-headline-sm text-green-500">${paidFixedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                         </div>
-                        <p className="text-headline-md font-headline-md text-green-500">{paidExpenses.length}</p>
-                    </div>
-                    <div className="bg-surface-container-lowest rounded-xl p-md border border-outline-variant">
-                        <div className="flex items-center space-x-sm mb-sm">
-                            <span className="material-symbols-outlined text-red-500">schedule</span>
-                            <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">Pending</span>
+                        <div className="flex justify-between items-baseline">
+                            <span className="text-body-sm text-on-surface-variant">
+                                Pendiente <span className="text-on-surface-variant/60">· {pendingExpenses.length} {pendingExpenses.length === 1 ? 'item' : 'items'}</span>
+                            </span>
+                            <span className="text-headline-sm font-headline-sm text-red-500">${remainingFixedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                         </div>
-                        <p className="text-headline-md font-headline-md text-red-500">{pendingExpenses.length}</p>
+                        <div className="w-full h-2 rounded-full bg-surface-container-high overflow-hidden">
+                            <div
+                                className="h-2 rounded-full bg-green-500"
+                                style={{ width: `${totalFixed > 0 ? (paidFixedAmount / totalFixed) * 100 : 0}%` }}
+                            />
+                        </div>
                     </div>
                 </div>
 

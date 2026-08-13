@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useCategories } from '../hooks/useCategories'
 
 const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
@@ -24,9 +24,6 @@ export default function CategoryPieChart({ data }: Props) {
     return <p className="text-gray-500 text-center py-8">Sin datos para mostrar</p>
   }
 
-  const renderLabel = (entry: { name?: string; percent?: number }) =>
-    `${entry.name || ''} ${((entry.percent || 0) * 100).toFixed(0)}%`
-
   return (
     <div>
       <ResponsiveContainer width="100%" height={280}>
@@ -38,16 +35,29 @@ export default function CategoryPieChart({ data }: Props) {
             cx="50%"
             cy="50%"
             outerRadius={100}
-            label={renderLabel}
           >
             {enrichedData.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip formatter={tooltipFormatter} />
-          <Legend />
+          <Tooltip
+            formatter={tooltipFormatter}
+            contentStyle={{ borderRadius: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+          />
         </PieChart>
       </ResponsiveContainer>
+      <ul className="mt-4 space-y-1.5">
+        {enrichedData.map((d, i) => (
+          <li key={d.category} className="flex items-center gap-2 text-sm min-w-0">
+            <span
+              className="w-3 h-3 rounded-full shrink-0"
+              style={{ backgroundColor: COLORS[i % COLORS.length] }}
+            />
+            <span className="flex-1 truncate">{d.name}</span>
+            <span className="font-bold shrink-0">${d.total.toLocaleString('es-MX')} · {((d.total / total) * 100).toFixed(0)}%</span>
+          </li>
+        ))}
+      </ul>
       <p className="text-center text-lg font-bold mt-2">Total: ${total.toLocaleString('es-MX')}</p>
     </div>
   )
