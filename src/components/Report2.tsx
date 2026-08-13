@@ -6,6 +6,8 @@ import { useFixedExpenses } from '../hooks/useFixedExpenses'
 import { isCurrentMonth, summarizePaidFixed } from '../helpers/fixedExpensesStats'
 import { formatCurrecy } from '../helpers'
 import CategoryIcon from './CategoryIcon'
+import DetailedBreakdownReport from './DetailedBreakdownReport'
+import AllTransactionsModal from './AllTransactionsModal'
 
 const MONTHS_LONG = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
@@ -23,6 +25,8 @@ export default function Report2() {
   const [yearlyStats, setYearlyStats] = useState<YearlyStats | null>(null)
   const [prevYearStats, setPrevYearStats] = useState<YearlyStats | null>(null)
   const [recentExpenses, setRecentExpenses] = useState<{ id: string; expenseName: string; amount: number; category: string; date: Date }[]>([])
+  const [showBreakdown, setShowBreakdown] = useState(false)
+  const [showAllTransactions, setShowAllTransactions] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const { categories } = useCategories()
@@ -211,7 +215,7 @@ export default function Report2() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
             <div className="bento-card">
               <div className="flex justify-between items-start mb-xs">
-                <p className="text-label-caps font-label-caps text-on-surface-variant">TOTAL BALANCE</p>
+                <p className="text-label-caps font-label-caps text-on-surface-variant">TOTAL BALANCE EXPENT</p>
                 <span className="text-secondary material-symbols-outlined text-sm">account_balance</span>
               </div>
               <h2 className="text-headline-lg font-bold text-primary font-data-mono mb-2">{formatCurrecy(totalSpent)}</h2>
@@ -408,7 +412,10 @@ export default function Report2() {
                       <p className="text-body-sm text-on-surface-variant">No volume data for this month.</p>
                     )}
                   </div>
-                  <button className="mt-8 w-full border border-outline-variant py-2 rounded text-body-sm font-bold hover:bg-surface-container-low transition-colors">
+                  <button
+                    onClick={() => setShowBreakdown(true)}
+                    className="mt-8 w-full border border-outline-variant py-2 rounded text-body-sm font-bold hover:bg-surface-container-low transition-colors"
+                  >
                     Detailed Breakdown Report
                   </button>
                 </div>
@@ -460,12 +467,29 @@ export default function Report2() {
                 )}
               </div>
               <div className="mt-lg pt-lg border-t border-outline-variant text-center">
-                <a className="text-primary font-bold text-body-sm hover:underline" href="#">View All Transactions</a>
+                <button
+                  className="text-primary font-bold text-body-sm hover:underline"
+                  onClick={() => setShowAllTransactions(true)}
+                >
+                  View All Transactions
+                </button>
               </div>
             </div>
           </div>
         </div>
       </main>
+      <DetailedBreakdownReport
+        isOpen={showBreakdown}
+        onClose={() => setShowBreakdown(false)}
+        month={selectedMonth}
+        year={selectedYear}
+      />
+      <AllTransactionsModal
+        isOpen={showAllTransactions}
+        onClose={() => setShowAllTransactions(false)}
+        month={selectedMonth}
+        year={selectedYear}
+      />
     </div>
   )
 }

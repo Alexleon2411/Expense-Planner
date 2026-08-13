@@ -8,12 +8,19 @@ export interface ReceiptData {
   rawText: string;
 }
 
+const ABACUS_AI_URL = (import.meta.env.VITE_ABACUS_AI_URL as string) || 'https://routellm.abacus.ai/v1';
+const ABACUS_AI_RAW_KEY = (import.meta.env.VITE_ABACUS_AI_KEY as string | undefined)?.trim() || '';
+const ABACUS_AI_KEY = ABACUS_AI_RAW_KEY && !ABACUS_AI_RAW_KEY.startsWith('YOUR_') ? ABACUS_AI_RAW_KEY : undefined;
+const ABACUS_AI_MODEL = (import.meta.env.VITE_ABACUS_AI_MODEL as string) || 'route-llm';
+
+const VALID_CATEGORIES = ['Ahorro', 'Comida', 'Casa', 'Gastos Varios', 'Ocio', 'Salud', 'Suscripciones'];
+
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   'Comida': ['restaurant', 'cafe', 'coffee', 'mcdonald', 'starbucks', 'burger', 'pizza', 'food', 'dining', 'lunch', 'dinner', 'breakfast', 'comida', 'restaurante', 'taqueria', 'tacos'],
   'Transporte': ['uber', 'lyft', 'taxi', 'gas', 'fuel', 'parking', 'toll', 'transport', 'gasolina', 'estacionamiento', 'peaje'],
   'Suscripciones': ['subscription', 'monthly', 'netflix', 'spotify', 'amazon prime', 'suscripcion', 'mensual'],
   'Salud': ['pharmacy', 'hospital', 'doctor', 'medical', 'health', 'farmacia', 'hospital', 'medico', 'salud'],
-  'Housing & Utilities': ['electric', 'water', 'internet', 'rent', 'utility', 'luz', 'agua', 'internet', 'renta'],
+  'Casa': ['electric', 'water', 'internet', 'rent', 'utility', 'luz', 'agua', 'internet', 'renta', 'home', 'casa', 'house'],
   'Software SaaS': ['software', 'saas', 'cloud', 'hosting', 'domain', 'aws', 'google cloud', 'microsoft'],
   'Gastos Varios': ['store', 'shop', 'market', 'walmart', 'target', 'costco', 'tienda', 'supermarket'],
 };
@@ -42,32 +49,6 @@ function extractAmount(text: string): number {
   }
 
   return 0;
-}
-
-function extractDate(text: string): string {
-  const patterns = [
-    { regex: /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/, handler: (m: RegExpMatchArray) => `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}` },
-    { regex: /(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/, handler: (m: RegExpMatchArray) => `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}` },
-    { regex: /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+(\d{1,2}),?\s+(\d{4})/i, handler: (m: RegExpMatchArray) => {
-      const months: Record<string, string> = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
-      return `${m[3]}-${months[m[1].toLowerCase().slice(0, 3)]}-${m[2].padStart(2, '0')}`;
-    }},
-    { regex: /(\d{1,2})\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s+(\d{4})/i, handler: (m: RegExpMatchArray) => {
-      const months: Record<string, string> = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
-      return `${m[3]}-${months[m[2].toLowerCase().slice(0, 3)]}-${m[1].padStart(2, '0')}`;
-    }},
-  ];
-
-  for (const { regex, handler } of patterns) {
-    const match = text.match(regex);
-    if (match) {
-      const dateStr = handler(match);
-      const d = new Date(dateStr);
-      if (!isNaN(d.getTime())) return dateStr;
-    }
-  }
-
-  return new Date().toISOString().split('T')[0];
 }
 
 function extractMerchant(text: string): string {
@@ -102,10 +83,106 @@ function detectCategory(text: string): string {
     }
   }
 
-  return bestCategory;
+  return VALID_CATEGORIES.includes(bestCategory) ? bestCategory : 'Gastos Varios';
 }
 
-export async function scanReceipt(file: File): Promise<ReceiptData> {
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function parseAIJson(content: string): Record<string, unknown> {
+  const cleaned = content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  try {
+    const obj = JSON.parse(cleaned);
+    return obj && typeof obj === 'object' ? (obj as Record<string, unknown>) : {};
+  } catch {
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      try {
+        return JSON.parse(match[0]);
+      } catch {
+        return {};
+      }
+    }
+  }
+  return {};
+}
+
+function closestCategory(raw: string): string {
+  const lower = raw.toLowerCase();
+  const exact = VALID_CATEGORIES.find(c => c.toLowerCase() === lower);
+  if (exact) return exact;
+  const partial = VALID_CATEGORIES.find(c => lower.includes(c.toLowerCase()) || c.toLowerCase().includes(lower));
+  if (partial) return partial;
+  return 'Gastos Varios';
+}
+
+async function scanWithAI(file: File): Promise<ReceiptData> {
+  if (!ABACUS_AI_KEY) throw new Error('Missing Abacus AI key');
+
+  const imageUrl = await fileToDataUrl(file);
+
+  const response = await fetch(`${ABACUS_AI_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${ABACUS_AI_KEY}`,
+    },
+    body: JSON.stringify({
+      model: ABACUS_AI_MODEL,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: `You are a receipt analyzer. Look at the receipt image and extract the purchase information.
+
+Return ONLY valid JSON in this exact format (no markdown, no extra text):
+{"merchant": "store name", "amount": 12.5, "category": "one of the categories"}
+
+Rules:
+- merchant: the store/merchant name shown on the receipt
+- amount: the total amount spent, as a number
+- category: exactly one of: ${VALID_CATEGORIES.join(', ')}`,
+            },
+            { type: 'image_url', image_url: { url: imageUrl } },
+          ],
+        },
+      ],
+      temperature: 0,
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Abacus AI request failed: ${response.status} ${text}`);
+  }
+
+  const data = await response.json();
+  const content: string = data.choices?.[0]?.message?.content ?? '';
+  const parsed = parseAIJson(content);
+
+  const merchant = String(parsed.merchant ?? '').trim();
+  const rawAmount = Number(parsed.amount);
+  const amount = isNaN(rawAmount) || rawAmount <= 0 ? 0 : rawAmount;
+  const category = closestCategory(String(parsed.category ?? '').trim());
+
+  return {
+    merchant,
+    amount,
+    date: new Date().toISOString().split('T')[0],
+    category,
+    rawText: content,
+  };
+}
+
+async function scanWithOCR(file: File): Promise<ReceiptData> {
   const worker = await createWorker('eng');
 
   try {
@@ -114,11 +191,27 @@ export async function scanReceipt(file: File): Promise<ReceiptData> {
 
     const merchant = extractMerchant(rawText);
     const amount = extractAmount(rawText);
-    const date = extractDate(rawText);
     const category = detectCategory(rawText);
 
-    return { merchant, amount, date, category, rawText };
+    return {
+      merchant,
+      amount,
+      date: new Date().toISOString().split('T')[0],
+      category,
+      rawText,
+    };
   } finally {
     await worker.terminate();
   }
+}
+
+export async function scanReceipt(file: File): Promise<ReceiptData> {
+  if (ABACUS_AI_KEY) {
+    try {
+      return await scanWithAI(file);
+    } catch (error) {
+      console.error('AI receipt scan failed, falling back to OCR:', error);
+    }
+  }
+  return scanWithOCR(file);
 }

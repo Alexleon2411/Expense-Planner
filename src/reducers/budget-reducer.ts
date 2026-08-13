@@ -124,5 +124,14 @@ export const budgetReducer = (state: BudgetState = initialState, action: BudgetA
     }
   }
 
+  if(action.type === 'update-expense-partial-amount'){
+    return {
+      ...state,
+      expenses: state.expenses.map(item => item.id === action.payload.id
+        ? { ...item, status: 'partial' as Expense['status'], partialAmount: action.payload.partialAmount }
+        : item)
+    }
+  }
+
   return state
 }

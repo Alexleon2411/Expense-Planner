@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { Fragment, useState, useEffect, useMemo } from 'react'
 import { statsApi } from '../api'
 import type { OverviewResponse, CategoryBreakdown, MonthlyTrend } from '../api/stats'
 import { useBudget } from '../hooks/useBudget'
@@ -24,6 +24,7 @@ const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
 export default function Dashboard3() {
   const [mainTab, setMainTab] = useState<MainTab>('dashboard')
   const [innerTab, setInnerTab] = useState<InnerTab>('resumen')
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
@@ -70,6 +71,31 @@ export default function Dashboard3() {
     return (
       categories.find(c => c.id === categoryId) ||
       categories.find(c => c.name.toLowerCase() === categoryId.toLowerCase())
+    )
+  }
+
+  const statusBadge = (status?: string) => {
+    if (status === 'paid') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-secondary-container/40 text-on-secondary-container whitespace-nowrap">
+          <span className="material-symbols-outlined text-[14px] leading-none">check_circle</span>
+          Pagado
+        </span>
+      )
+    }
+    if (status === 'partial') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-primary-fixed/70 text-on-primary-fixed whitespace-nowrap">
+          <span className="material-symbols-outlined text-[14px] leading-none">pie_chart</span>
+          Pago Parcial
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 whitespace-nowrap">
+        <span className="material-symbols-outlined text-[14px] leading-none">schedule</span>
+        Pendiente
+      </span>
     )
   }
 
@@ -126,14 +152,18 @@ export default function Dashboard3() {
         detail: `Llevas ${formatCurrecy(totalSpentAll)} de ${formatCurrecy(totalBudget)}. Estás ${formatCurrecy(totalSpentAll - totalBudget)} por encima.`,
         tone: 'error',
       })
-    } else if (usagePct > elapsedPct * 100 + 15) {
-      const projected = (totalSpentAll / elapsedDay) * daysInMonth
-      items.push({
-        icon: 'speed',
-        title: 'Ritmo de gasto muy rápido',
-        detail: `Has usado el ${usagePct.toFixed(0)}% del presupuesto con solo el ${(elapsedPct * 100).toFixed(0)}% del mes. Al ritmo actual terminarás gastando ${formatCurrecy(projected)}.`,
-        tone: 'warn',
-      })
+    } else if (fixedTotal < totalBudget) {
+      const variableBudget = totalBudget - fixedTotal
+      const variableUsagePct = (regularSpent / variableBudget) * 100
+      if (variableUsagePct > elapsedPct * 100 + 15) {
+        const projected = (regularSpent / elapsedDay) * daysInMonth
+        items.push({
+          icon: 'speed',
+          title: 'Ritmo de gasto muy rápido',
+          detail: `Has usado el ${variableUsagePct.toFixed(0)}% del presupuesto variable con solo el ${(elapsedPct * 100).toFixed(0)}% del mes. Al ritmo actual terminarás gastando ${formatCurrecy(projected)} en gastos variables (los fijos van aparte).`,
+          tone: 'warn',
+        })
+      }
     }
 
     if (sortedCategories.length > 0) {
@@ -161,7 +191,7 @@ export default function Dashboard3() {
     }
 
     return items
-  }, [totalBudget, totalSpentAll, usagePct, sortedCategories, fixedTotal, selectedMonth, selectedYear])
+  }, [totalBudget, totalSpentAll, regularSpent, usagePct, sortedCategories, fixedTotal, selectedMonth, selectedYear])
 
   const distribution = useMemo(() => {
     const top = sortedCategories.slice(0, 5)
@@ -388,58 +418,117 @@ export default function Dashboard3() {
                           {recentExpenses.length} recientes
                         </span>
                       </div>
-                      <div className="divide-y divide-outline-variant rounded-xl border border-outline-variant overflow-hidden bg-surface-container-lowest shadow-sm">
-                        {recentExpenses.map((exp) => {
-                          const category = getCategoryInfo(exp.category)
-                          return (
-                            <div key={exp.id} className="flex items-center gap-md p-md hover:bg-surface-container-low transition-colors">
-                              <CategoryIcon
-                                icon={category?.icon}
-                                color={category?.color}
-                                name={category?.name || exp.category}
-                                size="md"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-md">
-                                  <p className="font-bold text-body-md truncate">{exp.expenseName}</p>
-                                  <div className="text-right shrink-0">
-                                    {exp.status === 'partial' && (exp.partialAmount ?? 0) > 0 ? (
-                                      <>
-                                        <p className="text-headline-sm font-black text-primary font-data-mono">
-                                          {formatCurrecy(Math.max(0, exp.amount - (exp.partialAmount ?? 0)))}
-                                        </p>
-                                        <p className="text-[11px] text-on-surface-variant font-data-mono whitespace-nowrap">
-                                          Pagado {formatCurrecy(exp.partialAmount ?? 0)} de {formatCurrecy(exp.amount)}
-                                        </p>
-                                      </>
-                                    ) : (
-                                      <p className="text-headline-sm font-black text-primary font-data-mono">{formatCurrecy(exp.amount)}</p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-sm mt-1 flex-wrap">
-                                  {category && (
-                                    <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container-highest text-on-surface-variant">
-                                      {category.name}
-                                    </span>
+                      <div className="overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm pl-4">
+                        <table className="w-full text-left text-body-sm">
+                          <thead>
+                            <tr className="text-label-caps font-label-caps text-on-surface-variant border-b border-outline-variant">
+                              <th className="py-xs pr-md whitespace-nowrap">Date</th>
+                              <th className="py-xs pr-md">Category</th>
+                              <th className="py-xs pr-md">Expense</th>
+                              <th className="py-xs pr-md">Status</th>
+                              <th className="py-xs pr-md">Comment</th>
+                              <th className="py-xs pr-md text-right">Amount</th>
+                              <th className="py-xs pl-md pr-md"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {recentExpenses.map((exp) => {
+                              const category = getCategoryInfo(exp.category)
+                              const paidAmount = exp.status === 'paid' ? exp.amount : (exp.partialAmount ?? 0)
+                              const isPartial = paidAmount > 0 && paidAmount < exp.amount
+                              const effectiveStatus = isPartial ? 'partial' : (exp.status ?? 'pending')
+                              const remaining = Math.max(0, exp.amount - paidAmount)
+                              const isExpanded = expandedId === exp.id
+                              return (
+                                <Fragment key={exp.id}>
+                                  <tr
+                                    onClick={() => setExpandedId(isExpanded ? null : exp.id)}
+                                    className={`border-b border-outline-variant/30 last:border-0 cursor-pointer hover:bg-surface-container-low transition-colors ${isExpanded ? 'bg-surface-container-low' : ''}`}
+                                  >
+                                    <td className="py-sm pr-md whitespace-nowrap text-on-surface-variant">
+                                      {exp.date instanceof Date
+                                        ? exp.date.toLocaleDateString('es-MX')
+                                        : new Date(String(exp.date)).toLocaleDateString('es-MX')}
+                                    </td>
+                                    <td className="py-sm pr-md">
+                                      <div className="flex items-center gap-xs min-w-[120px]">
+                                        <CategoryIcon
+                                          icon={category?.icon}
+                                          color={category?.color}
+                                          name={category?.name || exp.category}
+                                          size="sm"
+                                        />
+                                        <span className="truncate">{category?.name || exp.category}</span>
+                                      </div>
+                                    </td>
+                                    <td className="py-sm pr-md truncate max-w-[220px] font-medium">{exp.expenseName}</td>
+                                    <td className="py-sm pr-md">{statusBadge(effectiveStatus)}</td>
+                                    <td className="py-sm pr-md">
+                                      {exp.comment ? (
+                                        <div className="flex items-center gap-1 max-w-[260px]">
+                                          <span className="material-symbols-outlined text-[14px] text-on-surface-variant shrink-0">note</span>
+                                          <span className="truncate">{exp.comment}</span>
+                                        </div>
+                                      ) : (
+                                        <span className="text-on-surface-variant/50">—</span>
+                                      )}
+                                    </td>
+                                    <td className="py-sm pr-md text-right">
+                                      {isPartial ? (
+                                        <>
+                                          <p className="font-data-mono font-bold text-primary whitespace-nowrap">{formatCurrecy(remaining)}</p>
+                                          <p className="text-[11px] text-on-surface-variant font-data-mono whitespace-nowrap">
+                                            Pagado {formatCurrecy(paidAmount)} de {formatCurrecy(exp.amount)}
+                                          </p>
+                                        </>
+                                      ) : (
+                                        <p className="font-data-mono font-bold text-primary whitespace-nowrap">{formatCurrecy(exp.amount)}</p>
+                                      )}
+                                    </td>
+                                    <td className="py-sm pl-md pr-md text-right">
+                                      <span className={`material-symbols-outlined text-on-surface-variant text-[18px] transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                                        expand_more
+                                      </span>
+                                    </td>
+                                  </tr>
+                                  {isExpanded && (
+                                    <tr className="border-b border-outline-variant/30 bg-surface-container-low/60">
+                                      <td colSpan={7} className="py-sm px-md">
+                                        <div className="flex items-center justify-between gap-md flex-wrap">
+                                          <div className="flex items-center gap-md">
+                                            <span className="text-label-caps font-label-caps text-on-surface-variant">Estado de pago</span>
+                                            <PaymentStatusBadge
+                                              status={effectiveStatus}
+                                              partialAmount={exp.partialAmount}
+                                              expense={exp}
+                                              onPartialAmountUpdated={() => getAllExpenses(1, 100)}
+                                            />
+                                          </div>
+                                          <div className="text-right">
+                                            {isPartial ? (
+                                              <>
+                                                <p className="font-data-mono font-bold text-primary whitespace-nowrap">
+                                                  Restante: {formatCurrecy(remaining)}
+                                                </p>
+                                                <p className="text-[11px] text-on-surface-variant font-data-mono whitespace-nowrap">
+                                                  Pagado {formatCurrecy(paidAmount)} de {formatCurrecy(exp.amount)}
+                                                </p>
+                                              </>
+                                            ) : (
+                                              <p className="font-data-mono font-bold text-primary whitespace-nowrap">
+                                                Total: {formatCurrecy(exp.amount)}
+                                              </p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
                                   )}
-                                  <span className="text-body-sm text-on-surface-variant inline-flex items-center gap-1">
-                                    <span className="material-symbols-outlined text-[14px]">calendar_today</span>
-                                    {exp.date instanceof Date
-                                      ? exp.date.toLocaleDateString('es-MX')
-                                      : new Date(String(exp.date)).toLocaleDateString('es-MX')}
-                                  </span>
-                                  <PaymentStatusBadge
-                                    status={exp.status || 'pending'}
-                                    partialAmount={exp.partialAmount}
-                                    expense={exp}
-                                    onPartialAmountUpdated={() => getAllExpenses(1, 100)}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          )
-                        })}
+                                </Fragment>
+                              )
+                            })}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   ) : (
