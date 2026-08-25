@@ -13,6 +13,7 @@ export default function FixedExpenses() {
     const [selectedYear, setSelectedYear] = useState(now.getFullYear());
 
     const [showForm, setShowForm] = useState(false);
+    const [showNewMenu, setShowNewMenu] = useState(false);
     const [formMode, setFormMode] = useState<'template' | 'item'>('item');
     const [editingExpense, setEditingExpense] = useState<typeof fixedExpenses[number] | null>(null);
     const [groupName, setGroupName] = useState('');
@@ -98,12 +99,14 @@ export default function FixedExpenses() {
         resetForm();
         setFormMode('item');
         setShowForm(true);
+        setShowNewMenu(false);
     }
 
     function openNewTemplateForm() {
         resetForm();
         setFormMode('template');
         setShowForm(true);
+        setShowNewMenu(false);
     }
 
     function openAddItemForm(templateId: string) {
@@ -183,35 +186,43 @@ export default function FixedExpenses() {
     }
 
     return (
-        <div className="p-lg space-y-lg">
+        <div className="p-sm sm:p-lg space-y-lg">
             <main className="space-y-xl">
                 {/* Header */}
-                <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+                <div className="mb-xl text-left sm:text-center px-lg py-lg sm:py-xl relative overflow-hidden rounded-2xl bg-primary-container text-on-primary">
                         <div className="relative z-10">
+                            <div className="flex items-center gap-sm mb-sm sm:justify-center">
+                                <span className="material-symbols-outlined text-secondary-fixed">event_repeat</span>
+                                <span className="text-label-caps font-label-caps uppercase tracking-widest opacity-70">Monthly planning</span>
+                            </div>
                             <h2 className="text-headline-lg font-headline-lg mb-xs">Fixed Expenses</h2>
-                            <p className="text-body-md opacity-80 max-w-2xl mx-auto">Manage your monthly recurring costs and payment templates.</p>
+                            <p className="text-body-md opacity-80 max-w-2xl sm:mx-auto">Keep recurring costs visible, predictable, and easy to act on.</p>
                         </div>
                     </div>
-                <div className="block lg:flex justify-between items-end">
-                    <div className="flex items-center space-x-md mt-4 lg:mt-0 justify-center lg:justify-end">
-                        <div className="flex bg-surface-container-highest rounded-lg overflow-hidden ">
+                <div className="flex flex-col gap-md sm:flex-row sm:justify-between sm:items-center">
+                    <div className="flex items-center justify-between gap-sm sm:justify-end">
+                        <div className="flex bg-surface-container-highest rounded-lg overflow-hidden" aria-label="View mode">
                             <button
-                                className={`flex items-center space-x-xs px-md py-sm font-bold transition-colors ${viewMode === 'grid' ? 'bg-primary text-on-primary' : 'text-on-surface hover:bg-surface-container-high'}`}
+                                className={`flex items-center gap-xs px-sm sm:px-md py-sm font-bold transition-colors ${viewMode === 'grid' ? 'bg-primary text-on-primary' : 'text-on-surface hover:bg-surface-container-high'}`}
                                 type="button"
                                 onClick={() => setViewMode('grid')}
+                                aria-label="Show expense cards"
                             >
                                 <span className="material-symbols-outlined">grid_view</span>
+                                <span className="hidden sm:inline text-body-sm">Cards</span>
                             </button>
                             <button
-                                className={`flex items-center space-x-xs px-md py-sm font-bold transition-colors ${viewMode === 'table' ? 'bg-primary text-on-primary' : 'text-on-surface hover:bg-surface-container-high'}`}
+                                className={`flex items-center gap-xs px-sm sm:px-md py-sm font-bold transition-colors ${viewMode === 'table' ? 'bg-primary text-on-primary' : 'text-on-surface hover:bg-surface-container-high'}`}
                                 type="button"
                                 onClick={() => setViewMode('table')}
+                                aria-label="Show expense table"
                             >
                                 <span className="material-symbols-outlined">table_rows</span>
+                                <span className="hidden sm:inline text-body-sm">Table</span>
                             </button>
                         </div>
                         <button
-                            className={`hidden md:flex lg:flex items-center space-x-xs px-md py-sm rounded-lg font-bold transition-colors ${showCalendar ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface hover:bg-surface-container-high'}`}
+                            className={`hidden sm:flex items-center gap-xs px-md py-sm rounded-lg font-bold transition-colors ${showCalendar ? 'bg-primary text-on-primary' : 'bg-surface-container-highest text-on-surface hover:bg-surface-container-high'}`}
                             type="button"
                             onClick={() => setShowCalendar(!showCalendar)}
                         >
@@ -219,12 +230,18 @@ export default function FixedExpenses() {
                             <span>Calendar</span>
                         </button>
                         <div className="relative group">
-                            <button className="flex items-center space-x-xs px-md py-sm bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity">
+                            <button
+                                className="flex items-center gap-xs px-md py-sm bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity"
+                                type="button"
+                                aria-haspopup="menu"
+                                aria-expanded={showNewMenu}
+                                onClick={() => setShowNewMenu((visible) => !visible)}
+                            >
                                 <span className="material-symbols-outlined">add</span>
                                 <span>New</span>
                                 <span className="material-symbols-outlined text-xs">expand_more</span>
                             </button>
-                            <div className="absolute right-0 top-full mt-1 w-56 bg-surface-container-lowest rounded-lg shadow-lg border border-outline-variant opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                            <div className={`absolute right-0 top-full mt-1 w-56 bg-surface-container-lowest rounded-lg shadow-lg border border-outline-variant transition-all z-50 ${showNewMenu ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'}`}>
                                 <button
                                     type="button"
                                     onClick={openNewItemForm}
@@ -347,28 +364,30 @@ export default function FixedExpenses() {
 
                     return (
                         <section key={group.id} className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
-                            <div className="flex items-center justify-between px-lg py-md bg-surface-container-low border-b border-outline-variant">
-                                <div className="hidden md:flex items-center space-x-sm">
-                                    <span className="material-symbols-outlined text-primary">folder</span>
-                                    <h3 className="text-headline-sm font-headline-sm text-on-surface">{group.name}</h3>
+                             <div className="flex items-center justify-between gap-sm px-md sm:px-lg py-md bg-surface-container-low border-b border-outline-variant">
+                                 <div className="flex min-w-0 items-center gap-sm">
+                                     <span className="material-symbols-outlined text-primary">folder</span>
+                                     <h3 className="text-headline-sm font-headline-sm text-on-surface truncate">{group.name}</h3>
                                     
                                 </div>
                                 <div className="flex items-center space-x-md">
-                                    <span className="text-body-sm font-data-mono text-on-surface-variant">
+                                     <span className="text-body-xs sm:text-body-sm font-data-mono text-on-surface-variant whitespace-nowrap">
                                         ${groupTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}/mo
                                     </span>
                                     <button
-                                        type="button"
-                                        onClick={() => openAddItemForm(group.id)}
-                                        className="flex items-center space-x-xs px-sm py-xs bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity text-body-sm"
-                                    >
-                                        <span className="material-symbols-outlined text-sm">add</span>
-                                        <span>Add</span>
+                                         type="button"
+                                         onClick={() => openAddItemForm(group.id)}
+                                         className="flex items-center space-x-xs px-sm py-xs bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity text-body-sm"
+                                         title={`Add expense to ${group.name}`}
+                                         aria-label={`Add expense to ${group.name}`}
+                                     >
+                                         <span className="material-symbols-outlined text-sm">add</span>
+                                         <span className="hidden sm:inline">Add expense</span>
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="p-lg">
+                             <div className="p-sm sm:p-lg">
                                 {viewMode === 'grid' ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-2">
                                         {group.expenses.map((expense) => {
@@ -422,7 +441,7 @@ export default function FixedExpenses() {
                                                             </div>
                                                             <div className="space-y-xs">
                                                                 <p className="text-body-xs text-on-surface-variant">
-                                                                    {expense.dueDay ? `Due ${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : 'No due date'}
+                                                                    {expense.dueDay ? ` ${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : 'No due date'}
                                                                 </p>
                                                                 <p className="text-body-xs text-on-surface-variant">{expense.category}</p>
                                                                 {!isPaid ? (
@@ -476,8 +495,9 @@ export default function FixedExpenses() {
                                             );
                                         })}
                                     </div>
-                                ) : (
-                                    <div className="overflow-x-auto overflow-y-auto sm:max-h-[400px]">
+                                 ) : (
+                                     <>
+                                     <div className="hidden sm:block overflow-x-auto overflow-y-auto sm:max-h-[400px]">
                                         <table className="w-full min-w-[900px] border-collapse sm:table-fixed">
                                             <thead>
                                                 <tr className="text-left border-b border-outline-variant">
@@ -486,7 +506,7 @@ export default function FixedExpenses() {
                                                     <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Amount</th>
                                                     <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Due</th>
                                                     <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Status</th>
-                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Action</th>
+                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase text-end">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-outline-variant">
@@ -517,14 +537,14 @@ export default function FixedExpenses() {
                                                                 </span>
                                                             </td>
                                                             <td className="px-md py-sm">
-                                                                <div className="flex items-center space-x-xs">
+                                                                <div className="flex items-center space-x-xs justify-end">
                                                                     {!isPaid && (
                                                                         <button
-                                                                            className="px-sm py-xs bg-primary text-on-primary font-bold rounded hover:opacity-90 transition-opacity text-body-xs"
+                                                                            className="font-bold rounded hover:opacity-90 transition-opacity text-body-xs"
                                                                             type="button"
                                                                             onClick={() => handleMarkAsPaid(expense.templateId, expense.id)}
                                                                         >
-                                                                            Pay
+                                                                             <span className="material-symbols-outlined text-primary">paid</span>
                                                                         </button>
                                                                     )}
                                                                     <button
@@ -549,9 +569,75 @@ export default function FixedExpenses() {
                                                     );
                                                 })}
                                             </tbody>
-                                        </table>
-                                    </div>
-                                )}
+                                         </table>
+                                     </div>
+                                     <div className="sm:hidden space-y-sm">
+                                         {group.expenses.map((expense) => {
+                                             const isPaid = expense.status === 'paid';
+
+                                             return (
+                                                 <article key={expense.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md shadow-sm">
+                                                     <div className="flex items-start justify-between gap-sm">
+                                                         <div className="flex min-w-0 items-center gap-sm">
+                                                             <CategoryIcon
+                                                                 icon={expense.categoryIcon}
+                                                                 color={expense.categoryColor}
+                                                                 name={expense.category}
+                                                                 size="sm"
+                                                             />
+                                                             <div className="min-w-0">
+                                                                 <h4 className="text-body-md font-body-md text-on-surface truncate">{expense.name}</h4>
+                                                                 <p className="text-body-xs text-on-surface-variant truncate">{expense.category}</p>
+                                                             </div>
+                                                         </div>
+                                                         <span className="shrink-0 text-data-mono font-data-mono text-body-md text-primary">
+                                                             ${expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                         </span>
+                                                     </div>
+                                                     <div className="mt-md flex items-center justify-between gap-sm border-t border-outline-variant pt-sm">
+                                                         <div className="flex items-center gap-xs text-body-xs text-on-surface-variant">
+                                                             <span className="material-symbols-outlined text-sm">event</span>
+                                                             <span>{expense.dueDay ? ` ${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : 'No due date'}</span>
+                                                             <span className={`ml-xs rounded-full px-xs py-0.5 ${getStatusColor(expense.status)}`}>
+                                                                 {isPaid ? 'Paid' : expense.status === 'partial' ? 'Partial' : 'Pending'}
+                                                             </span>
+                                                         </div>
+                                                         <div className="flex shrink-0 items-center ">
+                                                             {!isPaid && (
+                                                                 <button
+                                                                     className="rounded-lg  pr-xs  py-xs font-bold text-primary hover:opacity-90"
+                                                                     type="button"
+                                                                     onClick={() => handleMarkAsPaid(expense.templateId, expense.id)}
+                                                                 >
+                                                                     <span className="material-symbols-outlined text-primary">paid</span>
+                                                                 </button>
+                                                             )}
+                                                             <button
+                                                                 className="rounded-lg  text-on-surface-variant hover:bg-surface-container-high hover:text-primary"
+                                                                 type="button"
+                                                                 onClick={() => openEditItemForm(expense)}
+                                                                 title="Edit fixed expense"
+                                                                 aria-label={`Edit ${expense.name}`}
+                                                             >
+                                                                 <span className="material-symbols-outlined text-sm">edit</span>
+                                                             </button>
+                                                             <button
+                                                                 className="rounded-lg p-xs text-on-surface-variant hover:bg-red-500/10 hover:text-red-500"
+                                                                 type="button"
+                                                                 onClick={() => deleteItem(expense.templateId, expense.id)}
+                                                                 title="Delete fixed expense"
+                                                                 aria-label={`Delete ${expense.name}`}
+                                                             >
+                                                                 <span className="material-symbols-outlined text-sm">delete</span>
+                                                             </button>
+                                                         </div>
+                                                     </div>
+                                                 </article>
+                                             );
+                                         })}
+                                      </div>
+                                      </>
+                                  )}
                             </div>
                         </section>
                     );
