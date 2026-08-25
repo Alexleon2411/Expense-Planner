@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import DropDownProfile from "../user/DropDownProfile"
+import type { PaymentReminder } from '../../hooks/usePaymentReminders'
 
 export type View = 'tracker' | 'dashboard' | 'fixedExpenses' | 'settings' | 'support' | 'profile' | 'dashboard2' | 'report';
 
@@ -7,9 +9,14 @@ type HeaderProps = {
   onToggleSidebar?: () => void
   searchTerm: string
   onSearchChange: (value: string) => void
+  reminders: PaymentReminder[]
+  notificationPermission: NotificationPermission | 'unsupported'
+  onRequestNotificationPermission: () => void
 }
 
-export default function Header({ onNavigate, onToggleSidebar, searchTerm, onSearchChange }: HeaderProps) {
+export default function Header({ onNavigate, onToggleSidebar, searchTerm, onSearchChange, reminders, notificationPermission, onRequestNotificationPermission }: HeaderProps) {
+    const [showNotifications, setShowNotifications] = useState(false)
+
     return (
         <header className="fixed w-full top-0 bg-surface-container-lowest border-b border-outline-variant flex justify-between items-center px-lg py-sm z-[100]">
            {/* Left: Logo (hidden on sm) + Hamburger (visible on sm only) */}
@@ -48,10 +55,21 @@ export default function Header({ onNavigate, onToggleSidebar, searchTerm, onSear
 
            {/* Right: Notifications + User */}
            <div className="flex items-center gap-md">
-             <button className="p-xs text-on-surface-variant hover:text-primary transition-colors relative">
-               <span className="material-symbols-outlined" data-icon="notifications">notifications</span>
-               <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
-             </button>
+              <div className="relative">
+              <button onClick={() => setShowNotifications((visible) => !visible)} className="p-xs text-on-surface-variant hover:text-primary transition-colors relative" aria-label="Ver recordatorios de pago" aria-expanded={showNotifications}>
+                <span className="material-symbols-outlined" data-icon="notifications">notifications</span>
+                {reminders.length > 0 && <span className="absolute top-1 right-1 min-w-2 h-2 px-1 bg-error rounded-full text-[9px] text-white leading-3">{reminders.length > 1 ? reminders.length : ''}</span>}
+              </button>
+              {showNotifications && <div className="absolute right-0 top-11 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-outline-variant bg-surface-container-lowest p-md shadow-xl">
+                <div className="flex items-center justify-between gap-sm">
+                  <h2 className="font-bold text-on-surface">Recordatorios</h2>
+                  <button onClick={() => setShowNotifications(false)} className="text-on-surface-variant" aria-label="Cerrar recordatorios"><span className="material-symbols-outlined text-sm">close</span></button>
+                </div>
+                {reminders.length > 0 ? <div className="mt-sm space-y-xs">{reminders.map((reminder) => <div key={reminder.id} className="rounded-lg bg-error/10 p-sm"><p className="text-body-sm font-bold">{reminder.name}</p><p className="text-body-xs text-on-surface-variant">Vence hoy · {reminder.amount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</p></div>)}</div> : <p className="mt-sm text-body-sm text-on-surface-variant">No tienes pagos fijos pendientes para hoy.</p>}
+                {notificationPermission === 'default' && <button onClick={onRequestNotificationPermission} className="mt-md w-full rounded-lg bg-primary px-sm py-xs text-body-sm font-bold text-on-primary">Activar notificaciones</button>}
+                {notificationPermission === 'denied' && <p className="mt-sm text-body-xs text-on-surface-variant">Las notificaciones están bloqueadas en el navegador.</p>}
+              </div>}
+              </div>
              <div className="h-10 w-10">
                  <DropDownProfile onNavigate={onNavigate}/>
              </div>
