@@ -17,11 +17,13 @@ import Support from "./components/Support"
 import UserProfile from "./components/user/UserProfile"
 import Dashboard2 from "./components/Dashboard3"
 import Report from "./components/Report2"
+import { usePaymentReminders } from './hooks/usePaymentReminders'
 
 function App() {
 
   const { syncBudgetWithSalary, getAllExpenses } = useBudget()
   const { user, loading } = useAuth()
+  const { reminders, permission: notificationPermission, requestPermission } = usePaymentReminders()
   // 'view' ahora vive aquí y se comparte entre SideBar (que la cambia)
   // y App (que decide qué renderizar según su valor).
   const [view, setView] = useState<View>(() => {
@@ -124,7 +126,7 @@ function App() {
       )}
       {renderView().key == ''} */}
       <div>
-          <HeaderTop onNavigate={setView} onToggleSidebar={() => setMobileSidebarOpen(true)} searchTerm={searchTerm} onSearchChange={handleSearchChange} />
+          <HeaderTop onNavigate={setView} onToggleSidebar={() => setMobileSidebarOpen(true)} searchTerm={searchTerm} onSearchChange={handleSearchChange} reminders={reminders} notificationPermission={notificationPermission} onRequestNotificationPermission={requestPermission} />
           <SideBar
             onAddTransaction={() => setIsModalOpen(true)}
             currentView={view}
