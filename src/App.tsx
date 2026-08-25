@@ -32,6 +32,12 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    if (value.trim() && view !== 'tracker') setView('tracker');
+  };
 
   // const isValidBudget = useMemo(() => state.budget > 0, [state])
 
@@ -90,7 +96,7 @@ function App() {
             {/* <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-ld mt-10 p-10">
               {isValidBudget ? <BudgetTracker /> : <BudgetForm />}
             </div> */}
-            <ExpenseFeed />
+            <ExpenseFeed searchTerm={searchTerm} />
           </>
         )
     }
@@ -100,7 +106,7 @@ function App() {
     <>
       {/* {isValidBudget ? (
         <div>
-          <HeaderTop onNavigate={setView} onToggleSidebar={() => setMobileSidebarOpen(true)} />
+          <HeaderTop onNavigate={setView} onToggleSidebar={() => setMobileSidebarOpen(true)} searchTerm={searchTerm} onSearchChange={handleSearchChange} />
           <SideBar
             onAddTransaction={() => setIsModalOpen(true)}
             currentView={view}
@@ -118,7 +124,7 @@ function App() {
       )}
       {renderView().key == ''} */}
       <div>
-          <HeaderTop onNavigate={setView} onToggleSidebar={() => setMobileSidebarOpen(true)} />
+          <HeaderTop onNavigate={setView} onToggleSidebar={() => setMobileSidebarOpen(true)} searchTerm={searchTerm} onSearchChange={handleSearchChange} />
           <SideBar
             onAddTransaction={() => setIsModalOpen(true)}
             currentView={view}

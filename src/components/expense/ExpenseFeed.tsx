@@ -9,6 +9,7 @@ import { Expense } from '../../types';
 
 interface ExpenseFeedProps {
   title?: string;
+  searchTerm?: string;
 }
 
 function getDateBoundaries(range: DateRange): { start: Date; end: Date } | null {
@@ -71,7 +72,7 @@ function filterExpenses(expenses: Expense[], category: string, status: FilterSta
   });
 }
 
-const ExpenseFeed: React.FC<ExpenseFeedProps> = () => {
+const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [partialData, setPartialData] = useState<{ category: string; amount: number } | null>(null);
   const { state, getAllExpenses, loadMoreExpenses } = useBudget();
@@ -82,11 +83,16 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = () => {
   const ITEMS_PER_PAGE = 6;
 
   useEffect(() => {
-    setPage(1);
-    getAllExpenses(1, ITEMS_PER_PAGE).then((result) => {
-      if (result) setTotalPages(result.totalPages);
-    });
-  }, [getAllExpenses]);
+    const timer = window.setTimeout(() => {
+      setPage(1);
+      const limit = searchTerm.trim() ? 1000 : ITEMS_PER_PAGE;
+      getAllExpenses(1, limit).then((result) => {
+        if (result) setTotalPages(searchTerm.trim() ? 1 : result.totalPages);
+      });
+    }, searchTerm.trim() ? 250 : 0);
+
+    return () => window.clearTimeout(timer);
+  }, [getAllExpenses, searchTerm]);
 
   const handleLoadMore = async () => {
     const nextPage = page + 1;
@@ -103,10 +109,16 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = () => {
   const [selectedStatus, setSelectedStatus] = useState<FilterStatus>('all');
   const [selectedDateRange, setSelectedDateRange] = useState<DateRange>('all');
 
-  const filteredExpenses = useMemo(
-    () => filterExpenses(state.expenses, selectedCategory, selectedStatus, selectedDateRange),
-    [state.expenses, selectedCategory, selectedStatus, selectedDateRange]
-  );
+  const filteredExpenses = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLocaleLowerCase();
+    return filterExpenses(state.expenses, selectedCategory, selectedStatus, selectedDateRange)
+      .filter((expense) => {
+        if (!normalizedSearch) return true;
+        return [expense.expenseName, expense.category, expense.comment]
+          .filter(Boolean)
+          .some((value) => String(value).toLocaleLowerCase().includes(normalizedSearch));
+      });
+  }, [state.expenses, selectedCategory, selectedStatus, selectedDateRange, searchTerm]);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);

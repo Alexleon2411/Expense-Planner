@@ -5,9 +5,11 @@ export type View = 'tracker' | 'dashboard' | 'fixedExpenses' | 'settings' | 'sup
 type HeaderProps = {
   onNavigate: (view: View) => void
   onToggleSidebar?: () => void
+  searchTerm: string
+  onSearchChange: (value: string) => void
 }
 
-export default function Header({ onNavigate, onToggleSidebar }: HeaderProps) {
+export default function Header({ onNavigate, onToggleSidebar, searchTerm, onSearchChange }: HeaderProps) {
     return (
         <header className="fixed w-full top-0 bg-surface-container-lowest border-b border-outline-variant flex justify-between items-center px-lg py-sm z-[100]">
            {/* Left: Logo (hidden on sm) + Hamburger (visible on sm only) */}
@@ -33,7 +35,14 @@ export default function Header({ onNavigate, onToggleSidebar }: HeaderProps) {
                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                  <span className="material-symbols-outlined text-outline" data-icon="search">search</span>
                </span>
-               <input className="w-full pl-10 pr-md py-xs bg-surface-container border border-outline-variant rounded-lg text-body-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Search transactions..." type="text" />
+                <input
+                  className="w-full pl-10 pr-md py-xs bg-surface-container border border-outline-variant rounded-lg text-body-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                  placeholder="Search expenses..."
+                  type="search"
+                  value={searchTerm}
+                  onChange={(event) => onSearchChange(event.target.value)}
+                  aria-label="Search expenses"
+                />
              </div>
            </div>
 
