@@ -132,7 +132,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
         <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase">Recent Transactions</h3>
         <span className="text-body-sm font-body-sm text-outline sm:display-none">Showing {rows.length} items</span>
       </div>
-      <div className="overflow-x-auto max-h-[480px] overflow-y-auto relative">
+      <div className="hidden sm:block overflow-x-auto max-h-[480px] overflow-y-auto relative">
         <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
             <tr className="bg-surface-container-low border-b border-outline-variant">
@@ -239,6 +239,66 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
             )}
           </button>
         )}
+      </div>
+      <div className="sm:hidden space-y-sm mt-md">
+        {rows.map((row) => {
+          const expense = expenses.find(e => e.id === row.id);
+          const isEditing = editingId === row.id;
+          if (!expense) return null;
+
+          return (
+            <article
+              key={row.id}
+              className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md"
+              onClick={() => !isEditing && onRowClick(expense)}
+            >
+              <div className="flex items-start justify-between gap-sm">
+                <div className="min-w-0">
+                  <p className="font-semibold truncate">{row.merchant}</p>
+                  <div className="mt-xs flex items-center gap-xs text-body-xs text-on-surface-variant">
+                    <CategoryIcon icon={row.icon} color={row.categoryColor} name={row.category} size="sm" />
+                    <span className="truncate">{row.category}</span>
+                    <span>·</span>
+                    <span className="whitespace-nowrap">{row.date}</span>
+                  </div>
+                </div>
+                <span className="shrink-0 font-data-mono font-bold">{row.displayAmount}</span>
+              </div>
+              <div className="mt-md border-t border-outline-variant pt-sm" onClick={(e) => e.stopPropagation()}>
+                {isEditing ? (
+                  <div className="space-y-sm">
+                    <div className="flex flex-wrap gap-xs">
+                      <button className={statusBtnClass('paid')} onClick={() => setEditStatus('paid')} type="button">Paid</button>
+                      <button className={statusBtnClass('pending')} onClick={() => setEditStatus('pending')} type="button">Pending</button>
+                      <button className={statusBtnClass('partial')} onClick={() => setEditStatus('partial')} type="button">Partial</button>
+                    </div>
+                    {editStatus === 'partial' && (
+                      <input
+                        className="w-full px-sm py-xs rounded border border-outline-variant bg-slate-50 text-sm focus:ring-primary focus:outline-none"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max={row.rawAmount}
+                        placeholder="Partial amount"
+                        value={editPartialAmount}
+                        onChange={(e) => setEditPartialAmount(e.target.value)}
+                      />
+                    )}
+                    <div className="flex gap-xs">
+                      <button className="flex-1 px-sm py-xs rounded bg-green-600 text-white text-xs font-bold disabled:opacity-50" onClick={() => saveStatus(expense)} disabled={saving || (editStatus === 'partial' && (!editPartialAmount || parseFloat(editPartialAmount) <= 0))} type="button">{saving ? '...' : 'Save status'}</button>
+                      <button className="px-sm py-xs rounded bg-gray-200 text-xs" onClick={cancelEditing} type="button">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-sm">
+                    <button className={`rounded-full text-label-caps font-label-caps uppercase ${row.statusClassName}`} onClick={(e) => startEditing(row, e)} type="button">{row.statusLabel}</button>
+                    <span className="text-body-xs text-on-surface-variant">Tap to view details</span>
+                  </div>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
       {hasMore && (
         <div className="p-lg border-t border-outline-variant flex justify-center">

@@ -441,7 +441,7 @@ export default function FixedExpenses() {
                                                             </div>
                                                             <div className="space-y-xs">
                                                                 <p className="text-body-xs text-on-surface-variant">
-                                                                    {expense.dueDay ? ` ${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : 'No due date'}
+                                                                    {expense.dueDay ? `Due ${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : 'No due date'}
                                                                 </p>
                                                                 <p className="text-body-xs text-on-surface-variant">{expense.category}</p>
                                                                 {!isPaid ? (
@@ -543,6 +543,8 @@ export default function FixedExpenses() {
                                                                             className="font-bold rounded hover:opacity-90 transition-opacity text-body-xs"
                                                                             type="button"
                                                                             onClick={() => handleMarkAsPaid(expense.templateId, expense.id)}
+                                                                            title={`Mark ${expense.name} as paid`}
+                                                                            aria-label={`Mark ${expense.name} as paid`}
                                                                         >
                                                                              <span className="material-symbols-outlined text-primary">paid</span>
                                                                         </button>
@@ -608,6 +610,8 @@ export default function FixedExpenses() {
                                                                      className="rounded-lg  pr-xs  py-xs font-bold text-primary hover:opacity-90"
                                                                      type="button"
                                                                      onClick={() => handleMarkAsPaid(expense.templateId, expense.id)}
+                                                                     title={`Mark ${expense.name} as paid`}
+                                                                     aria-label={`Mark ${expense.name} as paid`}
                                                                  >
                                                                      <span className="material-symbols-outlined text-primary">paid</span>
                                                                  </button>

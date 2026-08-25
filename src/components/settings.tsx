@@ -158,7 +158,7 @@ export default function Settings() {
                             <h2 className="text-headline-md font-headline-md text-on-surface mb-md">Communication Hub</h2>
                             <div className="space-y-base">
                                 {/* <!-- Table for Notification controls --> */}
-                                <div className="overflow-hidden rounded-xl border border-outline-variant">
+                                <div className="hidden sm:block overflow-hidden rounded-xl border border-outline-variant">
                                     <table className="w-full text-left">
                                         <thead className="bg-surface-container-low">
                                             <tr>
@@ -206,6 +206,30 @@ export default function Settings() {
                                             </tr>
                                         </tbody>
                                     </table>
+                                </div>
+                                <div className="sm:hidden space-y-sm">
+                                    {[
+                                        ['Transaction Alerts', 'Over $1,000 movements'],
+                                        ['Budget Thresholds', 'When 80% limit is reached'],
+                                        ['Monthly Insights', 'Detailed finance summaries'],
+                                    ].map(([title, description]) => (
+                                        <div key={title} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md">
+                                            <div className="mb-sm">
+                                                <div className="font-medium">{title}</div>
+                                                <div className="text-[12px] text-outline">{description}</div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-sm border-t border-outline-variant pt-sm">
+                                                <label className="flex items-center justify-between gap-sm text-body-sm">
+                                                    Email
+                                                    <input className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
+                                                </label>
+                                                <label className="flex items-center justify-between gap-sm text-body-sm">
+                                                    Push
+                                                    <input className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" />
+                                                </label>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </section>
