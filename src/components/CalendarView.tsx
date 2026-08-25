@@ -65,7 +65,7 @@ export default function CalendarView({ year, month }: Props) {
     if (!data || data.total === 0) return null
 
     const intensity = Math.min(data.total / 5000, 1)
-    const bg = `rgba(59, 130, 246, ${intensity * 0.5 + 0.2})`
+    const bg = `rgba(52, 80, 109, ${intensity * 0.5 + 0.2})`
 
     return (
       <div className="text-xs font-bold mt-1" style={{ backgroundColor: bg, borderRadius: 4, padding: '0 2px' }}>

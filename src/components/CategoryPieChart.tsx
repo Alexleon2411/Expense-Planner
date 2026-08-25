@@ -1,7 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useCategories } from '../hooks/useCategories'
 
-const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
+const COLORS = ['#0A1B2E', '#112A46', '#1B3B5A', '#34506D', '#557392', '#7A8CA6', '#A1B3C4', '#C4D2E1']
 
 interface Props {
   data: { category: string; total: number; count: number }[]
@@ -42,7 +42,7 @@ export default function CategoryPieChart({ data }: Props) {
           </Pie>
           <Tooltip
             formatter={tooltipFormatter}
-            contentStyle={{ borderRadius: '1.5rem', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+            contentStyle={{ borderRadius: '1.5rem', border: '1px solid #C4D2E1', boxShadow: '0 4px 12px rgba(10,27,46,0.1)' }}
           />
         </PieChart>
       </ResponsiveContainer>

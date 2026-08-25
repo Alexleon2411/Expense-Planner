@@ -16,7 +16,7 @@ export default function CategoryManager() {
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [name, setName] = useState('')
-  const [color, setColor] = useState('#3b82f6')
+  const [color, setColor] = useState('#34506D')
   const [icon, setIcon] = useState('')
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function CategoryManager() {
 
   const resetForm = () => {
     setName('')
-    setColor('#3b82f6')
+    setColor('#34506D')
     setIcon('')
     setEditingId(null)
     setShowForm(false)
@@ -52,7 +52,7 @@ export default function CategoryManager() {
   const startEdit = (cat: Category) => {
     setEditingId(cat.id)
     setName(cat.name)
-    setColor(cat.color || '#3b82f6')
+    setColor(cat.color || '#34506D')
     setIcon(cat.icon || '')
     setShowForm(true)
   }
