@@ -25,7 +25,8 @@ export default function AllTransactions({ transactions }: AllTransactionsProps) 
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div>
+      <div className="hidden sm:block overflow-x-auto">
       <table className="w-full text-left text-body-sm">
         <thead>
           <tr className="text-label-caps font-label-caps text-on-surface-variant border-b border-outline-variant">
@@ -58,6 +59,30 @@ export default function AllTransactions({ transactions }: AllTransactionsProps) 
           })}
         </tbody>
       </table>
+      </div>
+      <div className="sm:hidden space-y-sm">
+        {transactions.map((t) => {
+          const info = getCategoryInfo(t.category)
+          return (
+            <article key={t.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md">
+              <div className="flex items-start justify-between gap-sm">
+                <div className="flex min-w-0 items-center gap-sm">
+                  <CategoryIcon icon={info?.icon} color={info?.color} name={info?.name || t.category} size="sm" />
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{t.name}</p>
+                    <p className="text-body-xs text-on-surface-variant truncate">{info?.name || t.category}</p>
+                  </div>
+                </div>
+                <span className="shrink-0 font-data-mono">{formatCurrecy(t.amount)}</span>
+              </div>
+              <div className="mt-sm flex items-center justify-between border-t border-outline-variant pt-sm text-body-xs text-on-surface-variant">
+                <span>{new Date(t.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span>
+                {typeBadge(t.isFixed, t.status)}
+              </div>
+            </article>
+          )
+        })}
+      </div>
       {transactions.length === 0 && (
         <p className="text-body-sm text-on-surface-variant text-center py-8">No transactions for this period.</p>
       )}

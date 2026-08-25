@@ -54,7 +54,7 @@ export default function CategoryPieChart({ data }: Props) {
               style={{ backgroundColor: COLORS[i % COLORS.length] }}
             />
             <span className="flex-1 truncate">{d.name}</span>
-            <span className="font-bold shrink-0">${d.total.toLocaleString('es-MX')} · {((d.total / total) * 100).toFixed(0)}%</span>
+            <span className="font-bold shrink-0 text-xs sm:text-sm text-right">${d.total.toLocaleString('es-MX')} · {((d.total / total) * 100).toFixed(0)}%</span>
           </li>
         ))}
       </ul>

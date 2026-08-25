@@ -214,7 +214,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
         <div className="space-y-2">
           {mergedTrends.map((t) => (
             <div key={t.month} className="flex items-center gap-3">
-              <span className="w-24 text-sm font-semibold capitalize">
+              <span className="w-16 sm:w-24 shrink-0 text-xs sm:text-sm font-semibold capitalize">
                 {MONTH_NAMES[t.month - 1]}
               </span>
               <div className="flex-1 bg-slate-100 h-6 rounded-full overflow-hidden">
@@ -223,7 +223,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
                   style={{ width: `${Math.min((t.total / (overview?.budgeted || 1)) * 100, 100)}%` }}
                 />
               </div>
-              <span className="w-24 text-right font-bold">{formatCurrecy(t.total)}</span>
+              <span className="w-20 sm:w-24 shrink-0 text-right text-xs sm:text-sm font-bold">{formatCurrecy(t.total)}</span>
             </div>
           ))}
         </div>
@@ -234,7 +234,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
 
     if (period === 'monthly') {
       return (
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-1 sm:gap-2">
           {WEEKDAY_NAMES.map((n) => (
             <div key={n} className="text-center text-xs font-bold text-gray-500 mb-1">{n}</div>
           ))}
@@ -244,7 +244,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
           {monthCells.map((cell) => (
             <div
               key={cell.day}
-              className={`rounded-lg p-2 border text-center ${
+              className={`rounded-lg p-1 sm:p-2 border text-center ${
                 cell.total > 0 ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-transparent'
               }`}
             >
@@ -252,9 +252,9 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
                 {cell.day}
               </div>
               {cell.total > 0 ? (
-                <div className="text-[10px] font-bold text-blue-700 mt-1">{formatCurrecy(cell.total)}</div>
+                <div className="text-[8px] sm:text-[10px] font-bold text-blue-700 mt-1 truncate">{formatCurrecy(cell.total)}</div>
               ) : (
-                <div className="text-[10px] text-gray-300 mt-1">—</div>
+                <div className="text-[8px] sm:text-[10px] text-gray-300 mt-1">—</div>
               )}
             </div>
           ))}
@@ -264,7 +264,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
 
     if (period === 'weekly') {
       return (
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
           {weekDays.map((w, i) => (
             <div
               key={i}
@@ -290,7 +290,8 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
     }
 
     return (
-      <div>
+      <div className="overflow-x-auto">
+        <div className="min-w-[500px] sm:min-w-0">
         <div className="flex items-end gap-[2px] h-44">
           {Array.from({ length: 24 }, (_, h) => {
             const v = hourly.get(h)
@@ -323,6 +324,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
               ? `Hay ${formatCurrecy(paidDayTotal)} en gastos fijos pagados el día ${selectedDay}, sin gastos puntuales.`
               : 'Sin gastos registrados este día.'}
         </p>
+        </div>
       </div>
     )
   }
@@ -330,15 +332,15 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
   if (loading) return <p className="text-center py-8 text-gray-500">Cargando estadísticas...</p>
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
-          <div className="flex gap-2">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white shadow-lg rounded-lg p-4 sm:p-6">
+        <div className="flex flex-col gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-2 sm:flex">
             {(['daily', 'weekly', 'monthly', 'yearly'] as Period[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-4 py-2 rounded-lg font-bold text-sm uppercase ${
+                className={`px-2 sm:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm uppercase ${
                   period === p ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                 }`}
               >
@@ -346,10 +348,10 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
               </button>
             ))}
           </div>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
             {period === 'daily' && (
               <select
-                className="bg-slate-100 p-2 border rounded"
+                className="w-full bg-slate-100 p-2 border rounded"
                 value={selectedDay}
                 onChange={(e) => setDay(Number(e.target.value))}
               >
@@ -359,7 +361,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
               </select>
             )}
             <select
-              className="bg-slate-100 p-2 border rounded"
+              className="w-full bg-slate-100 p-2 border rounded"
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
             >
@@ -369,7 +371,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
             </select>
             <input
               type="number"
-              className="bg-slate-100 p-2 border rounded w-20"
+              className="w-full bg-slate-100 p-2 border rounded sm:w-20"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
               min={2020}
@@ -379,19 +381,19 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
         </div>
 
         {overview && (
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="bg-blue-50 p-4 rounded-lg text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+            <div className="bg-blue-50 p-3 sm:p-4 rounded-lg text-center">
               <p className="text-sm text-gray-600">Presupuesto</p>
               <p className="text-2xl font-black text-blue-600">{formatCurrecy(overview.budgeted)}</p>
             </div>
-            <div className="bg-green-50 p-4 rounded-lg text-center">
+            <div className="bg-green-50 p-3 sm:p-4 rounded-lg text-center">
               <p className="text-sm text-gray-600">Gastado</p>
               <p className="text-2xl font-black text-green-600">{formatCurrecy(overviewSpent)}</p>
               {paidFixed && paidFixed.total > 0 && (
                 <p className="text-xs text-gray-500 mt-1">Incluye {formatCurrecy(paidFixed.total)} en fijos pagados</p>
               )}
             </div>
-            <div className="bg-orange-50 p-4 rounded-lg text-center">
+            <div className="bg-orange-50 p-3 sm:p-4 rounded-lg text-center">
               <p className="text-sm text-gray-600">Disponible</p>
               <p className="text-2xl font-black text-orange-600">{formatCurrecy(overviewRemaining)}</p>
             </div>
@@ -399,14 +401,14 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
         )}
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg p-6">
+      <div className="bg-white shadow-lg rounded-lg p-4 sm:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div>
-            <h3 className="text-xl font-bold mb-4">Distribución por Categoría</h3>
+          <div className="min-w-0">
+            <h3 className="text-lg sm:text-xl font-bold mb-4">Distribución por Categoría</h3>
             <CategoryPieChart data={mergedCategoryData} />
           </div>
-          <div>
-            <h3 className="text-xl font-bold mb-4">Tendencia de Gastos</h3>
+          <div className="min-w-0">
+            <h3 className="text-lg sm:text-xl font-bold mb-4">Tendencia de Gastos</h3>
             {hasTrendData ? (
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={trendLineData}>
@@ -435,8 +437,8 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
         </div>
       </div>
 
-      <div className="bg-white shadow-lg rounded-lg p-6">
-        <h3 className="text-xl font-bold mb-4">{trendTitle}</h3>
+      <div className="bg-white shadow-lg rounded-lg p-4 sm:p-6">
+        <h3 className="text-lg sm:text-xl font-bold mb-4">{trendTitle}</h3>
         {renderTrend()}
       </div>
     </div>

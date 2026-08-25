@@ -149,7 +149,7 @@ export default function UserProfile() {
                         <h4 className="text-label-caps font-label-caps text-outline">HISTORIAL DE ACTIVIDAD</h4>
                         <button className="text-label-caps font-label-caps text-primary hover:underline">Ver todo</button>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full">
                             <thead>
                                 <tr className="text-left border-b border-outline-variant">
@@ -195,6 +195,29 @@ export default function UserProfile() {
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                    <div className="sm:hidden space-y-sm">
+                        {[
+                            ['login', 'Inicio de sesión', 'Chrome / macOS', 'Madrid, ES (192.168.1.1)', 'Hoy, 09:42 AM'],
+                            ['file_download', 'Exportación de datos', 'Chrome / macOS', 'Madrid, ES (192.168.1.1)', '01 Sep, 14:15 PM'],
+                            ['settings', 'Cambio de contraseña', 'FinTrack App / iPhone 14', 'Barcelona, ES (84.12.34.56)', '28 Ago, 11:20 AM'],
+                        ].map(([icon, action, device, location, date]) => (
+                            <article key={`${action}-${date}`} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md">
+                                <div className="flex items-center gap-sm">
+                                    <div className="w-8 h-8 shrink-0 rounded bg-primary-container/10 flex items-center justify-center text-primary">
+                                        <span className="material-symbols-outlined text-sm">{icon}</span>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-medium truncate">{action}</p>
+                                        <p className="text-body-xs text-on-surface-variant truncate">{device}</p>
+                                    </div>
+                                </div>
+                                <div className="mt-sm border-t border-outline-variant pt-sm text-body-xs text-on-surface-variant">
+                                    <p>{location}</p>
+                                    <p className="mt-xs font-data-mono">{date}</p>
+                                </div>
+                            </article>
+                        ))}
                     </div>
                 </div>
             </div>

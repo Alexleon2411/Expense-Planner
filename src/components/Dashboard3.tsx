@@ -418,7 +418,7 @@ export default function Dashboard3() {
                           {recentExpenses.length} recientes
                         </span>
                       </div>
-                      <div className="overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm pl-4">
+                      <div className="hidden sm:block overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm pl-4">
                         <table className="w-full text-left text-body-sm">
                           <thead>
                             <tr className="text-label-caps font-label-caps text-on-surface-variant border-b border-outline-variant">
@@ -529,6 +529,53 @@ export default function Dashboard3() {
                             })}
                           </tbody>
                         </table>
+                      </div>
+                      <div className="sm:hidden space-y-sm">
+                        {recentExpenses.map((exp) => {
+                          const category = getCategoryInfo(exp.category)
+                          const paidAmount = exp.status === 'paid' ? exp.amount : (exp.partialAmount ?? 0)
+                          const isPartial = paidAmount > 0 && paidAmount < exp.amount
+                          const effectiveStatus = isPartial ? 'partial' : (exp.status ?? 'pending')
+                          const remaining = Math.max(0, exp.amount - paidAmount)
+                          const isExpanded = expandedId === exp.id
+                          return (
+                            <article key={exp.id} className={`rounded-xl border border-outline-variant bg-surface-container-lowest p-md ${isExpanded ? 'ring-1 ring-primary/30' : ''}`}>
+                              <button className="w-full text-left" type="button" onClick={() => setExpandedId(isExpanded ? null : exp.id)}>
+                                <div className="flex items-start justify-between gap-sm">
+                                  <div className="flex min-w-0 items-center gap-sm">
+                                    <CategoryIcon icon={category?.icon} color={category?.color} name={category?.name || exp.category} size="sm" />
+                                    <div className="min-w-0">
+                                      <p className="font-medium truncate">{exp.expenseName}</p>
+                                      <p className="text-body-xs text-on-surface-variant truncate">{category?.name || exp.category} · {exp.date instanceof Date ? exp.date.toLocaleDateString('es-MX') : new Date(String(exp.date)).toLocaleDateString('es-MX')}</p>
+                                    </div>
+                                  </div>
+                                  <span className="shrink-0 font-data-mono font-bold text-primary">{formatCurrecy(isPartial ? remaining : exp.amount)}</span>
+                                </div>
+                                <div className="mt-sm flex items-center justify-between gap-sm border-t border-outline-variant pt-sm">
+                                  {statusBadge(effectiveStatus)}
+                                  <span className="text-body-xs text-on-surface-variant">{isExpanded ? 'Hide details' : 'View details'}</span>
+                                </div>
+                              </button>
+                              {isExpanded && (
+                                <div className="mt-sm flex flex-col gap-sm border-t border-outline-variant pt-sm">
+                                  {exp.comment && <p className="text-body-sm text-on-surface-variant">{exp.comment}</p>}
+                                  <div className="flex items-center justify-between gap-sm">
+                                    <span className="text-label-caps font-label-caps text-on-surface-variant">Payment status</span>
+                                    <PaymentStatusBadge
+                                      status={effectiveStatus}
+                                      partialAmount={exp.partialAmount}
+                                      expense={exp}
+                                      onPartialAmountUpdated={() => getAllExpenses(1, 100)}
+                                    />
+                                  </div>
+                                  <p className="text-right font-data-mono text-body-sm text-primary">
+                                    {isPartial ? `Paid ${formatCurrecy(paidAmount)} of ${formatCurrecy(exp.amount)}` : `Total: ${formatCurrecy(exp.amount)}`}
+                                  </p>
+                                </div>
+                              )}
+                            </article>
+                          )
+                        })}
                       </div>
                     </div>
                   ) : (
@@ -677,7 +724,7 @@ export default function Dashboard3() {
                     <h3 className="text-label-caps font-label-caps text-on-surface-variant">TOP EXPENSES BY SPENDING</h3>
                     <button className="text-primary text-body-sm font-bold hover:underline">View All Transactions</button>
                   </div>
-                  <div className="overflow-x-auto">
+                  <div className="hidden sm:block overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="text-left border-b border-outline-variant">
@@ -727,6 +774,30 @@ export default function Dashboard3() {
                         )}
                       </tbody>
                     </table>
+                  </div>
+                  <div className="sm:hidden space-y-sm">
+                    {merchants.length > 0 ? merchants.map((m) => (
+                      <article key={m.name} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md">
+                        <div className="flex items-center gap-sm">
+                          <CategoryIcon
+                            icon={getCategoryInfo(m.category)?.icon}
+                            color={getCategoryInfo(m.category)?.color}
+                            name={getCategoryInfo(m.category)?.name || m.category}
+                            size="sm"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold truncate">{m.name}</p>
+                            <p className="text-body-xs text-on-surface-variant truncate">{getCategoryInfo(m.category)?.name || m.category} · {m.count} {m.count === 1 ? 'entry' : 'entries'}</p>
+                          </div>
+                          <span className="font-data-mono font-bold text-primary">{formatCurrecy(m.total)}</span>
+                        </div>
+                        <div className="mt-sm flex justify-end border-t border-outline-variant pt-sm text-body-xs text-on-surface-variant">
+                          {totalSpent > 0 ? ((m.total / totalSpent) * 100).toFixed(1) : 0}% of total
+                        </div>
+                      </article>
+                    )) : (
+                      <p className="py-lg text-center text-on-surface-variant text-body-sm">No hay gastos para el periodo seleccionado.</p>
+                    )}
                   </div>
                 </div>
               </>
