@@ -13,10 +13,10 @@ export default function BudgetTracker() {
         <CircularProgressbar
           value={percentage}
           styles={buildStyles({
-            pathColor: percentage === 100 ? "#DC2626" : '#3b82f6',
-            trailColor: '#f5f5f5',
+            pathColor: percentage === 100 ? '#1B3B5A' : '#34506D',
+            trailColor: '#E1E8F0',
             textSize: 8,
-            textColor: percentage === 100 ? "#DC2626" : '#3b82f6',
+            textColor: percentage === 100 ? '#1B3B5A' : '#34506D',
           })}
           text={`${percentage}% Gastado`}
         />

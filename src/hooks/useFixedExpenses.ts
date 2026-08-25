@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { templatesApi, categoriesApi } from '../api'
+import { templatesApi, categoriesApi, expensesApi } from '../api'
 import { useBudget } from './useBudget'
 import { useAuth } from './useAuth'
 import { FixedExpense } from '../types'
@@ -89,6 +89,7 @@ export function useFixedExpenses() {
       await renewPaidItemsIfNeeded(templates)
 
       const refreshedTemplates = await templatesApi.listTemplates()
+      const paymentExpenses = (await expensesApi.listExpenses({ page: 1, limit: 500 })).expenses
       const now = new Date()
       const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 
@@ -98,7 +99,28 @@ export function useFixedExpenses() {
           const isPartial = item.status === 'partial'
           const catInfo = categoryMap.get(item.categoryId)
 
-          return {
+           const historicalPayments = paymentExpenses
+             .filter((expense) => {
+               const sameTemplateItem = expense.templateId === item.id
+               const sameExpense = expense.name === item.name
+                 && expense.category === item.category.name
+                 && expense.amount === item.amount
+               return sameTemplateItem || sameExpense
+             })
+             .reduce<FixedExpense['history']>((history, expense) => {
+               const month = expense.date.slice(0, 7)
+               if (!month || month === currentMonth || history.some((record) => record.month === month)) return history
+               history.push({
+                 month,
+                 paid: expense.status === 'paid' || expense.status === 'partial',
+                 paidDate: expense.status === 'paid' || expense.status === 'partial' ? expense.date : undefined,
+                 templateItemId: item.id,
+               })
+               return history
+             }, [])
+             .sort((a, b) => a.month.localeCompare(b.month))
+
+           return {
             id: item.id,
             templateId: group.id,
             templateGroupName: group.name,
@@ -112,9 +134,10 @@ export function useFixedExpenses() {
             icon: getIconForCategory(item.categoryId, item.category.name),
             status: isPaid ? 'paid' : isPartial ? 'partial' : 'pending',
             lastPaidDate: isPaid ? currentMonth : undefined,
-            history: [
-              {
-                month: currentMonth,
+             history: [
+               ...historicalPayments,
+               {
+                 month: currentMonth,
                 paid: isPaid,
                 paidDate: isPaid ? currentMonth : undefined,
                 templateItemId: item.id,

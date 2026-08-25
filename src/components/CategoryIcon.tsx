@@ -45,7 +45,7 @@ export default function CategoryIcon({ icon, color, name, size = 'lg', className
     return (
       <span
         className={`material-symbols-outlined ${iconSize} ${padding} rounded-xl flex items-center justify-center ${className}`}
-        style={{ color: '#ffffff', backgroundColor: color || '#3b82f6' }}
+        style={{ color: '#F2F6FB', backgroundColor: color || '#34506D' }}
       >
         {icon}
       </span>
@@ -55,7 +55,7 @@ export default function CategoryIcon({ icon, color, name, size = 'lg', className
   return (
     <div
       className={`${sizeClass} rounded-xl flex items-center justify-center text-white font-bold ${className}`}
-      style={{ backgroundColor: color || '#3b82f6' }}
+      style={{ backgroundColor: color || '#34506D' }}
     >
       {name.charAt(0).toUpperCase()}
     </div>
