@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { useBudget } from "../../hooks/useBudget"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { useTranslation } from 'react-i18next'
 
 type ExpenseCommentsProps = {
   expenseId: string
@@ -12,6 +13,7 @@ type ExpenseCommentsProps = {
 
 export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
   const { createExpenseComment, listExpenseComments, deleteExpenseComment } = useBudget()
+  const { t, i18n } = useTranslation()
   const [comments, setComments] = useState<any[]>([])
   const [newComment, setNewComment] = useState("")
   const [loading, setLoading] = useState(true)
@@ -58,7 +60,7 @@ export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
 
   const handleDeleteComment = async (commentId: string) => {
     try {
-      const confirmed = window.confirm("Seguro de que quiere eliminar este comentario?")
+       const confirmed = window.confirm(t('comments.confirmDelete'))
       if (confirmed)
       {
         await deleteExpenseComment(expenseId, commentId)
@@ -84,11 +86,11 @@ export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
     const diffHours = Math.floor(diffMins / 60)
     const diffDays = Math.floor(diffHours / 24)
 
-    if (diffMins < 1) return 'Ahora'
-    if (diffMins < 60) return `${diffMins} min`
-    if (diffHours < 24) return `${diffHours} h`
-    if (diffDays < 7) return `${diffDays} d`
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    if (diffMins < 1) return t('comments.now')
+    if (diffMins < 60) return t('comments.minutes', { count: diffMins })
+    if (diffHours < 24) return t('comments.hours', { count: diffHours })
+    if (diffDays < 7) return t('comments.days', { count: diffDays })
+    return date.toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })
   }
 
   return (
@@ -105,8 +107,8 @@ export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
             {/* <div className="w-12 h-12 rounded-full border-2 border-slate-300 flex items-center justify-center mb-2">
               <span className="text-2xl font-light text-slate-400">+</span>
             </div> */}
-            <p className="font-bold text-base text-slate-700">Aún no hay comentarios</p>
-            <p className="text-slate-400 text-xs mt-1 max-w-[220px]">Las aclaraciones o notas de este pago aparecerán aquí.</p>
+             <p className="font-bold text-base text-slate-700">{t('comments.emptyTitle')}</p>
+             <p className="text-slate-400 text-xs mt-1 max-w-[220px]">{t('comments.emptyText')}</p>
           </div>
         ) : (
           [...comments].reverse().map((comment: any) => (
@@ -117,7 +119,7 @@ export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
               <div className="flex-1 min-w-0 pt-0.5">
                 <p className="text-sm text-slate-900 leading-snug break-words">
                   <span className="font-bold mr-1.5 text-slate-800 text-xs">
-                    {comment.userId ? `usuario_${comment.userId.slice(0, 4)}` : 'anonimo'}
+                     {comment.userId ? t('comments.user', { id: comment.userId.slice(0, 4) }) : t('comments.anonymous')}
                   </span>
                   {comment.comment}
                 </p>
@@ -126,7 +128,7 @@ export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
                   <button
                     onClick={() => handleDeleteComment(comment.id)}
                     className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                    title="Eliminar"
+                     title={t('comments.delete')}
                   >
                     <FontAwesomeIcon icon={faTrash} className="text-[10px]" />
                   </button>
@@ -144,7 +146,7 @@ export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Agrega un comentario..."
+             placeholder={t('comments.placeholder')}
             rows={1}
             className="flex-1 bg-transparent text-sm resize-none focus:outline-none placeholder-slate-400 text-slate-900 max-h-20 py-0.5 leading-tight"
           />
@@ -156,7 +158,7 @@ export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
             {sending ? (
               <FontAwesomeIcon icon={faSpinner} spin className="text-xs" />
             ) : (
-              "Publicar"
+               t('comments.publish')
             )}
           </button>
         </div>

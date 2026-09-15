@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { useAuth } from "../../hooks/useAuth"
+import { useTranslation } from 'react-i18next'
+import '../../i18n/profileResources'
 
 type Props = {
   onClose: () => void
@@ -12,32 +14,33 @@ export default function EditPassword({ onClose }: Props) {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const { updatePassword } = useAuth()
+  const { t } = useTranslation()
 
   const handleSubmit = async () => {
     setError("")
     setSuccess("")
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError("All fields are required")
+      setError(t('user.allFieldsRequired'))
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setError("New passwords do not match")
+      setError(t('user.passwordsMismatch'))
       return
     }
 
     if (newPassword.length < 6) {
-      setError("Password must be at least 6 characters")
+      setError(t('user.passwordLength'))
       return
     }
 
     try {
       await updatePassword(currentPassword, newPassword)
-      setSuccess("Password updated successfully")
+      setSuccess(t('user.passwordUpdated'))
       setTimeout(() => onClose(), 1500)
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to update password")
+      setError(err?.response?.data?.message || t('user.passwordUpdateFailed'))
     }
   }
 
@@ -51,11 +54,12 @@ export default function EditPassword({ onClose }: Props) {
         className="fixed inset-0 z-[101] flex items-center justify-center p-lg"
         role="dialog"
         aria-modal="true"
+        aria-label={t('profile.changePassword')}
         onClick={onClose}
       >
         <div className="max-w-lg mx-auto bg-white rounded-md p-lg" onClick={(e) => e.stopPropagation()}>
           <div className="bento-card">
-            <span className="text-label-caps text-on-surface-variant mb-xl block">CHANGE PASSWORD</span>
+            <span className="text-label-caps text-on-surface-variant mb-xl block">{t('user.changePassword')}</span>
 
             {error && (
               <div className="mb-md p-md bg-red-50 border border-red-200 rounded-lg text-red-600 text-body-sm">
@@ -70,33 +74,33 @@ export default function EditPassword({ onClose }: Props) {
 
             <div className="space-y-lg">
               <div>
-                <label className="block text-body-sm font-bold mb-xs">Current Password</label>
+                <label className="block text-body-sm font-bold mb-xs">{t('user.currentPassword')}</label>
                 <input
                   className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
+                  placeholder={t('user.currentPasswordPlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-body-sm font-bold mb-xs">New Password</label>
+                <label className="block text-body-sm font-bold mb-xs">{t('user.newPassword')}</label>
                 <input
                   className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  placeholder={t('user.newPasswordPlaceholder')}
                 />
               </div>
               <div>
-                <label className="block text-body-sm font-bold mb-xs">Confirm New Password</label>
+                <label className="block text-body-sm font-bold mb-xs">{t('user.confirmNewPassword')}</label>
                 <input
                   className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
+                  placeholder={t('user.confirmPasswordPlaceholder')}
                 />
               </div>
             </div>
@@ -107,13 +111,13 @@ export default function EditPassword({ onClose }: Props) {
               className="px-lg py-sm border border-outline-variant bg-white text-on-surface font-bold rounded-lg hover:bg-surface-container transition-colors text-body-md"
               onClick={onClose}
             >
-              Cancel
+              {t('user.cancel')}
             </button>
             <button
               className="px-lg py-sm bg-primary text-on-primary font-bold rounded-lg shadow-md hover:opacity-90 hover:bg-white transform active:scale-95 transition-all text-body-md"
               onClick={handleSubmit}
             >
-              Update Password
+              {t('user.saveChanges')}
             </button>
           </div>
         </div>

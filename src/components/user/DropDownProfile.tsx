@@ -2,11 +2,14 @@ import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 
 import { ChevronDownIcon } from '@heroicons/react/20/solid'
 import { useAuth } from '../../hooks/useAuth'
+import { useTranslation } from 'react-i18next'
+import '../../i18n/profileResources'
 export type View = 'tracker' | 'dashboard' | 'fixedExpenses' | 'settings' | 'support' | 'profile' | 'dashboard2' | 'report';
 type Props = { onNavigate: (view: View) => void }
 
 export default function Example({ onNavigate }: Props) {
   const { user, logout } = useAuth()
+  const { t } = useTranslation()
 
   const initials = user?.name
     ?.split(' ')
@@ -31,7 +34,7 @@ export default function Example({ onNavigate }: Props) {
         <div className="py-1">
           <MenuItem>
              <button className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidde"onClick={() => onNavigate('profile')}>
-                <span className="text-body-md font-body-md">Profile</span>
+                 <span className="text-body-md font-body-md">{t('navigation.profile')}</span>
             </button>
           </MenuItem>
           
@@ -42,7 +45,7 @@ export default function Example({ onNavigate }: Props) {
                 type="submit"
                 className="block w-full px-4 py-2 text-left text-sm text-gray-700 data-focus:bg-gray-100 data-focus:text-gray-900 data-focus:outline-hidden"
               >
-                Sign out
+                {t('navigation.signOut')}
               </button>
             </MenuItem>
           </form>

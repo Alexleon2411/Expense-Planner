@@ -9,6 +9,7 @@ import ErrorMessage from "./ErrorMessage";
 import { useBudget } from "../hooks/useBudget";
 import { NumericFormat } from 'react-number-format';
 import NewCategoryForm from "./category/NewCatgoryForm";
+import { useTranslation } from 'react-i18next';
 
 export default function ExpenseForm() {
 
@@ -27,6 +28,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
 
   const { state, reminderBudget, addExpense, editExpense, apiLoading, dispatch } = useBudget()
   const { categories, refreshCategories } = useCategories()
+  const { t } = useTranslation()
 
   const updateCategoryList = async (categoryId?: string) => {
     await refreshCategories()
@@ -73,17 +75,17 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
     if (Object.values(expense).includes('') && !expense.comment && expense.status) {
       const { comment, status, partialAmount, ...rest } = expense
       if (Object.values(rest).includes('')) {
-        setError('Todos los campos son obligatorios')
+        setError(t('expense.required'))
         return
       }
     }
     if (expense.amount === 0) {
-      setError('El monto debe ser mayor a 0')
+      setError(t('expense.amountPositive'))
       return
     }
 
     if ((expense.amount - previousBudget) > reminderBudget) {
-      setError('Este gasto excede el presupuesto')
+      setError(t('expense.overBudget'))
       return
     }
 
@@ -112,23 +114,23 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
                 type="button"
                 onClick={() => dispatch({ type: 'close-modal' })}
                 className=" hover:bg-black text-md font-boldn absolute top-4 right-5 px-3 py-2 rounded-lg text-white bg-zinc-900"
-                aria-label="Cerrar modal"
+                aria-label={t('expense.close')}
               >
                 X
               </button>
       <legend className="uppercase text-center text-2xl font-black border-b-4 border-zinc-700 py-2">
-        {state.editingId ? 'Actualizar gasto' : 'Nuevo Gasto'}
+        {state.editingId ? t('expense.update') : t('expense.new')}
       </legend>
       {error && <ErrorMessage>{error}</ErrorMessage>}
       <div className="flex justify-end">
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="expenseName" className="text-xl">Nombre Del gasto: </label>
+        <label htmlFor="expenseName" className="text-xl">{t('expense.name')}: </label>
         <input
           type="text"
           id="expenseName"
-          placeholder="Añadir Gasto"
+          placeholder={t('expense.namePlaceholder')}
           className="bg-slate-100 p-2"
           name="expenseName"
           value={expense.expenseName}
@@ -137,10 +139,10 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="amount" className="text-xl">Cantidad Del gasto: </label>
+        <label htmlFor="amount" className="text-xl">{t('expense.amount')}: </label>
         <NumericFormat
           id="amount"
-          placeholder="Añadir Cantidad ej. 300"
+          placeholder={t('expense.amountPlaceholder')}
           className="bg-slate-100 p-2"
           name="amount"
           value={expense.amount}
@@ -149,7 +151,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="category" className="text-xl">Categoria: </label>
+        <label htmlFor="category" className="text-xl">{t('expense.category')}: </label>
         <Select
           id="category"
           className="bg-slate-100 p-2"
@@ -157,7 +159,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
           value={expense.category}
           onChange={handleChange}
         >
-          <option value="">-- Seleccione --</option>
+          <option value="">{t('expense.select')}</option>
           {categories.map(category => (
             <option key={category.id} value={category.id}>{category.name}</option>
           ))}
@@ -167,13 +169,13 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
         <div className="flex items-center gap-2 mt-1">
 
           <input type="checkbox" checked={showCategoryForm} onChange={showCreateCategoryForm} />
-          <label>Añadir nueva categoria</label>
+          <label>{t('expense.addCategory')}</label>
         </div>
         {showCategoryForm && <NewCategoryForm updateCategoryList={updateCategoryList} />}
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="expenseDate" className="text-xl">Fecha Del gasto: </label>
+        <label htmlFor="expenseDate" className="text-xl">{t('expense.date')}: </label>
         <DatePicker
           id="expenseDate"
           className="bg-slate-100 p-2"
@@ -183,7 +185,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="status" className="text-xl">Estado de pago: </label>
+        <label htmlFor="status" className="text-xl">{t('expense.status')}: </label>
         <Select
           id="status"
           className="bg-slate-100 p-2"
@@ -191,18 +193,18 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
           value={expense.status}
           onChange={handleChange}
         >
-          <option value="pending">Pendiente</option>
-          <option value="paid">Pagado</option>
-          <option value="partial">Pago Parcial</option>
+          <option value="pending">{t('expense.pending')}</option>
+          <option value="paid">{t('expense.paid')}</option>
+          <option value="partial">{t('expense.partial')}</option>
         </Select>
       </div>
 
       {expense.status === 'partial' && (
         <div className="flex flex-col gap-2">
-          <label htmlFor="partialAmount" className="text-xl">Monto parcial pagado: </label>
+          <label htmlFor="partialAmount" className="text-xl">{t('expense.partialAmount')}: </label>
           <NumericFormat
             id="partialAmount"
-            placeholder="Ej. 150"
+            placeholder={t('expense.amountPlaceholder')}
             className="bg-slate-100 p-2"
             name="partialAmount"
             value={expense.partialAmount}
@@ -212,13 +214,13 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
       )}
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="comment" className="text-xl">Comentario (opcional): </label>
+        <label htmlFor="comment" className="text-xl">{t('expense.commentOptional')}: </label>
         <textarea
           id="comment"
           className="bg-slate-100 p-2 border rounded"
           name="comment"
           rows={3}
-          placeholder="Agregar comentario..."
+          placeholder={t('comments.placeholder')}
           value={expense.comment}
           onChange={handleChange}
         />
@@ -228,7 +230,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
         type="submit"
         disabled={apiLoading}
         className="bg-zinc-900 cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg disabled:opacity-50"
-        value={apiLoading ? "Guardando..." : state.editingId ? "Guardar Cambio" : "Registrar gasto"}
+        value={apiLoading ? t('budget.saving') : state.editingId ? t('expense.saveChanges') : t('expense.register')}
       />
     </form>
   )

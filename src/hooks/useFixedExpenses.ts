@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { templatesApi, categoriesApi, expensesApi } from '../api'
-import { useBudget } from './useBudget'
+import type { ExpenseResponse } from '../api/expenses'
+import type { TemplateGroup } from '../api/templates'
 import { useAuth } from './useAuth'
-import { FixedExpense } from '../types'
+import { FixedExpense, PaymentRecord } from '../types'
 
 const CATEGORY_ICONS: Record<string, string> = {
   '1': 'savings',
@@ -25,11 +26,6 @@ function getIconForCategory(categoryId: string, categoryName: string): string {
   return 'receipt_long'
 }
 
-// cada mes los fixed expenses que estén en estado "paid" o "partial" deben renovarse a "pending" 
-// para el nuevo mes. Esto se hace una vez al mes, y se guarda la fecha de la última renovación en 
-// localStorage para no repetir la operación.
-
-// en el futuro debo cambiar esta logica para 
 function getLastRenewalMonth(): string | null {
   return localStorage.getItem('fixedExpenses_lastRenewal')
 }
@@ -43,11 +39,11 @@ function getCurrentMonthKey(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
-async function renewPaidItemsIfNeeded(templates: { id: string; items: { id: string; status: string }[] }[]) {
+async function renewPaidItemsIfNeeded(templates: { id: string; items: { id: string; status: string }[] }[]): Promise<boolean> {
   const currentMonth = getCurrentMonthKey()
   const lastRenewal = getLastRenewalMonth()
 
-  if (lastRenewal === currentMonth) return
+  if (lastRenewal === currentMonth) return false
 
   const paidItems = templates.flatMap((group) =>
     group.items
@@ -64,13 +60,105 @@ async function renewPaidItemsIfNeeded(templates: { id: string; items: { id: stri
   }
 
   setLastRenewalMonth(currentMonth)
+  return paidItems.length > 0
+}
+
+function matchesTemplateItem(expense: ExpenseResponse, templateId: string, itemName: string, categoryName: string, amount: number) {
+  if (expense.templateId === templateId && expense.name === itemName) return true
+  if (!expense.templateId && expense.name === itemName && expense.category === categoryName && expense.amount === amount) return true
+  return false
+}
+
+function buildHistory(paymentExpenses: ExpenseResponse[], templateId: string, item: { id: string; name: string; amount: number; category: { name: string } }, currentMonth: string): PaymentRecord[] {
+  const historicalPayments = paymentExpenses
+    .filter((expense) => matchesTemplateItem(expense, templateId, item.name, item.category.name, item.amount))
+    .reduce<PaymentRecord[]>((history, expense) => {
+      const month = expense.date.slice(0, 7)
+      if (!month || month === currentMonth || history.some((record) => record.month === month)) return history
+      history.push({
+        month,
+        paid: expense.status === 'paid' || expense.status === 'partial',
+        paidDate: expense.status === 'paid' || expense.status === 'partial' ? expense.date : undefined,
+        templateItemId: item.id,
+      })
+      return history
+    }, [])
+    .sort((a, b) => a.month.localeCompare(b.month))
+
+  return historicalPayments
+}
+
+function mapTemplatesToFixedExpenses(
+  templates: TemplateGroup[],
+  categories: { id: string; icon: string | null; color: string | null }[],
+  paymentExpenses: ExpenseResponse[],
+): FixedExpense[] {
+  const categoryMap = new Map<string, { icon: string | null; color: string | null }>()
+  categories.forEach((c) => categoryMap.set(c.id, { icon: c.icon, color: c.color }))
+  const currentMonth = getCurrentMonthKey()
+
+  return templates.flatMap((group) =>
+    group.items.map((item) => {
+      const isPaid = item.status === 'paid'
+      const isPartial = item.status === 'partial'
+      const catInfo = categoryMap.get(item.categoryId)
+
+      return {
+        id: item.id,
+        templateId: group.id,
+        templateGroupName: group.name,
+        name: item.name,
+        amount: item.amount,
+        category: item.category.name,
+        categoryId: item.categoryId,
+        categoryIcon: catInfo?.icon ?? null,
+        categoryColor: catInfo?.color ?? null,
+        dueDay: item.dayOfMonth,
+        icon: getIconForCategory(item.categoryId, item.category.name),
+        status: isPaid ? 'paid' : isPartial ? 'partial' : 'pending',
+        lastPaidDate: isPaid ? currentMonth : undefined,
+        history: [
+          ...buildHistory(paymentExpenses, group.id, item, currentMonth),
+          {
+            month: currentMonth,
+            paid: isPaid,
+            paidDate: isPaid ? currentMonth : undefined,
+            templateItemId: item.id,
+          },
+        ],
+        comment: item.comment || undefined,
+        partialAmount: item.partialAmount || undefined,
+      }
+    })
+  )
+}
+
+function markExpenseAsPaid(expense: FixedExpense): FixedExpense {
+  const currentMonth = getCurrentMonthKey()
+  const hasCurrentMonth = expense.history.some((record) => record.month === currentMonth)
+
+  return {
+    ...expense,
+    status: 'paid',
+    lastPaidDate: currentMonth,
+    partialAmount: undefined,
+    history: hasCurrentMonth
+      ? expense.history.map((record) =>
+          record.month === currentMonth
+            ? { ...record, paid: true, paidDate: currentMonth }
+            : record
+        )
+      : [
+          ...expense.history,
+          { month: currentMonth, paid: true, paidDate: currentMonth, templateItemId: expense.id },
+        ],
+  }
 }
 
 export function useFixedExpenses() {
   const [fixedExpenses, setFixedExpenses] = useState<FixedExpense[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { dispatch } = useBudget()
   const { user } = useAuth()
 
   const loadFixedExpenses = useCallback(async () => {
@@ -83,73 +171,14 @@ export function useFixedExpenses() {
         categoriesApi.listCategories(),
       ])
 
-      const categoryMap = new Map<string, { icon: string | null; color: string | null }>()
-      categories.forEach((c) => categoryMap.set(c.id, { icon: c.icon, color: c.color }))
+      const renewed = await renewPaidItemsIfNeeded(templates)
 
-      await renewPaidItemsIfNeeded(templates)
+      const [sourceTemplates, paymentExpensesResult] = await Promise.all([
+        renewed ? templatesApi.listTemplates() : Promise.resolve(templates),
+        expensesApi.listExpenses({ page: 1, limit: 500 }),
+      ])
 
-      const refreshedTemplates = await templatesApi.listTemplates()
-      const paymentExpenses = (await expensesApi.listExpenses({ page: 1, limit: 500 })).expenses
-      const now = new Date()
-      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-
-      const fixedExpenses: FixedExpense[] = refreshedTemplates.flatMap((group) =>
-        group.items.map((item) => {
-          const isPaid = item.status === 'paid'
-          const isPartial = item.status === 'partial'
-          const catInfo = categoryMap.get(item.categoryId)
-
-           const historicalPayments = paymentExpenses
-             .filter((expense) => {
-               const sameTemplateItem = expense.templateId === item.id
-               const sameExpense = expense.name === item.name
-                 && expense.category === item.category.name
-                 && expense.amount === item.amount
-               return sameTemplateItem || sameExpense
-             })
-             .reduce<FixedExpense['history']>((history, expense) => {
-               const month = expense.date.slice(0, 7)
-               if (!month || month === currentMonth || history.some((record) => record.month === month)) return history
-               history.push({
-                 month,
-                 paid: expense.status === 'paid' || expense.status === 'partial',
-                 paidDate: expense.status === 'paid' || expense.status === 'partial' ? expense.date : undefined,
-                 templateItemId: item.id,
-               })
-               return history
-             }, [])
-             .sort((a, b) => a.month.localeCompare(b.month))
-
-           return {
-            id: item.id,
-            templateId: group.id,
-            templateGroupName: group.name,
-            name: item.name,
-            amount: item.amount,
-            category: item.category.name,
-            categoryId: item.categoryId,
-            categoryIcon: catInfo?.icon ?? null,
-            categoryColor: catInfo?.color ?? null,
-            dueDay: item.dayOfMonth,
-            icon: getIconForCategory(item.categoryId, item.category.name),
-            status: isPaid ? 'paid' : isPartial ? 'partial' : 'pending',
-            lastPaidDate: isPaid ? currentMonth : undefined,
-             history: [
-               ...historicalPayments,
-               {
-                 month: currentMonth,
-                paid: isPaid,
-                paidDate: isPaid ? currentMonth : undefined,
-                templateItemId: item.id,
-              },
-            ],
-            comment: item.comment || undefined,
-            partialAmount: item.partialAmount || undefined,
-          }
-        })
-      )
-
-      setFixedExpenses(fixedExpenses)
+      setFixedExpenses(mapTemplatesToFixedExpenses(sourceTemplates, categories, paymentExpensesResult.expenses))
     } catch (err) {
       setError('Error al cargar los gastos fijos')
       console.error('Error loading fixed expenses:', err)
@@ -168,28 +197,30 @@ export function useFixedExpenses() {
       setLoading(true)
       await templatesApi.applyTemplate(templateId)
       await loadFixedExpenses()
-      dispatch({ type: 'get-expenses', payload: { expenses: [] } })
     } catch (err) {
       setError('Error al marcar como pagado')
       console.error('Error marking as paid:', err)
     } finally {
       setLoading(false)
     }
-  }, [user, loadFixedExpenses, dispatch])
+  }, [user, loadFixedExpenses])
 
   const markItemAsPaid = useCallback(async (templateId: string, itemId: string) => {
     if (!user) return
+    let snapshot: FixedExpense[] = []
+    setFixedExpenses((prev) => {
+      snapshot = prev
+      return prev.map((expense) => (expense.id === itemId ? markExpenseAsPaid(expense) : expense))
+    })
     try {
-      setLoading(true)
+      setError(null)
       await templatesApi.updateItem(templateId, itemId, { status: 'paid' })
-      await loadFixedExpenses()
     } catch (err) {
+      setFixedExpenses(snapshot)
       setError('Error al marcar como pagado')
       console.error('Error marking item as paid:', err)
-    } finally {
-      setLoading(false)
     }
-  }, [user, loadFixedExpenses])
+  }, [user])
 
   const getExpensesForDay = useCallback((day: number): FixedExpense[] => {
     return fixedExpenses.filter((expense) => expense.dueDay === day)

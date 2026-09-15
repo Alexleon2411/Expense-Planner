@@ -1,8 +1,10 @@
 import { useState, FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginForm() {
   const { login, register } = useAuth();
+  const { t } = useTranslation();
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
@@ -32,7 +34,7 @@ export default function LoginForm() {
       const msg =
         err && typeof err === 'object' && 'response' in err
           ? (err as { response: { data: { error: string } } }).response?.data?.error
-          : 'Error al iniciar sesión';
+          : t('loginPage.loginError');
       setLoginError(msg);
     } finally {
       setLoginSubmitting(false);
@@ -50,7 +52,7 @@ export default function LoginForm() {
       const msg =
         err && typeof err === 'object' && 'response' in err
           ? (err as { response: { data: { error: string } } }).response?.data?.error
-          : 'Error al registrarse';
+          : t('loginPage.registerError');
       setRegError(msg);
     } finally {
       setRegSubmitting(false);
@@ -79,27 +81,27 @@ export default function LoginForm() {
           {/* Paragraph */}
           <div className="my-5">
             <h1 className="mb-5  text-white">
-              Master your capital with <span className="text-emerald-400">precision-grade</span> analytics.
+              {t('loginPage.headline')} <span className="text-emerald-400">{t('loginPage.headlineAccent')}</span> {t('loginPage.headlineSuffix')}
             </h1>
             <p className="text-slate-500 font-sans opacity-75">
-              Experience the next generation of financial management. Centralized controls, real-time insights, and institutional-grade security for your assets.
+              {t('loginPage.description')}
             </p>
           </div>
           {/* centered squared's */}
           <div className="my-5 grid grid-flow-col gap-4">
             <div className="bg-white/10 backdrop-blur-md p-5 rounded-lg border border-white/10 btn-highlight-glow">
-              <p className="font-body-sm text-white/60 mb-2 uppercase tracking-wider text-sm font-semibold">MONTHLY GROWTH</p>
+              <p className="font-body-sm text-white/60 mb-2 uppercase tracking-wider text-sm font-semibold">{t('loginPage.monthlyGrowth')}</p>
               <p className="font-data-mono text-headline-md text-secondary-fixed">+14.2%</p>
             </div>
             <div className="bg-white/10 backdrop-blur-md p-5  rounded-xl border border-white/10 btn-highlight-glow">
-              <p className="font-body-sm text-white/60 mb-2 uppercase  tracking-wider text-sm font-semibold">ACTIVE ACCOUNTS</p>
+              <p className="font-body-sm text-white/60 mb-2 uppercase  tracking-wider text-sm font-semibold">{t('loginPage.activeAccounts')}</p>
               <p className="font-data-mono text-headline-md text-white">2,841</p>
             </div>
           </div>
           {/* image */}
           <div className="mt-5 rounded-xl overflow-hidden shadow-2xl border border-white/20 ">
             <img
-              alt="Financial Data Dashboard"
+              alt={t('loginPage.dashboardAlt')}
               className="w-full h-64 object-cover"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuD2xe9cP-qrWZ9SBIVVfUb8fr2-m3E8mjaV6ygQWGP8nVSmrBTRCyugxNTxhwWp7t0IiFk63ZVmLg5uAcQjzabVGvfImw752wymOajStIdp5txhJd6iBW27VHY0Jrq0XxX_XdWC3k8e659xu2IpAjUxqdxIFxU_qUrceEaMZ8DdNsVuehCDV9fAl0_7WSC0LaJBXW9Th-Rz0kuFUiXrj8mP4ZTkyoBmykWLWtvlTHxSbq2NnfIEyaWsTnzyTlMll_L9dP-SzQNywKc"
             />
@@ -121,7 +123,7 @@ export default function LoginForm() {
               }`}
               onClick={() => setActiveTab('login')}
             >
-              LOGIN
+              {t('auth.login')}
             </button>
             <button
               className={`pb-2 font-label-caps transition-all ${
@@ -131,7 +133,7 @@ export default function LoginForm() {
               }`}
               onClick={() => setActiveTab('register')}
             >
-              REGISTER
+              {t('auth.register')}
             </button>
           </div>
 
@@ -139,8 +141,8 @@ export default function LoginForm() {
           {activeTab === 'login' && (
             <div>
               <header className="my-5">
-                <h2 className="font-headline-md text-slate-600 mb-xs">Welcome Back</h2>
-                <p className="font-body-sm text-slate-600 ">Enter your credentials to access your dashboard.</p>
+                <h2 className="font-headline-md text-slate-600 mb-xs">{t('auth.welcome')}</h2>
+                <p className="font-body-sm text-slate-600 ">{t('auth.credentials')}</p>
               </header>
 
               {loginError && (
@@ -151,11 +153,11 @@ export default function LoginForm() {
                 {/* EMAIL */}
               <form className="space-y-ms" onSubmit={handleLogin}>
                 <div className="space-y-1">
-                  <label className=" text-on-surface-variant text-sm" htmlFor="email">EMAIL ADDRESS</label>
+                   <label className=" text-on-surface-variant text-sm" htmlFor="email">{t('auth.email')}</label>
                   <input
                     id="email"
                     type="email"
-                    placeholder="name@company.com"
+                     placeholder={t('auth.email')}
                     className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
@@ -164,11 +166,11 @@ export default function LoginForm() {
                 </div>
                   {/* CONTRASENA */}
                 <div className="space-y-1 mt-4">
-                  <label className="font-label-caps text-on-surface-variant text-sm" htmlFor="password">PASSWORD</label>
+                   <label className="font-label-caps text-on-surface-variant text-sm" htmlFor="password">{t('auth.password')}</label>
                   <input
                     id="password"
                     type="password"
-                    placeholder="••••••••"
+                     placeholder={t('auth.password')}
                     className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
@@ -178,14 +180,14 @@ export default function LoginForm() {
 
                 <div className='flex items-center gap-1 my-4'>
                   <input type="checkbox" className='w-4 h-4 rounded border-outline-variant text-slate-900 focus:ring-black' id='remember'/> 
-                  <label htmlFor="remember">Stay signedn in for 30 days </label></div>
+                   <label htmlFor="remember">{t('auth.staySignedIn')}</label></div>
 
                 <button
                   type="submit"
                   disabled={loginSubmitting}
                   className="w-full bg-slate-900 text-slate-100 py-2 rounded-lg font-800  hover:bg-on-surface transition-colors shadow-md active:scale-[0.98] disabled:opacity-50"
                 >
-                  {loginSubmitting ? 'Signing In...' : 'Sign In'}
+                   {loginSubmitting ? t('auth.signingIn') : t('auth.signIn')}
                 </button>
               </form>
             </div>
@@ -195,8 +197,8 @@ export default function LoginForm() {
           {activeTab === 'register' && (
             <div>
               <header className="mb-lg">
-                <h2 className="font-headline-md text-on-surface mb-2">Create Account</h2>
-                <p className="text-xs text-on-surface-variant">Join 10k+ professionals managing their wealth.</p>
+                 <h2 className="font-headline-md text-on-surface mb-2">{t('auth.createAccount')}</h2>
+                 <p className="text-xs text-on-surface-variant">{t('loginPage.joinProfessionals')}</p>
               </header>
 
               {regError && (
@@ -208,11 +210,11 @@ export default function LoginForm() {
               <form className="space-y-4" onSubmit={handleRegister}>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div className="space-y-1">
-                    <label className="font-label-caps text-on-surface-variant text-sm " htmlFor="fname">FIRST NAME</label>
+                   <label className="font-label-caps text-on-surface-variant text-sm " htmlFor="fname">{t('auth.firstName')}</label>
                     <input
                       id="fname"
                       type="text"
-                      placeholder="Jane"
+                       placeholder={t('auth.firstName')}
                       className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
@@ -220,11 +222,11 @@ export default function LoginForm() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="font-label-caps text-on-surface-variant text-sm" htmlFor="lname">LAST NAME</label>
+                   <label className="font-label-caps text-on-surface-variant text-sm" htmlFor="lname">{t('auth.lastName')}</label>
                     <input
                       id="lname"
                       type="text"
-                      placeholder="Doe"
+                       placeholder={t('auth.lastName')}
                       className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
@@ -234,11 +236,11 @@ export default function LoginForm() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-caps text-on-surface-variant text-sm" htmlFor="reg-email">EMAIL ADDRESS</label>
+                   <label className="font-label-caps text-on-surface-variant text-sm" htmlFor="reg-email">{t('auth.email')}</label>
                   <input
                     id="reg-email"
                     type="email"
-                    placeholder="name@company.com"
+                     placeholder={t('auth.email')}
                     className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
@@ -247,11 +249,11 @@ export default function LoginForm() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="font-label-caps text-on-surface-variant text-sm" htmlFor="reg-password">SET PASSWORD</label>
+                   <label className="font-label-caps text-on-surface-variant text-sm" htmlFor="reg-password">{t('auth.password')}</label>
                   <input
                     id="reg-password"
                     type="password"
-                    placeholder="Min. 8 characters"
+                     placeholder={t('auth.minPassword')}
                     className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
@@ -261,9 +263,9 @@ export default function LoginForm() {
                 </div>
 
                 <p className="font-body-sm text-on-surface-variant leading-tight">
-                  By registering, you agree to our{' '}
-                  <a className="text-secondary underline" href="#">Terms of Service</a> and{' '}
-                  <a className="text-secondary underline" href="#">Privacy Policy</a>.
+                    {t('loginPage.termsPrefix')}{' '}
+                   <a className="text-secondary underline" href="#">{t('loginPage.termsOfService')}</a> {t('loginPage.and')}{' '}
+                   <a className="text-secondary underline" href="#">{t('loginPage.privacyPolicy')}</a>.
                 </p>
 
                 <button
@@ -271,7 +273,7 @@ export default function LoginForm() {
                   disabled={regSubmitting}
                   className="w-full bg-slate-900 text-slate-100 py-2 rounded-lg text-base font-800 hover:bg-on-surface transition-colors shadow-md active:scale-[0.98] disabled:opacity-50"
                 >
-                  {regSubmitting ? 'Creating Account...' : 'Create Account'}
+                   {regSubmitting ? t('auth.creatingAccount') : t('auth.createAccount')}
                 </button>
               </form>
             </div>
@@ -284,7 +286,7 @@ export default function LoginForm() {
                 <div className="w-full border-t border-outline-variant"></div>
               </div>
               <span className="relative px-8 bg-white font-label-caps text-slate-950 text-sm">
-                OR CONTINUE WITH
+                 {t('loginPage.continueWith')}
               </span>
             </div>
 
@@ -314,7 +316,7 @@ export default function LoginForm() {
           </div>
 
           <div className="mt-8 flex items-center justify-center gap-md grayscale opacity-40">
-            <span className="font-label-caps text-base">MOBILE APP COMING SOON</span>
+            <span className="font-label-caps text-base">{t('loginPage.mobileApp')}</span>
           </div>
         </div>
       </section>

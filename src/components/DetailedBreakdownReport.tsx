@@ -11,8 +11,7 @@ import { formatCurrecy } from '../helpers'
 import CategoryIcon from './CategoryIcon'
 import AllTransactions from './AllTransactions'
 import { buildTransactions } from '../helpers/transactions'
-
-const MONTHS_LONG = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+import { useTranslation } from 'react-i18next'
 
 interface DetailedBreakdownReportProps {
   isOpen: boolean
@@ -38,6 +37,8 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
 
   const { categories } = useCategories()
   const { fixedExpenses } = useFixedExpenses()
+  const { t, i18n } = useTranslation()
+  const monthLabel = new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(new Date(year, month - 1, 1))
 
   useEffect(() => {
     if (!isOpen) return
@@ -157,8 +158,8 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
                   <div className="flex items-center gap-md">
                     <span className="material-symbols-outlined text-primary">bar_chart</span>
                     <div>
-                      <h2 className="text-headline-md font-bold text-on-surface">Detailed Breakdown Report</h2>
-                      <p className="text-body-sm text-on-surface-variant">{MONTHS_LONG[month - 1]} {year}</p>
+                      <h2 className="text-headline-md font-bold text-on-surface">{t('reports.detailed')}</h2>
+                      <p className="text-body-sm text-on-surface-variant">{monthLabel} {year}</p>
                     </div>
                   </div>
                   <button
@@ -172,32 +173,32 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
                 <div className="flex-1 overflow-y-auto p-lg space-y-gutter">
                   {loading ? (
                     <div className="flex items-center justify-center py-24">
-                      <p className="text-body-lg text-on-surface-variant">Loading breakdown report...</p>
+                        <p className="text-body-lg text-on-surface-variant">{t('reports.loading')}</p>
                     </div>
                   ) : (
                     <>
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-gutter">
                         <div className="bg-surface-container-low rounded-xl p-md">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">TOTAL SPENT</p>
+                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.totalSpent')}</p>
                           <p className="text-headline-md font-bold text-primary font-data-mono">{formatCurrecy(totalSpent)}</p>
                         </div>
                         <div className="bg-surface-container-low rounded-xl p-md">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">TRANSACTIONS</p>
+                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.transactions')}</p>
                           <p className="text-headline-md font-bold text-on-surface font-data-mono">{totalCount}</p>
-                          <p className="text-body-sm text-on-surface-variant">in {mergedCategories.length} categor{mergedCategories.length === 1 ? 'y' : 'ies'}</p>
+                          <p className="text-body-sm text-on-surface-variant">{t('reports.categories', { count: mergedCategories.length, unit: mergedCategories.length === 1 ? t('reports.category') : t('reports.categoriesPlural') })}</p>
                         </div>
                         <div className="bg-surface-container-low rounded-xl p-md">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">BUDGET UTILIZATION</p>
+                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.budgetUtilization')}</p>
                           <div className="flex items-baseline gap-2">
                             <p className="text-headline-md font-bold text-on-surface font-data-mono">{budgetPct}%</p>
-                            <span className="text-body-sm text-on-surface-variant">of {formatCurrecy(budgeted)}</span>
+                            <span className="text-body-sm text-on-surface-variant">{t('reports.of', { amount: formatCurrecy(budgeted) })}</span>
                           </div>
                           <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-2">
                             <div className="bg-primary h-full" style={{ width: `${Math.min(budgetPct, 100)}%` }}></div>
                           </div>
                         </div>
                         <div className="bg-surface-container-low rounded-xl p-md">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">AVG PER TRANSACTION</p>
+                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.average')}</p>
                           <p className="text-headline-md font-bold text-secondary font-data-mono">
                             {totalCount > 0 ? formatCurrecy(totalSpent / totalCount) : formatCurrecy(0)}
                           </p>
@@ -207,7 +208,7 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
                       <div className="grid grid-cols-12 gap-gutter">
                         <div className="col-span-12 lg:col-span-5 bento-card">
                           <div className="flex justify-between items-center mb-lg">
-                            <p className="text-label-caps font-label-caps text-on-surface-variant">BREAKDOWN BY CATEGORY</p>
+                            <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.breakdownCategory')}</p>
                             <span className="material-symbols-outlined text-sm text-on-surface-variant">donut_small</span>
                           </div>
                           <div className="space-y-sm max-h-[320px] overflow-y-auto custom-scrollbar pr-xs">
@@ -228,7 +229,7 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
                                           <div className="bg-primary h-full" style={{ width: `${(cat.total / maxCategoryTotal) * 100}%` }}></div>
                                         </div>
                                         <span className="text-[10px] text-on-surface-variant whitespace-nowrap">
-                                          {cat.count} item{cat.count === 1 ? '' : 's'} &middot; {share}%
+                                           {t('reports.count', { count: cat.count, unit: cat.count === 1 ? t('reports.item') : t('reports.items') })} &middot; {share}%
                                         </span>
                                       </div>
                                     </div>
@@ -237,14 +238,14 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
                               )
                             })}
                             {mergedCategories.length === 0 && (
-                              <p className="text-body-sm text-on-surface-variant text-center py-6">No expense data for this period.</p>
+                              <p className="text-body-sm text-on-surface-variant text-center py-6">{t('reports.noPeriod')}</p>
                             )}
                           </div>
                         </div>
 
                         <div className="col-span-12 lg:col-span-7 bento-card">
                           <div className="flex justify-between items-center mb-lg">
-                            <p className="text-label-caps font-label-caps text-on-surface-variant">BREAKDOWN BY DAY</p>
+                            <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.breakdownDay')}</p>
                             <span className="material-symbols-outlined text-sm text-on-surface-variant">calendar_month</span>
                           </div>
                           <div className="max-h-[320px] overflow-y-auto custom-scrollbar pr-xs">
@@ -261,8 +262,8 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
                                       <span className="text-body-sm font-bold text-on-surface">{row.day}</span>
                                     </span>
                                     <div className="flex-1 text-left min-w-0">
-                                      <p className="text-body-sm font-medium">Day {row.day}</p>
-                                      <p className="text-[11px] text-on-surface-variant">{row.count} transaction{row.count === 1 ? '' : 's'}</p>
+                                      <p className="text-body-sm font-medium">{t('reports.day', { day: row.day })}</p>
+                                      <p className="text-[11px] text-on-surface-variant">{t('reports.count', { count: row.count, unit: row.count === 1 ? t('reports.transaction') : t('reports.transactionsPlural') })}</p>
                                     </div>
                                     <span className="text-body-sm font-data-mono font-semibold">{formatCurrecy(row.total)}</span>
                                     <span className="material-symbols-outlined text-on-surface-variant text-[18px]">
@@ -278,14 +279,14 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
                                             <CategoryIcon icon={info?.icon} color={info?.color} name={info?.name || e.category} size="sm" />
                                             <p className="flex-1 text-body-sm truncate">{e.name}</p>
                                             {e.isFixed && (
-                                              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase bg-secondary/10 text-secondary">Fixed</span>
+                                               <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase bg-secondary/10 text-secondary">{t('reports.fixed')}</span>
                                             )}
                                             <span className="text-body-sm font-data-mono">{formatCurrecy(e.amount)}</span>
                                           </div>
                                         )
                                       })}
                                       {dayExpenses.length === 0 && (
-                                        <p className="text-body-sm text-on-surface-variant">No transactions this day.</p>
+                                        <p className="text-body-sm text-on-surface-variant">{t('reports.noDay')}</p>
                                       )}
                                     </div>
                                   )}
@@ -293,7 +294,7 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
                               )
                             })}
                             {dayRows.length === 0 && (
-                              <p className="text-body-sm text-on-surface-variant text-center py-6">No expense data for this period.</p>
+                              <p className="text-body-sm text-on-surface-variant text-center py-6">{t('reports.noPeriod')}</p>
                             )}
                           </div>
                         </div>
@@ -301,7 +302,7 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
 
                       <div className="bento-card">
                         <div className="flex justify-between items-center mb-lg">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant">ALL TRANSACTIONS</p>
+                          <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.allTransactions')}</p>
                           <span className="material-symbols-outlined text-sm text-on-surface-variant">receipt_long</span>
                         </div>
                         <AllTransactions transactions={transactions} />
@@ -312,13 +313,13 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
 
                 <div className="px-lg py-md border-t border-outline-variant flex items-center justify-between">
                   <p className="text-body-sm text-on-surface-variant">
-                    {transactions.length} transaction{transactions.length === 1 ? '' : 's'}
+                    {t('reports.reportTransactions', { count: transactions.length, unit: transactions.length === 1 ? t('reports.transaction') : t('reports.transactionsPlural') })}
                   </p>
                   <button
                     className="px-md py-sm bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity"
                     onClick={onClose}
                   >
-                    Close
+                    {t('reports.close')}
                   </button>
                 </div>
               </Dialog.Panel>

@@ -12,13 +12,13 @@ import CategoryManager from './CategoryManager'
 import Statistics from './Statistics'
 import PaymentStatusBadge from './PaymentStatusBadge'
 import CategoryIcon from './CategoryIcon'
+import { useTranslation } from 'react-i18next'
+import { formatDate } from '../helpers'
 
 type MainTab = 'dashboard' | 'insights'
 type InnerTab = 'resumen' | 'plantillas' | 'categorias' | 'estadisticas'
 
 const PIE_COLORS = ['#6750a4', '#625b71', '#7d5260', '#006c49', '#ba1a1a', '#00639b']
-const MONTHS_SHORT = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-const MONTHS_LONG = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
 
 export default function Dashboard3() {
@@ -31,6 +31,8 @@ export default function Dashboard3() {
   const { state, totalExpense, reminderBudget, getAllExpenses } = useBudget()
   const { categories } = useCategories()
   const { fixedExpenses } = useFixedExpenses()
+  const { t, i18n } = useTranslation()
+  const monthName = (month: number, width: 'short' | 'long' = 'long') => new Intl.DateTimeFormat(i18n.language, { month: width }).format(new Date(selectedYear, month - 1, 1))
 
   const [overview, setOverview] = useState<OverviewResponse | null>(null)
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown[]>([])
@@ -79,7 +81,7 @@ export default function Dashboard3() {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-secondary-container/40 text-on-secondary-container whitespace-nowrap">
           <span className="material-symbols-outlined text-[14px] leading-none">check_circle</span>
-          Pagado
+          {t('dashboard.paid')}
         </span>
       )
     }
@@ -87,14 +89,14 @@ export default function Dashboard3() {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-primary-fixed/70 text-on-primary-fixed whitespace-nowrap">
           <span className="material-symbols-outlined text-[14px] leading-none">pie_chart</span>
-          Pago Parcial
+          {t('dashboard.partial')}
         </span>
       )
     }
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 whitespace-nowrap">
         <span className="material-symbols-outlined text-[14px] leading-none">schedule</span>
-        Pendiente
+        {t('dashboard.pending')}
       </span>
     )
   }
@@ -148,8 +150,8 @@ export default function Dashboard3() {
     if (totalSpentAll > totalBudget) {
       items.push({
         icon: 'warning',
-        title: 'Superaste tu presupuesto',
-        detail: `Llevas ${formatCurrecy(totalSpentAll)} de ${formatCurrecy(totalBudget)}. Estás ${formatCurrecy(totalSpentAll - totalBudget)} por encima.`,
+        title: t('dashboard.overBudget'),
+        detail: t('dashboard.paidOf', { paid: formatCurrecy(totalSpentAll), total: formatCurrecy(totalBudget) }),
         tone: 'error',
       })
     } else if (fixedTotal < totalBudget) {
@@ -159,8 +161,8 @@ export default function Dashboard3() {
         const projected = (regularSpent / elapsedDay) * daysInMonth
         items.push({
           icon: 'speed',
-          title: 'Ritmo de gasto muy rápido',
-          detail: `Has usado el ${variableUsagePct.toFixed(0)}% del presupuesto variable con solo el ${(elapsedPct * 100).toFixed(0)}% del mes. Al ritmo actual terminarás gastando ${formatCurrecy(projected)} en gastos variables (los fijos van aparte).`,
+          title: t('reports.velocity'),
+          detail: t('reports.consuming', { value: variableUsagePct.toFixed(0) }) + ` ${formatCurrecy(projected)}`,
           tone: 'warn',
         })
       }
@@ -173,8 +175,8 @@ export default function Dashboard3() {
         const name = getCategoryInfo(top.category)?.name || top.category
         items.push({
           icon: 'pie_chart',
-          title: `Mucho gasto en ${name}`,
-          detail: `${name} consume el ${share.toFixed(0)}% de tu presupuesto (${formatCurrecy(top.total)}). Revisa si puedes recortarlo.`,
+          title: `${name}: ${t('dashboard.spent')}`,
+          detail: `${name}: ${share.toFixed(0)}% (${formatCurrecy(top.total)})`,
           tone: 'warn',
         })
       }
@@ -184,8 +186,8 @@ export default function Dashboard3() {
     if (fixedShare >= 50) {
       items.push({
         icon: 'lock',
-        title: 'Gastos fijos muy altos',
-        detail: `Tus gastos fijos representan el ${fixedShare.toFixed(0)}% del presupuesto (${formatCurrecy(fixedTotal)}). Intenta renegociarlos.`,
+        title: t('dashboard.fixed'),
+        detail: `${fixedShare.toFixed(0)}% (${formatCurrecy(fixedTotal)})`,
         tone: 'warn',
       })
     }
@@ -253,10 +255,10 @@ export default function Dashboard3() {
   }, [state.expenses])
 
   const innerTabs: { id: InnerTab; label: string }[] = [
-    { id: 'resumen', label: 'Resumen' },
-    { id: 'plantillas', label: 'Plantillas' },
-    { id: 'categorias', label: 'Categorías' },
-    { id: 'estadisticas', label: 'Estadísticas' },
+    { id: 'resumen', label: t('dashboard.tabs.summary') },
+    { id: 'plantillas', label: t('dashboard.tabs.templates') },
+    { id: 'categorias', label: t('dashboard.tabs.categories') },
+    { id: 'estadisticas', label: t('dashboard.tabs.statistics') },
   ]
 
   return (
@@ -264,8 +266,8 @@ export default function Dashboard3() {
       <main className="min-h-screen pb-xl">
         <div className="mt-6 mx-6 p-lg space-y-lg text-center py-xl overflow-hidden rounded-xl bg-primary-container text-on-primary">
           <div className="relative z-10">
-            <h2 className="text-display-md font-display-md mb-xs tracking-tight">Dashboard</h2>
-            <p className="text-headline-sm font-headline-sm opacity-80 max-w-2xl mx-auto">Overview of your financial performance.</p>
+            <h2 className="text-display-md font-display-md mb-xs tracking-tight">{t('dashboard.title')}</h2>
+            <p className="text-headline-sm font-headline-sm opacity-80 max-w-2xl mx-auto">{t('dashboard.overview')}</p>
           </div>
         </div>
 
@@ -277,7 +279,7 @@ export default function Dashboard3() {
                 mainTab === 'dashboard' ? 'bg-surface-container-lowest shadow-sm text-primary' : 'text-on-surface-variant'
               }`}
             >
-              Dashboard
+              {t('dashboard.title')}
             </button>
             <button
               onClick={() => setMainTab('insights')}
@@ -285,7 +287,7 @@ export default function Dashboard3() {
                 mainTab === 'insights' ? 'bg-surface-container-lowest shadow-sm text-primary' : 'text-on-surface-variant'
               }`}
             >
-              Insights
+              {t('dashboard.insights')}
             </button>
           </div>
           <div className="relative">
@@ -294,8 +296,8 @@ export default function Dashboard3() {
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(Number(e.target.value))}
             >
-              {MONTHS_LONG.map((m, i) => (
-                <option key={i + 1} value={i + 1}>{m} </option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                <option key={m} value={m}>{monthName(m)} </option>
               ))}
             </select>
           <select
@@ -321,24 +323,24 @@ export default function Dashboard3() {
               </div>
               <div className="bento-card">
                 <div className="flex justify-between items-start mb-sm">
-                  <p className="text-label-caps font-label-caps text-on-surface-variant">QUICK SUMMARY</p>
+                    <p className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.quickSummary')}</p>
                   <span className="material-symbols-outlined text-sm text-on-surface-variant">monitoring</span>
                 </div>
                 <div className="space-y-md">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-body-sm text-on-surface-variant">Presupuesto</span>
+                    <span className="text-body-sm text-on-surface-variant">{t('dashboard.budget')}</span>
                     <span className="text-headline-sm font-data-mono font-bold">{formatCurrecy(totalBudget)}</span>
                   </div>
                   <div className="flex justify-between items-baseline">
-                    <span className="text-body-sm text-on-surface-variant">Gastos Fijos</span>
+                    <span className="text-body-sm text-on-surface-variant">{t('dashboard.fixed')}</span>
                     <span className="text-headline-sm font-data-mono font-bold text-on-surface-variant">{formatCurrecy(fixedTotal)}</span>
                   </div>
                   <div className="flex justify-between items-baseline">
-                    <span className="text-body-sm text-on-surface-variant">Gastado</span>
+                    <span className="text-body-sm text-on-surface-variant">{t('dashboard.spent')}</span>
                     <span className="text-headline-sm font-data-mono font-bold text-primary">{formatCurrecy(totalSpentAll)}</span>
                   </div>
                   <div className="flex justify-between items-baseline">
-                    <span className="text-body-sm text-on-surface-variant">Disponible</span>
+                    <span className="text-body-sm text-on-surface-variant">{t('dashboard.available')}</span>
                     <span className={`text-headline-sm font-data-mono font-bold ${available < 0 ? 'text-error' : 'text-secondary'}`}>
                       {formatCurrecy(available)}
                     </span>
@@ -349,12 +351,12 @@ export default function Dashboard3() {
                       style={{ width: `${Math.min(usagePct, 100)}%` }}
                     />
                   </div>
-                  <p className="text-body-sm text-on-surface-variant text-center">{usagePct.toFixed(2)}% utilizado</p>
+                  <p className="text-body-sm text-on-surface-variant text-center">{usagePct.toFixed(2)}% {t('dashboard.used')}</p>
                 </div>
 
                 <div className="mt-lg pt-md border-t border-outline-variant">
                   <p className="text-label-caps font-label-caps text-on-surface-variant mb-sm">
-                    {insights.length > 0 ? 'QUÉ ESTÁS HACIENDO MAL' : 'QUÉ ESTÁS HACIENDO BIEN'}
+                    {insights.length > 0 ? t('dashboard.doingWrong') : t('dashboard.doingRight')}
                   </p>
                   {insights.length > 0 ? (
                     <div className="space-y-sm">
@@ -383,9 +385,9 @@ export default function Dashboard3() {
                     <div className="p-sm rounded-lg bg-primary-container/10 flex items-start gap-sm">
                       <span className="material-symbols-outlined text-[18px] text-primary shrink-0">check_circle</span>
                       <div>
-                        <p className="text-body-sm font-bold text-on-surface">Vas por buen camino</p>
+                        <p className="text-body-sm font-bold text-on-surface">{t('dashboard.onTrack')}</p>
                         <p className="text-[11px] text-on-surface-variant">
-                          No se detectaron gastos excesivos. Sigue respetando tu presupuesto.
+                          {t('dashboard.noExcess')}
                         </p>
                       </div>
                     </div>
@@ -413,21 +415,21 @@ export default function Dashboard3() {
                   recentExpenses.length > 0 ? (
                     <div>
                       <div className="flex items-center justify-between mb-md">
-                        <h4 className="text-headline-sm font-bold">Últimos Gastos</h4>
+                        <h4 className="text-headline-sm font-bold">{t('dashboard.latest')}</h4>
                         <span className="px-2.5 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-label-caps font-label-caps">
-                          {recentExpenses.length} recientes
+                          {t('dashboard.recentCount', { count: recentExpenses.length })}
                         </span>
                       </div>
                       <div className="hidden sm:block overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm pl-4">
                         <table className="w-full text-left text-body-sm">
                           <thead>
                             <tr className="text-label-caps font-label-caps text-on-surface-variant border-b border-outline-variant">
-                              <th className="py-xs pr-md whitespace-nowrap">Date</th>
-                              <th className="py-xs pr-md">Category</th>
-                              <th className="py-xs pr-md">Expense</th>
-                              <th className="py-xs pr-md">Status</th>
-                              <th className="py-xs pr-md">Comment</th>
-                              <th className="py-xs pr-md text-right">Amount</th>
+                              <th className="py-xs pr-md whitespace-nowrap">{t('dashboard.date')}</th>
+                              <th className="py-xs pr-md">{t('dashboard.category')}</th>
+                              <th className="py-xs pr-md">{t('dashboard.expense')}</th>
+                              <th className="py-xs pr-md">{t('dashboard.status')}</th>
+                              <th className="py-xs pr-md">{t('dashboard.comment')}</th>
+                              <th className="py-xs pr-md text-right">{t('dashboard.amount')}</th>
                               <th className="py-xs pl-md pr-md"></th>
                             </tr>
                           </thead>
@@ -447,8 +449,8 @@ export default function Dashboard3() {
                                   >
                                     <td className="py-sm pr-md whitespace-nowrap text-on-surface-variant">
                                       {exp.date instanceof Date
-                                        ? exp.date.toLocaleDateString('es-MX')
-                                        : new Date(String(exp.date)).toLocaleDateString('es-MX')}
+                                         ? formatDate(exp.date.toISOString())
+                                         : formatDate(String(exp.date))}
                                     </td>
                                     <td className="py-sm pr-md">
                                       <div className="flex items-center gap-xs min-w-[120px]">
@@ -478,7 +480,7 @@ export default function Dashboard3() {
                                         <>
                                           <p className="font-data-mono font-bold text-primary whitespace-nowrap">{formatCurrecy(remaining)}</p>
                                           <p className="text-[11px] text-on-surface-variant font-data-mono whitespace-nowrap">
-                                            Pagado {formatCurrecy(paidAmount)} de {formatCurrecy(exp.amount)}
+                                             {t('dashboard.paidOf', { paid: formatCurrecy(paidAmount), total: formatCurrecy(exp.amount) })}
                                           </p>
                                         </>
                                       ) : (
@@ -496,7 +498,7 @@ export default function Dashboard3() {
                                       <td colSpan={7} className="py-sm px-md">
                                         <div className="flex items-center justify-between gap-md flex-wrap">
                                           <div className="flex items-center gap-md">
-                                            <span className="text-label-caps font-label-caps text-on-surface-variant">Estado de pago</span>
+                                             <span className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.paymentStatus')}</span>
                                             <PaymentStatusBadge
                                               status={effectiveStatus}
                                               partialAmount={exp.partialAmount}
@@ -508,15 +510,15 @@ export default function Dashboard3() {
                                             {isPartial ? (
                                               <>
                                                 <p className="font-data-mono font-bold text-primary whitespace-nowrap">
-                                                  Restante: {formatCurrecy(remaining)}
+                                                   {t('dashboard.remaining', { amount: formatCurrecy(remaining) })}
                                                 </p>
                                                 <p className="text-[11px] text-on-surface-variant font-data-mono whitespace-nowrap">
-                                                  Pagado {formatCurrecy(paidAmount)} de {formatCurrecy(exp.amount)}
+                                                   {t('dashboard.paidOf', { paid: formatCurrecy(paidAmount), total: formatCurrecy(exp.amount) })}
                                                 </p>
                                               </>
                                             ) : (
                                               <p className="font-data-mono font-bold text-primary whitespace-nowrap">
-                                                Total: {formatCurrecy(exp.amount)}
+                                                 {t('dashboard.total', { amount: formatCurrecy(exp.amount) })}
                                               </p>
                                             )}
                                           </div>
@@ -546,21 +548,21 @@ export default function Dashboard3() {
                                     <CategoryIcon icon={category?.icon} color={category?.color} name={category?.name || exp.category} size="sm" />
                                     <div className="min-w-0">
                                       <p className="font-medium truncate">{exp.expenseName}</p>
-                                      <p className="text-body-xs text-on-surface-variant truncate">{category?.name || exp.category} · {exp.date instanceof Date ? exp.date.toLocaleDateString('es-MX') : new Date(String(exp.date)).toLocaleDateString('es-MX')}</p>
+                                       <p className="text-body-xs text-on-surface-variant truncate">{category?.name || exp.category} · {exp.date instanceof Date ? formatDate(exp.date.toISOString()) : formatDate(String(exp.date))}</p>
                                     </div>
                                   </div>
                                   <span className="shrink-0 font-data-mono font-bold text-primary">{formatCurrecy(isPartial ? remaining : exp.amount)}</span>
                                 </div>
                                 <div className="mt-sm flex items-center justify-between gap-sm border-t border-outline-variant pt-sm">
                                   {statusBadge(effectiveStatus)}
-                                  <span className="text-body-xs text-on-surface-variant">{isExpanded ? 'Hide details' : 'View details'}</span>
+                                   <span className="text-body-xs text-on-surface-variant">{isExpanded ? t('dashboard.hideDetails') : t('dashboard.viewDetails')}</span>
                                 </div>
                               </button>
                               {isExpanded && (
                                 <div className="mt-sm flex flex-col gap-sm border-t border-outline-variant pt-sm">
                                   {exp.comment && <p className="text-body-sm text-on-surface-variant">{exp.comment}</p>}
                                   <div className="flex items-center justify-between gap-sm">
-                                    <span className="text-label-caps font-label-caps text-on-surface-variant">Payment status</span>
+                                     <span className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.paymentStatus')}</span>
                                     <PaymentStatusBadge
                                       status={effectiveStatus}
                                       partialAmount={exp.partialAmount}
@@ -569,7 +571,7 @@ export default function Dashboard3() {
                                     />
                                   </div>
                                   <p className="text-right font-data-mono text-body-sm text-primary">
-                                    {isPartial ? `Paid ${formatCurrecy(paidAmount)} of ${formatCurrecy(exp.amount)}` : `Total: ${formatCurrecy(exp.amount)}`}
+                                     {isPartial ? t('dashboard.paidOf', { paid: formatCurrecy(paidAmount), total: formatCurrecy(exp.amount) }) : t('dashboard.total', { amount: formatCurrecy(exp.amount) })}
                                   </p>
                                 </div>
                               )}
@@ -580,8 +582,8 @@ export default function Dashboard3() {
                     </div>
                   ) : (
                     <div className="text-center text-on-surface-variant py-lg">
-                      <p className="text-headline-sm">Bienvenido al Dashboard</p>
-                      <p className="text-body-sm">Usa las pestañas para explorar plantillas, categorías, calendario y estadísticas.</p>
+                       <p className="text-headline-sm">{t('dashboard.welcome')}</p>
+                       <p className="text-body-sm">{t('dashboard.explore')}</p>
                     </div>
                   )
                 )}
@@ -596,13 +598,13 @@ export default function Dashboard3() {
           <div className="px-container-margin grid grid-cols-12 gap-gutter">
             {loading ? (
               <div className="col-span-12 flex items-center justify-center py-24">
-                <p className="text-body-lg text-on-surface-variant">Cargando insights...</p>
+                    <p className="text-body-lg text-on-surface-variant">{t('dashboard.loading')}</p>
               </div>
             ) : (
               <>
                 <div className="col-span-12 md:col-span-4 bento-card flex flex-col justify-between">
                   <div>
-                    <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">TOTAL EXPENSES</p>
+                    <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('dashboard.totalExpenses')}</p>
                     <h3 className="text-display-lg font-display-lg text-on-surface font-data-mono">{formatCurrecy(totalSpent)}</h3>
                   </div>
                   <div className="mt-md flex items-center gap-sm">
@@ -614,11 +616,11 @@ export default function Dashboard3() {
                       </span>
                       <span className="font-data-mono text-data-mono">{Math.abs(momChange).toFixed(1)}%</span>
                     </div>
-                    <span className="text-body-sm text-on-surface-variant">vs last month</span>
+                    <span className="text-body-sm text-on-surface-variant">{t('dashboard.lastMonth')}</span>
                   </div>
                 </div>
                 <div className="col-span-12 md:col-span-4 bento-card">
-                  <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">HIGHEST CATEGORY</p>
+                  <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('dashboard.highestCategory')}</p>
                   <div className="flex items-center gap-md mt-sm">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center">
                       {highestCategory && (
@@ -635,13 +637,13 @@ export default function Dashboard3() {
                         {highestCategory ? getCategoryInfo(highestCategory.category)?.name || highestCategory.category : 'N/A'}
                       </h4>
                       <p className="text-body-sm text-on-surface-variant">
-                        {highestCategory ? `${formatCurrecy(highestCategory.total)} (${highestPct.toFixed(1)}%)` : 'No data'}
+                        {highestCategory ? `${formatCurrecy(highestCategory.total)} (${highestPct.toFixed(1)}%)` : t('dashboard.noDataShort')}
                       </p>
                     </div>
                   </div>
                 </div>
                 <div className="col-span-12 md:col-span-4 bento-card">
-                  <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">MONTHLY SAVINGS</p>
+                  <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('dashboard.monthlySavings')}</p>
                   <div className="flex items-center gap-md mt-sm">
                     <div className="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center">
                       <span className="material-symbols-outlined text-on-secondary-container">savings</span>
@@ -649,14 +651,14 @@ export default function Dashboard3() {
                     <div>
                       <h4 className="text-headline-md font-headline-md">{formatCurrecy(savings)}</h4>
                       <p className="text-body-sm text-on-surface-variant">
-                        {savings >= 0 ? `${formatCurrecy(reminderBudget)} under budget` : 'Over budget'}
+                        {savings >= 0 ? t('dashboard.underBudget', { amount: formatCurrecy(reminderBudget) }) : t('dashboard.overBudget')}
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <div className="col-span-12 md:col-span-5 bento-card flex flex-col">
-                  <h3 className="text-label-caps font-label-caps text-on-surface-variant mb-lg">CATEGORY DISTRIBUTION</h3>
+                  <h3 className="text-label-caps font-label-caps text-on-surface-variant mb-lg">{t('dashboard.categoryDistribution')}</h3>
                   <div className="flex-grow flex items-center justify-center py-lg relative">
                     <div
                       className="w-48 h-48 rounded-full flex items-center justify-center"
@@ -665,7 +667,7 @@ export default function Dashboard3() {
                       <div className="w-36 h-36 rounded-full bg-surface-container-lowest flex items-center justify-center">
                         <div className="text-center">
                           <span className="text-headline-md font-headline-md block ">{formatCurrecy(totalSpent)}</span>
-                          <span className="text-label-caps font-label-caps text-outline">Total</span>
+                          <span className="text-label-caps font-label-caps text-outline">{t('common.total')}</span>
                         </div>
                       </div>
                     </div>
@@ -683,14 +685,14 @@ export default function Dashboard3() {
                       </div>
                     ))}
                     {distribution.filter(c => c.total > 0).length === 0 && (
-                      <p className="text-body-sm text-on-surface-variant text-center py-sm">Sin datos para el periodo seleccionado.</p>
+                      <p className="text-body-sm text-on-surface-variant text-center py-sm">{t('dashboard.noData')}</p>
                     )}
                   </div>
                 </div>
 
                 <div className="col-span-12 md:col-span-7 bento-card">
                   <div className="flex justify-between items-center mb-lg">
-                    <h3 className="text-label-caps font-label-caps text-on-surface-variant">MONTH-OVER-MONTH ANALYSIS</h3>
+                    <h3 className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.monthAnalysis')}</h3>
                     <div className="flex gap-md">
                       <div className="flex items-center gap-xs">
                         <div className="w-2 h-2 rounded-full bg-primary"></div>
@@ -712,7 +714,7 @@ export default function Dashboard3() {
                         <div key={m} className="flex-grow flex flex-col gap-xs items-center group">
                           <div className="w-full bg-outline-variant/30 rounded-t-sm" style={{ height: `${Math.max(prevH, 2)}%`, minHeight: 4 }}></div>
                           <div className="w-full bg-primary rounded-t-sm transition-all group-hover:opacity-80" style={{ height: `${Math.max(curH, 2)}%`, minHeight: 4 }}></div>
-                          <span className="text-label-caps font-label-caps mt-xs">{MONTHS_SHORT[m - 1]}</span>
+                           <span className="text-label-caps font-label-caps mt-xs">{monthName(m, 'short')}</span>
                         </div>
                       )
                     })}
@@ -721,18 +723,18 @@ export default function Dashboard3() {
 
                 <div className="col-span-12 bento-card">
                   <div className="flex justify-between items-center mb-lg">
-                    <h3 className="text-label-caps font-label-caps text-on-surface-variant">TOP EXPENSES BY SPENDING</h3>
-                    <button className="text-primary text-body-sm font-bold hover:underline">View All Transactions</button>
+                    <h3 className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.topExpenses')}</h3>
+                    <button className="text-primary text-body-sm font-bold hover:underline">{t('dashboard.viewAll')}</button>
                   </div>
                   <div className="hidden sm:block overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
                         <tr className="text-left border-b border-outline-variant">
-                          <th className="pb-md text-label-caps font-label-caps text-outline">EXPENSE</th>
-                          <th className="pb-md text-label-caps font-label-caps text-outline">CATEGORY</th>
-                          <th className="pb-md text-label-caps font-label-caps text-outline">TRANSACTIONS</th>
-                          <th className="pb-md text-right text-label-caps font-label-caps text-outline">TOTAL AMOUNT</th>
-                          <th className="pb-md text-right text-label-caps font-label-caps text-outline">SHARE</th>
+                          <th className="pb-md text-label-caps font-label-caps text-outline">{t('dashboard.expense')}</th>
+                          <th className="pb-md text-label-caps font-label-caps text-outline">{t('dashboard.category')}</th>
+                          <th className="pb-md text-label-caps font-label-caps text-outline">{t('dashboard.transactions')}</th>
+                          <th className="pb-md text-right text-label-caps font-label-caps text-outline">{t('dashboard.amount')}</th>
+                          <th className="pb-md text-right text-label-caps font-label-caps text-outline">{t('dashboard.share')}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-outline-variant">
@@ -757,7 +759,7 @@ export default function Dashboard3() {
                                 {getCategoryInfo(m.category)?.name || m.category}
                               </span>
                             </td>
-                            <td className="py-md">{m.count} {m.count === 1 ? 'entry' : 'entries'}</td>
+                            <td className="py-md">{m.count} {m.count === 1 ? t('dashboard.entry') : t('dashboard.entries')}</td>
                             <td className="py-md text-right font-data-mono text-data-mono">{formatCurrecy(m.total)}</td>
                             <td className="py-md text-right">
                               <span className="text-on-secondary-container flex items-center justify-end gap-xs text-body-sm">
@@ -768,7 +770,7 @@ export default function Dashboard3() {
                         )) : (
                           <tr>
                             <td colSpan={5} className="py-lg text-center text-on-surface-variant text-body-sm">
-                              No hay gastos para el periodo seleccionado.
+                              {t('dashboard.noPeriod')}
                             </td>
                           </tr>
                         )}
@@ -787,16 +789,16 @@ export default function Dashboard3() {
                           />
                           <div className="min-w-0 flex-1">
                             <p className="font-bold truncate">{m.name}</p>
-                            <p className="text-body-xs text-on-surface-variant truncate">{getCategoryInfo(m.category)?.name || m.category} · {m.count} {m.count === 1 ? 'entry' : 'entries'}</p>
+                          <p className="text-body-xs text-on-surface-variant truncate">{getCategoryInfo(m.category)?.name || m.category} · {m.count} {m.count === 1 ? t('dashboard.entry') : t('dashboard.entries')}</p>
                           </div>
                           <span className="font-data-mono font-bold text-primary">{formatCurrecy(m.total)}</span>
                         </div>
                         <div className="mt-sm flex justify-end border-t border-outline-variant pt-sm text-body-xs text-on-surface-variant">
-                          {totalSpent > 0 ? ((m.total / totalSpent) * 100).toFixed(1) : 0}% of total
+                          {totalSpent > 0 ? ((m.total / totalSpent) * 100).toFixed(1) : 0}% {t('dashboard.share')}
                         </div>
                       </article>
                     )) : (
-                      <p className="py-lg text-center text-on-surface-variant text-body-sm">No hay gastos para el periodo seleccionado.</p>
+                      <p className="py-lg text-center text-on-surface-variant text-body-sm">{t('dashboard.noPeriod')}</p>
                     )}
                   </div>
                 </div>

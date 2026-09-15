@@ -2,6 +2,8 @@ import { useCategories } from '../hooks/useCategories'
 import { formatCurrecy } from '../helpers'
 import type { TransactionRow } from '../helpers/transactions'
 import CategoryIcon from './CategoryIcon'
+import { useTranslation } from 'react-i18next'
+import i18n from '../i18n/config'
 
 interface AllTransactionsProps {
   transactions: TransactionRow[]
@@ -9,19 +11,20 @@ interface AllTransactionsProps {
 
 export default function AllTransactions({ transactions }: AllTransactionsProps) {
   const { categories } = useCategories()
+  const { t } = useTranslation()
   const getCategoryInfo = (categoryId: string) => categories.find((c) => c.id === categoryId)
 
   const typeBadge = (isFixed: boolean, status?: string) => {
     if (isFixed) {
-      return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-secondary/10 text-secondary">Fixed</span>
+      return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-secondary/10 text-secondary">{t('expense.fixed')}</span>
     }
     if (status === 'paid') {
-      return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-secondary/10 text-secondary">Paid</span>
+      return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-secondary/10 text-secondary">{t('common.paid')}</span>
     }
     if (status === 'partial') {
-      return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-tertiary-container/10 text-on-tertiary-container">Partial</span>
+      return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-tertiary-container/10 text-on-tertiary-container">{t('common.partial')}</span>
     }
-    return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-surface-container-high text-on-surface-variant">Expense</span>
+    return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-surface-container-high text-on-surface-variant">{t('expense.expense')}</span>
   }
 
   return (
@@ -30,11 +33,11 @@ export default function AllTransactions({ transactions }: AllTransactionsProps) 
       <table className="w-full text-left text-body-sm">
         <thead>
           <tr className="text-label-caps font-label-caps text-on-surface-variant border-b border-outline-variant">
-            <th className="py-xs pr-md whitespace-nowrap">Date</th>
-            <th className="py-xs pr-md">Category</th>
-            <th className="py-xs pr-md">Name</th>
-            <th className="py-xs pr-md">Type</th>
-            <th className="py-xs pr-md text-right">Amount</th>
+            <th className="py-xs pr-md whitespace-nowrap">{t('expense.date')}</th>
+            <th className="py-xs pr-md">{t('expense.category')}</th>
+            <th className="py-xs pr-md">{t('expense.name')}</th>
+            <th className="py-xs pr-md">{t('expense.type')}</th>
+            <th className="py-xs pr-md text-right">{t('expense.amount')}</th>
           </tr>
         </thead>
         <tbody>
@@ -43,7 +46,7 @@ export default function AllTransactions({ transactions }: AllTransactionsProps) 
             return (
               <tr key={t.id} className="border-b border-outline-variant/30 last:border-0">
                 <td className="py-sm pr-md whitespace-nowrap text-on-surface-variant">
-                  {new Date(t.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+                  {new Date(t.date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}
                 </td>
                 <td className="py-sm pr-md">
                   <div className="flex items-center gap-xs min-w-[120px]">
@@ -76,7 +79,7 @@ export default function AllTransactions({ transactions }: AllTransactionsProps) 
                 <span className="shrink-0 font-data-mono">{formatCurrecy(t.amount)}</span>
               </div>
               <div className="mt-sm flex items-center justify-between border-t border-outline-variant pt-sm text-body-xs text-on-surface-variant">
-                <span>{new Date(t.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}</span>
+                <span>{new Date(t.date).toLocaleDateString(i18n.language, { day: 'numeric', month: 'short' })}</span>
                 {typeBadge(t.isFixed, t.status)}
               </div>
             </article>
@@ -84,7 +87,7 @@ export default function AllTransactions({ transactions }: AllTransactionsProps) 
         })}
       </div>
       {transactions.length === 0 && (
-        <p className="text-body-sm text-on-surface-variant text-center py-8">No transactions for this period.</p>
+        <p className="text-body-sm text-on-surface-variant text-center py-8">{t('expense.noPeriod')}</p>
       )}
     </div>
   )

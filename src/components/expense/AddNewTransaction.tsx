@@ -2,6 +2,7 @@ import { useState, useRef } from "react"
 import { useBudget } from "../../hooks/useBudget"
 import { useCategories } from "../../hooks/useCategories"
 import { scanReceipt } from "../../services/receiptScanner"
+import { useTranslation } from 'react-i18next'
 
 interface AddNewTrasactionProps {
     isOpen: boolean;
@@ -22,6 +23,7 @@ export default function AddNewTrasaction({
 }: AddNewTrasactionProps) {
     const { addExpense } = useBudget()
     const { categories } = useCategories()
+    const { t } = useTranslation()
 
     const [status, setStatus] = useState<Status>(null);
     const [category, setCategory] = useState(initialCategory);
@@ -66,7 +68,7 @@ export default function AddNewTrasaction({
         const file = e.target.files?.[0];
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) {
-            alert('File size must be under 5MB');
+            alert(t('upload.fileTooLarge'));
             return;
         }
         setReceiptFile(file);
@@ -89,7 +91,7 @@ export default function AddNewTrasaction({
                 setCategory(matched?.id || '');
             }
         } catch (error) {
-            console.error('Error scanning receipt:', error);
+            console.error(t('upload.scanError'), error);
         } finally {
             setScanning(false);
         }
@@ -118,7 +120,7 @@ export default function AddNewTrasaction({
             onClose();
             onExpenseCreated?.();
         } catch (error) {
-            console.error('Error al crear el gasto', error);
+            console.error(t('expense.createError'), error);
         } finally {
             setSaving(false);
         }
@@ -140,8 +142,8 @@ export default function AddNewTrasaction({
                 <div className="w-full max-w-md max-h-[90vh] bg-surface shadow-2xl rounded-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
 
                     <div className="px-lg  py-md  text-primary flex justify-between items-center">
-                        <h3 className="text-headline-md font-headline-md">New Transaction</h3>
-                        <button className="p-xs hover:bg-surface-container rounded-full" onClick={onClose}>
+                        <h3 className="text-headline-md font-headline-md">{t('expense.addTransaction')}</h3>
+                        <button className="p-xs hover:bg-surface-container rounded-full" onClick={onClose} aria-label={t('common.close')} title={t('common.close')}>
                             <span className="material-symbols-outlined" data-icon="close">close</span>
                         </button>
                     </div>
@@ -155,7 +157,7 @@ export default function AddNewTrasaction({
                             <div className="flex-1 space-y-xs">
                                 <input
                                     className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
-                                    placeholder="Merchant Name"
+                                    placeholder={t('expense.merchant')}
                                     type="text"
                                     value={merchant}
                                     onChange={(e) => setMerchant(e.target.value)}
@@ -165,7 +167,7 @@ export default function AddNewTrasaction({
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
                                 >
-                                    <option value="">Select a category</option>
+                                    <option value="">{t('expense.select')}</option>
                                     {categories.map((c) => (
                                         <option key={c.id} value={c.id}>{c.name}</option>
                                     ))}
@@ -175,12 +177,12 @@ export default function AddNewTrasaction({
 
                         <div className="grid grid-cols-2 gap-md p-lg bg-surface-container-low rounded-xl">
                             <div>
-                                <label className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">Amount</label>
+                                <label className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.amountLabel')}</label>
                                 <div className="relative">
                                     <span className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant font-data-mono p-2">$</span>
                                     <input
                                         className="w-full px-5 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
-                                        placeholder="0.00"
+                                        placeholder={t('expense.amountPlaceholder')}
                                         step="0.01"
                                         type="number"
                                         value={amount || ''}
@@ -189,7 +191,7 @@ export default function AddNewTrasaction({
                                 </div>
                             </div>
                             <div>
-                                <label className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">Date</label>
+                                <label className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.date')}</label>
                                 <input
                                     className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
                                     type="date"
@@ -198,28 +200,28 @@ export default function AddNewTrasaction({
                                 />
                             </div>
                             <div className="col-span-2 pt-md border-t-2 border-outline-variant">
-                                <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">Payment Status</p>
+                                <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.status')}</p>
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         className={statusButtonClasses('paid')}
                                         onClick={() => handleStatus('paid')}
                                         type="button"
                                     >
-                                        <span className="material-symbols-outlined text-sm">check_circle</span> Paid
+                                        <span className="material-symbols-outlined text-sm">check_circle</span> {t('expense.paid')}
                                     </button>
                                     <button
                                         className={statusButtonClasses('pending')}
                                         onClick={() => handleStatus('pending')}
                                         type="button"
                                     >
-                                        <span className="material-symbols-outlined text-sm">schedule</span> Pending
+                                        <span className="material-symbols-outlined text-sm">schedule</span> {t('expense.pending')}
                                     </button>
                                     <button
                                         className={statusButtonClasses('partial')}
                                         onClick={() => handleStatus('partial')}
                                         type="button"
                                     >
-                                        <span className="material-symbols-outlined text-sm">incomplete_circle</span> Partial
+                                        <span className="material-symbols-outlined text-sm">incomplete_circle</span> {t('expense.partial')}
                                     </button>
                                 </div>
                             </div>
@@ -228,11 +230,11 @@ export default function AddNewTrasaction({
                         {status === 'partial' && (
                             <div className="space-y-md animate-in fade-in slide-in-from-top-2 duration-300">
                                 <div className="flex justify-between items-center py-sm border-b border-outline-variant">
-                                    <span className="text-body-md text-on-surface-variant">Amount Paid So Far</span>
+                                    <span className="text-body-md text-on-surface-variant">{t('expense.paidSoFar')}</span>
                                     <span className="text-body-md font-semibold font-data-mono">
                                         <input
                                             className="text-right bg-transparent outline-none w-24"
-                                            placeholder="0.00"
+                                             placeholder={t('expense.amountPlaceholder')}
                                             step="0.01"
                                             type="number"
                                             value={partialAmount || ''}
@@ -241,7 +243,7 @@ export default function AddNewTrasaction({
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center py-sm border-b border-outline-variant">
-                                    <span className="text-body-md text-on-surface-variant">Remaining Balance</span>
+                                    <span className="text-body-md text-on-surface-variant">{t('expense.remaining')}</span>
                                     <span className="text-body-md font-semibold font-data-mono text-error">
                                         ${Math.max(0, amount - partialAmount).toFixed(2)}
                                     </span>
@@ -251,12 +253,12 @@ export default function AddNewTrasaction({
 
                         <div className="space-y-sm">
                             <p className="text-label-caps font-label-caps text-on-surface-variant uppercase">
-                                {status === 'partial' ? 'Payment Comments' : 'Attach Receipt'}
+                                {status === 'partial' ? t('expense.paymentComments') : t('upload.upload')}
                             </p>
                             {status === 'partial' ? (
                                 <textarea
                                     className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg text-body-sm focus:ring-2 focus:ring-primary transition-all resize-none"
-                                    placeholder="Explain the payment schedule or reason for partial payment..."
+                                     placeholder={t('expense.partialCommentPlaceholder')}
                                     rows={3}
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
@@ -267,13 +269,13 @@ export default function AddNewTrasaction({
                                         <div className="p-md border border-outline-variant rounded-lg flex items-center gap-md bg-surface-container-low">
                                             <span className="material-symbols-outlined text-primary animate-spin" data-icon="sync">sync</span>
                                             <div className="flex-1">
-                                                <p className="text-body-sm font-semibold">Scanning receipt...</p>
-                                                <p className="text-body-sm text-outline">Extracting merchant, amount and date</p>
+                                                 <p className="text-body-sm font-semibold">{t('upload.scanning')}</p>
+                                                 <p className="text-body-sm text-outline">{t('upload.extracting')}</p>
                                             </div>
                                         </div>
                                     ) : receiptPreview ? (
                                         <div className="relative rounded-lg overflow-hidden border border-outline-variant">
-                                            <img src={receiptPreview} alt="Receipt preview" className="w-full max-h-48 object-contain bg-surface-container-low" />
+                                             <img src={receiptPreview} alt={t('upload.preview')} className="w-full max-h-48 object-contain bg-surface-container-low" />
                                             <button
                                                 className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
                                                 onClick={handleRemoveReceipt}
@@ -300,8 +302,8 @@ export default function AddNewTrasaction({
                                         >
                                             <span className="material-symbols-outlined text-outline" data-icon="upload">upload</span>
                                             <div className="flex-1">
-                                                <p className="text-body-sm font-semibold">Upload receipt or invoice</p>
-                                                <p className="text-body-sm text-outline">PDF, PNG or JPG up to 5MB</p>
+                                             <p className="text-body-sm font-semibold">{t('upload.upload')}</p>
+                                             <p className="text-body-sm text-outline">{t('upload.formats')}</p>
                                             </div>
                                         </div>
                                     )}
@@ -322,14 +324,14 @@ export default function AddNewTrasaction({
                             className="flex-1 py-md border border-outline-variant rounded-lg font-bold hover:bg-surface-container transition-colors"
                             onClick={onClose}
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </button>
                         <button
                             className="flex-1 py-md bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
                             onClick={handleSave}
                             disabled={saving || !merchant.trim() || !category || amount <= 0}
                         >
-                            {saving ? 'Saving...' : 'Save Transaction'}
+                            {saving ? t('budget.saving') : t('expense.saveTransaction')}
                         </button>
                     </div>
                 </div>

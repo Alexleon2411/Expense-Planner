@@ -1,78 +1,22 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const ICONS = [
-  { name: 'restaurant', label: 'Restaurante' },
-  { name: 'lunch_dining', label: 'Comida' },
-  { name: 'local_cafe', label: 'Café' },
-  { name: 'coffee', label: 'Cafetería' },
-  { name: 'shopping_cart', label: 'Compras' },
-  { name: 'store', label: 'Tienda' },
-  { name: 'local_grocery_store', label: 'Supermercado' },
-  { name: 'home', label: 'Hogar' },
-  { name: 'house', label: 'Casa' },
-  { name: 'apartment', label: 'Apartamento' },
-  { name: 'electric_bolt', label: 'Electricidad' },
-  { name: 'water_drop', label: 'Agua' },
-  { name: 'wifi', label: 'Internet' },
-  { name: 'phone_android', label: 'Teléfono' },
-  { name: 'devices', label: 'Dispositivos' },
-  { name: 'directions_car', label: 'Auto' },
-  { name: 'local_gas_station', label: 'Gasolina' },
-  { name: 'build', label: 'Mantenimiento' },
-  { name: 'local_hospital', label: 'Hospital' },
-  { name: 'local_pharmacy', label: 'Farmacia' },
-  { name: 'favorite', label: 'Salud' },
-  { name: 'spa', label: 'Bienestar' },
-  { name: 'fitness_center', label: 'Gimnasio' },
-  { name: 'sports_esports', label: 'Deportes' },
-  { name: 'school', label: 'Educación' },
-  { name: 'menu_book', label: 'Libros' },
-  { name: 'child_care', label: 'Hijos' },
-  { name: 'family_restroom', label: 'Familia' },
-  { name: 'pets', label: 'Mascotas' },
-  { name: 'checkroom', label: 'Ropa' },
-  { name: 'content_cut', label: 'Peluquería' },
-  { name: 'flight', label: 'Viajes' },
-  { name: 'hotel', label: 'Hotel' },
-  { name: 'movie', label: 'Cine' },
-  { name: 'music_note', label: 'Música' },
-  { name: 'videocam', label: 'Streaming' },
-  { name: 'sports_bar', label: 'Ocio' },
-  { name: 'local_bar', label: 'Bar' },
-  { name: 'cake', label: 'Celebraciones' },
-  { name: 'card_giftcard', label: 'Regalos' },
-  { name: 'savings', label: 'Ahorro' },
-  { name: 'account_balance', label: 'Banco' },
-  { name: 'payments', label: 'Pagos' },
-  { name: 'receipt_long', label: 'Recibos' },
-  { name: 'credit_card', label: 'Tarjeta' },
-  { name: 'paid', label: 'Dinero' },
-  { name: 'trending_up', label: 'Inversiones' },
-  { name: 'security', label: 'Seguros' },
-  { name: 'volunteer_activism', label: 'Donaciones' },
-  { name: 'redeem', label: 'Puntos' },
-  { name: 'local_shipping', label: 'Envíos' },
-  { name: 'delivery_dining', label: 'Delivery' },
-  { name: 'dry_cleaning', label: 'Lavandería' },
-  { name: 'emoji_people', label: 'Social' },
-  { name: 'groups', label: 'Grupos' },
-  { name: 'mail', label: 'Correo' },
-  { name: 'print', label: 'Impresión' },
-  { name: 'camera', label: 'Fotografía' },
-  { name: 'brush', label: 'Arte' },
-  { name: 'construction', label: 'Construcción' },
-  { name: 'agriculture', label: 'Jardín' },
-  { name: 'flag', label: 'Banderas' },
-  { name: 'star', label: 'Favoritos' },
-  { name: 'lock', label: 'Seguridad' },
-  { name: 'notifications', label: 'Notificaciones' },
-  { name: 'cloud', label: 'Nube' },
-  { name: 'palette', label: 'Paleta' },
-  { name: 'toys', label: 'Juguetes' },
-  { name: 'psychology', label: 'Psicología' },
-  { name: 'auto_stories', label: 'Estudios' },
-  { name: 'work', label: 'Trabajo' },
-  { name: 'business_center', label: 'Negocios' },
+  { name: 'restaurant' },
+  { name: 'lunch_dining' },
+  { name: 'local_cafe' }, { name: 'coffee' }, { name: 'shopping_cart' }, { name: 'store' }, { name: 'local_grocery_store' },
+  { name: 'home' }, { name: 'house' }, { name: 'apartment' }, { name: 'electric_bolt' }, { name: 'water_drop' }, { name: 'wifi' },
+  { name: 'phone_android' }, { name: 'devices' }, { name: 'directions_car' }, { name: 'local_gas_station' }, { name: 'build' },
+  { name: 'local_hospital' }, { name: 'local_pharmacy' }, { name: 'favorite' }, { name: 'spa' }, { name: 'fitness_center' },
+  { name: 'sports_esports' }, { name: 'school' }, { name: 'menu_book' }, { name: 'child_care' }, { name: 'family_restroom' },
+  { name: 'pets' }, { name: 'checkroom' }, { name: 'content_cut' }, { name: 'flight' }, { name: 'hotel' }, { name: 'movie' },
+  { name: 'music_note' }, { name: 'videocam' }, { name: 'sports_bar' }, { name: 'local_bar' }, { name: 'cake' }, { name: 'card_giftcard' },
+  { name: 'savings' }, { name: 'account_balance' }, { name: 'payments' }, { name: 'receipt_long' }, { name: 'credit_card' }, { name: 'paid' },
+  { name: 'trending_up' }, { name: 'security' }, { name: 'volunteer_activism' }, { name: 'redeem' }, { name: 'local_shipping' },
+  { name: 'delivery_dining' }, { name: 'dry_cleaning' }, { name: 'emoji_people' }, { name: 'groups' }, { name: 'mail' }, { name: 'print' },
+  { name: 'camera' }, { name: 'brush' }, { name: 'construction' }, { name: 'agriculture' }, { name: 'flag' }, { name: 'star' },
+  { name: 'lock' }, { name: 'notifications' }, { name: 'cloud' }, { name: 'palette' }, { name: 'toys' }, { name: 'psychology' },
+  { name: 'auto_stories' }, { name: 'work' }, { name: 'business_center' },
 ]
 
 interface Props {
@@ -82,19 +26,21 @@ interface Props {
 
 export default function IconPicker({ value, onChange }: Props) {
   const [search, setSearch] = useState('')
+  const { t } = useTranslation()
 
   const filtered = ICONS.filter(
     (icon) =>
-      icon.label.toLowerCase().includes(search.toLowerCase()) ||
+      String(t(`icons.${icon.name}` as never)).toLowerCase().includes(search.toLowerCase()) ||
       icon.name.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700">Icono</label>
+       <label className="text-sm font-medium text-gray-700">{t('categories.icon')}</label>
       <input
         className="w-full bg-white p-2 border rounded text-sm"
-        placeholder="Buscar icono..."
+         placeholder={t('categories.iconPlaceholder')}
+         aria-label={t('categories.iconPlaceholder')}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
@@ -103,7 +49,7 @@ export default function IconPicker({ value, onChange }: Props) {
           <button
             key={icon.name}
             type="button"
-            title={icon.label}
+             title={String(t(`icons.${icon.name}` as never))}
             onClick={() => onChange(icon.name)}
             className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
               value === icon.name
@@ -115,13 +61,13 @@ export default function IconPicker({ value, onChange }: Props) {
           </button>
         ))}
         {filtered.length === 0 && (
-          <p className="col-span-6 text-center text-sm text-gray-400 py-4">Sin resultados</p>
+           <p className="col-span-6 text-center text-sm text-gray-400 py-4">{t('categories.noIconResults')}</p>
         )}
       </div>
       {value && (
         <div className="flex items-center gap-2 text-sm text-gray-500">
           <span className="material-symbols-outlined text-[18px]">{value}</span>
-          Seleccionado: <span className="font-medium text-gray-700">{value}</span>
+           {t('categories.selectedIcon')}: <span className="font-medium text-gray-700">{value}</span>
         </div>
       )}
     </div>

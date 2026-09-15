@@ -5,12 +5,16 @@ import { useState } from 'react';
 import EditUserProfile from './EditUserProfile';
 import EditPassword from './EditPassword';
 import { useAuth } from '../../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
+import '../../i18n/profileResources'
 
 export default function UserProfile() {
     const verifiedIconStyle = { fontVariationSettings: "'FILL' 1" };
     const [showProfile, setShowProfile] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const {user} = useAuth()    
+    const { t, i18n } = useTranslation()
+    const formatActivityDate = (date: Date) => new Intl.DateTimeFormat(i18n.language, { dateStyle: 'medium', timeStyle: 'short' }).format(date)
 
     const handeEditeProfile = () => {
         setShowProfile(!showProfile);
@@ -30,8 +34,8 @@ export default function UserProfile() {
             {/* <!-- Page Title --> */}
             <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
                 <div className="relative z-10">
-                    <h2 className="text-headline-lg font-headline-lg mb-xs">Perfil de Usuario</h2>
-                    <p className="text-body-md opacity-80 max-w-2xl mx-auto">Gestiona tu información personal y configuración de cuenta.</p>
+                    <h2 className="text-headline-lg font-headline-lg mb-xs">{t('profile.title')}</h2>
+                    <p className="text-body-md opacity-80 max-w-2xl mx-auto">{t('profile.subtitle')}</p>
                 </div>
 
             </div>
@@ -57,7 +61,7 @@ export default function UserProfile() {
                                 <span className="material-symbols-outlined text-sm mr-1" style={verifiedIconStyle}>
                                     verified
                                 </span>
-                                Verificado
+                                {t('profile.verified')}
                             </span>
                             {/* <span className="inline-flex items-center px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-label-caps font-label-caps">
                                 <span className="material-symbols-outlined text-sm mr-1">business_center</span>
@@ -66,8 +70,8 @@ export default function UserProfile() {
                         </div>
                     </div>
                     <div className="flex flex-col gap-sm">
-                        <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-caps text-label-caps scale-98 transition-transform hover:opacity-90" onClick={handeEditeProfile}>Editar Perfil</button>
-                        <button className="border border-outline-variant text-on-surface px-lg py-sm rounded-lg font-label-caps text-label-caps scale-98 transition-transform hover:bg-surface-container" onClick={() => setShowPassword(true)}>Cambiar Password</button>
+                        <button className="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-caps text-label-caps scale-98 transition-transform hover:opacity-90" onClick={handeEditeProfile}>{t('profile.edit')}</button>
+                        <button className="border border-outline-variant text-on-surface px-lg py-sm rounded-lg font-label-caps text-label-caps scale-98 transition-transform hover:bg-surface-container" onClick={() => setShowPassword(true)}>{t('profile.changePassword')}</button>
                     </div>
                 </div>
                 {/* <!-- Subscription Status (4 cols) --> */}
@@ -95,33 +99,33 @@ export default function UserProfile() {
                 </div> */}
                 {/* <!-- Personal Information (6 cols) --> */}
                 <div className="col-span-12 lg:col-span-6 bento-card">
-                    <h4 className="text-label-caps font-label-caps text-outline mb-xl">INFORMACIÓN PERSONAL</h4>
+                    <h4 className="text-label-caps font-label-caps text-outline mb-xl">{t('profile.personalInformation')}</h4>
                     <div className="space-y-lg">
                         <div className="flex items-start gap-md">
                             <span className="material-symbols-outlined text-outline">mail</span>
                             <div>
-                                <p className="text-label-caps font-label-caps text-outline">Email</p>
+                                <p className="text-label-caps font-label-caps text-outline">{t('profile.email')}</p>
                                 <p className="text-body-md font-medium">{user?.email}</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-md">
                             <span className="material-symbols-outlined text-outline">phone</span>
                             <div>
-                                <p className="text-label-caps font-label-caps text-outline">Teléfono</p>
+                                <p className="text-label-caps font-label-caps text-outline">{t('profile.phone')}</p>
                                 <p className="text-body-md font-medium">{user?.phoneNumber}</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-md">
                             <span className="material-symbols-outlined text-outline">location_on</span>
                             <div>
-                                <p className="text-label-caps font-label-caps text-outline">Ubicación</p>
+                                <p className="text-label-caps font-label-caps text-outline">{t('profile.location')}</p>
                                 <p className="text-body-md font-medium">{user?.city?.toUpperCase()}, {user?.country?.toUpperCase()}</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-md">
                             <span className="material-symbols-outlined text-outline">language</span>
                             <div>
-                                <p className="text-label-caps font-label-caps text-outline">Idioma</p>
+                                <p className="text-label-caps font-label-caps text-outline">{t('profile.language')}</p>
                                 <p className="text-body-md font-medium">{user?.language}</p>
                             </div>
                         </div>
@@ -129,34 +133,34 @@ export default function UserProfile() {
                 </div>
                 {/* <!-- Export Data Section (6 cols) --> */}
                 <div className="col-span-12 lg:col-span-6 bento-card">
-                    <h4 className="text-label-caps font-label-caps text-outline mb-xl">EXPORTAR DATOS</h4>
-                    <p className="text-body-md text-on-surface-variant mb-xl">Descarga una copia de toda tu actividad financiera y configuraciones en formatos estándar.</p>
+                    <h4 className="text-label-caps font-label-caps text-outline mb-xl">{t('profile.exportData')}</h4>
+                    <p className="text-body-md text-on-surface-variant mb-xl">{t('profile.exportDescription')}</p>
                     <div className="grid grid-cols-2 gap-md">
                         <button className="flex flex-col items-center justify-center p-lg border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container transition-all group">
                             <span className="material-symbols-outlined text-headline-lg mb-sm group-hover:text-primary">description</span>
-                            <span className="font-label-caps text-label-caps">JSON Format</span>
+                            <span className="font-label-caps text-label-caps">{t('profile.json')}</span>
                         </button>
                         <button className="flex flex-col items-center justify-center p-lg border border-outline-variant rounded-xl hover:border-primary hover:bg-surface-container transition-all group">
                             <span className="material-symbols-outlined text-headline-lg mb-sm group-hover:text-primary">table_chart</span>
-                            <span className="font-label-caps text-label-caps">CSV Table</span>
+                            <span className="font-label-caps text-label-caps">{t('profile.csv')}</span>
                         </button>
                     </div>
-                    <p className="mt-xl text-body-sm text-outline italic">Última exportación realizada el 01 de Septiembre, 2023.</p>
+                    <p className="mt-xl text-body-sm text-outline italic">{t('profile.lastExport', { date: formatActivityDate(new Date(2023, 8, 1)) })}</p>
                 </div>
                 {/* <!-- Activity History (12 cols) --> */}
                 <div className="col-span-12 bento-card">
                     <div className="flex justify-between items-center mb-xl">
-                        <h4 className="text-label-caps font-label-caps text-outline">HISTORIAL DE ACTIVIDAD</h4>
-                        <button className="text-label-caps font-label-caps text-primary hover:underline">Ver todo</button>
+                        <h4 className="text-label-caps font-label-caps text-outline">{t('profile.activityHistory')}</h4>
+                        <button className="text-label-caps font-label-caps text-primary hover:underline">{t('profile.viewAll')}</button>
                     </div>
                     <div className="hidden sm:block overflow-x-auto">
                         <table className="w-full">
                             <thead>
                                 <tr className="text-left border-b border-outline-variant">
-                                    <th className="pb-md font-label-caps text-label-caps text-outline">Acción</th>
-                                    <th className="pb-md font-label-caps text-label-caps text-outline">Dispositivo</th>
-                                    <th className="pb-md font-label-caps text-label-caps text-outline">Ubicación</th>
-                                    <th className="pb-md font-label-caps text-label-caps text-outline text-right">Fecha y Hora</th>
+                                    <th className="pb-md font-label-caps text-label-caps text-outline">{t('profile.action')}</th>
+                                    <th className="pb-md font-label-caps text-label-caps text-outline">{t('profile.device')}</th>
+                                    <th className="pb-md font-label-caps text-label-caps text-outline">{t('profile.location')}</th>
+                                    <th className="pb-md font-label-caps text-label-caps text-outline text-right">{t('profile.dateTime')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-outline-variant">
@@ -165,42 +169,42 @@ export default function UserProfile() {
                                         <div className="w-8 h-8 rounded bg-secondary-container/10 flex items-center justify-center text-secondary">
                                             <span className="material-symbols-outlined text-sm">login</span>
                                         </div>
-                                        <span className="font-medium">Inicio de sesión</span>
+                                        <span className="font-medium">{t('profile.login')}</span>
                                     </td>
-                                    <td className="py-md text-on-surface-variant font-data-mono text-data-mono">Chrome / macOS</td>
-                                    <td className="py-md text-on-surface-variant">Madrid, ES (192.168.1.1)</td>
-                                    <td className="py-md text-right text-outline font-data-mono text-data-mono">Hoy, 09:42 AM</td>
+                                    <td className="py-md text-on-surface-variant font-data-mono text-data-mono">{t('profile.activityBrowser')}</td>
+                                    <td className="py-md text-on-surface-variant">{t('profile.activityMadrid')}</td>
+                                    <td className="py-md text-right text-outline font-data-mono text-data-mono">{formatActivityDate(new Date())}</td>
                                 </tr>
                                 <tr className="group hover:bg-surface-container-low transition-colors">
                                     <td className="py-md flex items-center gap-sm">
                                         <div className="w-8 h-8 rounded bg-on-tertiary-container/10 flex items-center justify-center text-on-tertiary-container">
                                             <span className="material-symbols-outlined text-sm">file_download</span>
                                         </div>
-                                        <span className="font-medium">Exportación de datos</span>
+                                        <span className="font-medium">{t('profile.dataExport')}</span>
                                     </td>
-                                    <td className="py-md text-on-surface-variant font-data-mono text-data-mono">Chrome / macOS</td>
-                                    <td className="py-md text-on-surface-variant">Madrid, ES (192.168.1.1)</td>
-                                    <td className="py-md text-right text-outline font-data-mono text-data-mono">01 Sep, 14:15 PM</td>
+                                    <td className="py-md text-on-surface-variant font-data-mono text-data-mono">{t('profile.activityBrowser')}</td>
+                                    <td className="py-md text-on-surface-variant">{t('profile.activityMadrid')}</td>
+                                    <td className="py-md text-right text-outline font-data-mono text-data-mono">{formatActivityDate(new Date(2023, 8, 1, 14, 15))}</td>
                                 </tr>
                                 <tr className="group hover:bg-surface-container-low transition-colors">
                                     <td className="py-md flex items-center gap-sm">
                                         <div className="w-8 h-8 rounded bg-primary-container/10 flex items-center justify-center text-primary">
                                             <span className="material-symbols-outlined text-sm">settings</span>
                                         </div>
-                                        <span className="font-medium">Cambio de contraseña</span>
+                                        <span className="font-medium">{t('profile.passwordChange')}</span>
                                     </td>
-                                    <td className="py-md text-on-surface-variant font-data-mono text-data-mono">FinTrack App / iPhone 14</td>
-                                    <td className="py-md text-on-surface-variant">Barcelona, ES (84.12.34.56)</td>
-                                    <td className="py-md text-right text-outline font-data-mono text-data-mono">28 Ago, 11:20 AM</td>
+                                    <td className="py-md text-on-surface-variant font-data-mono text-data-mono">{t('profile.activityDevice')}</td>
+                                    <td className="py-md text-on-surface-variant">{t('profile.activityBarcelona')}</td>
+                                    <td className="py-md text-right text-outline font-data-mono text-data-mono">{formatActivityDate(new Date(2023, 7, 28, 11, 20))}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                     <div className="sm:hidden space-y-sm">
                         {[
-                            ['login', 'Inicio de sesión', 'Chrome / macOS', 'Madrid, ES (192.168.1.1)', 'Hoy, 09:42 AM'],
-                            ['file_download', 'Exportación de datos', 'Chrome / macOS', 'Madrid, ES (192.168.1.1)', '01 Sep, 14:15 PM'],
-                            ['settings', 'Cambio de contraseña', 'FinTrack App / iPhone 14', 'Barcelona, ES (84.12.34.56)', '28 Ago, 11:20 AM'],
+                            ['login', t('profile.login'), t('profile.activityBrowser'), t('profile.activityMadrid'), formatActivityDate(new Date())],
+                            ['file_download', t('profile.dataExport'), t('profile.activityBrowser'), t('profile.activityMadrid'), formatActivityDate(new Date(2023, 8, 1, 14, 15))],
+                            ['settings', t('profile.passwordChange'), t('profile.activityDevice'), t('profile.activityBarcelona'), formatActivityDate(new Date(2023, 7, 28, 11, 20))],
                         ].map(([icon, action, device, location, date]) => (
                             <article key={`${action}-${date}`} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md">
                                 <div className="flex items-center gap-sm">
