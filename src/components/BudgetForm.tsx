@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react"
 import { useBudget } from "../hooks/useBudget"
 import { NumericFormat } from 'react-number-format'
+import { useTranslation } from 'react-i18next'
 
 export default function BudgetForm() {
 
   const [budgetInput, setBudgetInput] = useState('')
   const { addBudget, apiLoading } = useBudget()
+  const { t } = useTranslation()
   const isValid = useMemo(() => {
     const numericBudget = parseFloat(budgetInput);
     return isNaN(numericBudget) || numericBudget <= 0;
@@ -22,10 +24,10 @@ export default function BudgetForm() {
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       <div className="flex flex-col space-y-5">
-        <label htmlFor="budget" className="text-4xl text-blue-600 font-bold text-center">Define tu presupuesto</label>
+        <label htmlFor="budget" className="text-4xl text-blue-600 font-bold text-center">{t('budget.define')}</label>
         <NumericFormat
           className="w-full bg-white border border-gray-200 p-2 "
-          placeholder="Define Tu presupuesto"
+          placeholder={t('budget.placeholder')}
           name="budget"
           id="budget"
           min="0"
@@ -35,7 +37,7 @@ export default function BudgetForm() {
       </div>
       <input
         type="submit"
-        value={apiLoading ? 'Guardando...' : 'Definir presupuesto'}
+        value={apiLoading ? t('budget.saving') : t('budget.submit')}
         className={"bg-blue-600 hover:bg-blue-700 cursor-pointer w-full p-2 text-white font-black uppercase disabled:opacity-10"}
         disabled={isValid || apiLoading}
       />

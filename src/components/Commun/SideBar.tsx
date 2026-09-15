@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import '../../i18n/profileResources'
 
 // type Context = 'individuo' | 'family' | 'company' | null;
 export type View = 'tracker' | 'dashboard' | 'fixedExpenses' | 'settings' | 'support' | 'profile' | 'dashboard2' | 'report';
@@ -13,6 +15,7 @@ interface SideBarProps {
 }
 
 export default function SideBar({ currentView, onNavigate, onCollapsedChange, mobileOpen = false, onMobileClose }: SideBarProps) {
+    const { t } = useTranslation()
     // const [contextStatus, setContextStatus] = useState<Context>(null);
     const [showContext, setShowContext] = useState(false);
     const [collapsed, setCollapsed] = useState(false);
@@ -99,49 +102,49 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange, mo
 
             {/* Navigation */}
             <nav className="flex-1 px-sm space-y-xs">
-                <button className={navLinkClasses('dashboard')} onClick={() => handleNavigate('dashboard')} title="Dashboard">
+                <button className={navLinkClasses('dashboard')} onClick={() => handleNavigate('dashboard')} title={t('navigation.dashboard')}>
                     <span className="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
-                    {!collapsed && <span className="text-body-md font-body-md">Dashboard</span>}
+                    {!collapsed && <span className="text-body-md font-body-md">{t('navigation.dashboard')}</span>}
                 </button>
                 {/* <button className={navLinkClasses('dashboard')} onClick={() => handleNavigate('dashboard2')} title="Dashboard 2">
                     <span className="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
                     {!collapsed && <span className="text-body-md font-body-md">Dashboard - 2</span>}
                 </button> */}
-                <button className={navLinkClasses('tracker')} onClick={() => handleNavigate('tracker')} title="Expenses Feed">
+                <button className={navLinkClasses('tracker')} onClick={() => handleNavigate('tracker')} title={t('navigation.expenses')}>
                     <span className="material-symbols-outlined shrink-0" data-icon="receipt_long">receipt_long</span>
-                    {!collapsed && <span className="text-body-md font-body-md">Expenses Feed</span>}
+                    {!collapsed && <span className="text-body-md font-body-md">{t('navigation.expenses')}</span>}
                 </button>
-                <button className={navLinkClasses('fixedExpenses')} onClick={() => handleNavigate('fixedExpenses')} title="Fixed Expenses">
+                <button className={navLinkClasses('fixedExpenses')} onClick={() => handleNavigate('fixedExpenses')} title={t('navigation.fixedExpenses')}>
                     <span className="material-symbols-outlined shrink-0" data-icon="calendar_month">calendar_month</span>
-                    {!collapsed && <span className="text-body-md font-body-md">Fixed Expenses</span>}
+                    {!collapsed && <span className="text-body-md font-body-md">{t('navigation.fixedExpenses')}</span>}
                 </button>
-                <button className={navLinkClasses('report')} onClick={() => handleNavigate('report')} title="Reports">
+                <button className={navLinkClasses('report')} onClick={() => handleNavigate('report')} title={t('navigation.reports')}>
                     <span className="material-symbols-outlined shrink-0" data-icon="bar_chart">bar_chart</span>
-                    {!collapsed && <span className="text-body-md font-body-md">Reports</span>}
+                    {!collapsed && <span className="text-body-md font-body-md">{t('navigation.reports')}</span>}
                 </button>
             </nav>
 
             {/* Bottom section */}
             <div className="mt-auto px-sm pt-md border-t border-outline-variant space-y-xs">
-                <button className={navLinkClasses('settings')} onClick={() => handleNavigate('settings')} title="Settings">
+                <button className={navLinkClasses('settings')} onClick={() => handleNavigate('settings')} title={t('navigation.settings')}>
                     <span className="material-symbols-outlined shrink-0" data-icon="settings">settings</span>
-                    {!collapsed && <span className="text-body-md font-body-md">Settings</span>}
+                    {!collapsed && <span className="text-body-md font-body-md">{t('navigation.settings')}</span>}
                 </button>
-                <button className={navLinkClasses('support')} onClick={() => handleNavigate('support')} title="Support">
+                <button className={navLinkClasses('support')} onClick={() => handleNavigate('support')} title={t('navigation.support')}>
                     <span className="material-symbols-outlined shrink-0" data-icon="help">help</span>
-                    {!collapsed && <span className="text-body-md font-body-md">Support</span>}
+                    {!collapsed && <span className="text-body-md font-body-md">{t('navigation.support')}</span>}
                 </button>
 
                 {/* Collapse toggle - hidden on mobile */}
                 <button
                     className="hidden md:flex items-center gap-md py-sm transition-colors pl-4 rounded-lg w-full text-left hover:bg-surface-container text-on-surface-variant"
                     onClick={toggleCollapsed}
-                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    title={collapsed ? t('navigation.expand') : t('navigation.collapse')}
                 >
                     <span className="material-symbols-outlined shrink-0">
                         {collapsed ? 'chevron_right' : 'chevron_left'}
                     </span>
-                    {!collapsed && <span className="text-body-md font-body-md">Collapse</span>}
+                    {!collapsed && <span className="text-body-md font-body-md">{t('navigation.collapse')}</span>}
                 </button>
             </div>
         </>
@@ -175,6 +178,7 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange, mo
                             <button
                                 className="p-xs text-on-surface-variant hover:text-primary transition-colors"
                                 onClick={onMobileClose}
+                                aria-label={t('navigation.closeMenu')}
                             >
                                 <span className="material-symbols-outlined" data-icon="close">close</span>
                             </button>

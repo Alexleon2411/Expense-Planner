@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import ErrorMessage from './ErrorMessage';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   onSwitchToLogin: () => void;
@@ -13,6 +14,7 @@ export default function RegisterForm({ onSwitchToLogin }: Props) {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const { register } = useAuth();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -33,11 +35,11 @@ export default function RegisterForm({ onSwitchToLogin }: Props) {
 
   return (
     <div className="max-w-md mx-auto mt-20 bg-white shadow-lg rounded-lg p-10">
-      <h2 className="text-3xl font-black text-center mb-8">Crear Cuenta</h2>
+       <h2 className="text-3xl font-black text-center mb-8">{t('auth.createAccount')}</h2>
       <form onSubmit={handleSubmit} className="space-y-5">
         {error && <ErrorMessage>{error}</ErrorMessage>}
         <div className="flex flex-col gap-2">
-          <label className="text-xl" htmlFor="reg-name">Nombre</label>
+           <label className="text-xl" htmlFor="reg-name">{t('auth.firstName')}</label>
           <input
             id="reg-name"
             type="text"
@@ -48,7 +50,7 @@ export default function RegisterForm({ onSwitchToLogin }: Props) {
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-xl" htmlFor="reg-email">Email</label>
+           <label className="text-xl" htmlFor="reg-email">{t('auth.email')}</label>
           <input
             id="reg-email"
             type="email"
@@ -59,7 +61,7 @@ export default function RegisterForm({ onSwitchToLogin }: Props) {
           />
         </div>
         <div className="flex flex-col gap-2">
-          <label className="text-xl" htmlFor="reg-password">Contraseña</label>
+           <label className="text-xl" htmlFor="reg-password">{t('auth.password')}</label>
           <input
             id="reg-password"
             type="password"
@@ -75,13 +77,13 @@ export default function RegisterForm({ onSwitchToLogin }: Props) {
           disabled={submitting}
           className="bg-blue-600 w-full p-3 text-white uppercase font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          {submitting ? 'Registrando...' : 'Registrarse'}
+           {submitting ? t('auth.creatingAccount') : t('auth.createAccount')}
         </button>
       </form>
       <p className="text-center mt-6 text-gray-600">
-        ¿Ya tienes cuenta?{' '}
+         {t('auth.alreadyHaveAccount')}{' '}
         <button className="text-blue-600 underline font-semibold" onClick={onSwitchToLogin}>
-          Iniciar Sesión
+           {t('auth.signIn')}
         </button>
       </p>
     </div>

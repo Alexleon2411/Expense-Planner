@@ -8,17 +8,16 @@ import { useFixedExpenses } from '../hooks/useFixedExpenses'
 import { isCurrentMonth, summarizePaidFixed } from '../helpers/fixedExpensesStats'
 import { formatCurrecy } from '../helpers'
 import type { FixedExpense } from '../types'
+import { useTranslation } from 'react-i18next'
 
 type Period = 'daily' | 'weekly' | 'monthly' | 'yearly'
-
-const WEEKDAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
 
 interface Props {
   fixedExpenses?: FixedExpense[]
 }
 
 export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props = {}) {
+  const { t, i18n } = useTranslation()
   const [period, setPeriod] = useState<Period>('monthly')
   const [year, setYear] = useState(new Date().getFullYear())
   const [month, setMonth] = useState(new Date().getMonth() + 1)
@@ -41,6 +40,8 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
 
   const daysInMonth = new Date(year, month, 0).getDate()
   const selectedDay = Math.min(day, daysInMonth)
+  const monthName = (value: number, width: 'short' | 'long' = 'long') => new Intl.DateTimeFormat(i18n.language, { month: width }).format(new Date(year, value - 1, 1))
+  const weekdayName = (value: number) => new Intl.DateTimeFormat(i18n.language, { weekday: 'short' }).format(new Date(2024, 0, value + 7))
 
   useEffect(() => {
     setLoading(true)
@@ -173,12 +174,12 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
     if (period === 'daily') {
       return Array.from({ length: 24 }, (_, h) => {
         const v = hourly.get(h)
-        return { label: `${h}h`, total: v?.total ?? 0, count: v?.count ?? 0 }
+        return { label: `${h}:00`, total: v?.total ?? 0, count: v?.count ?? 0 }
       })
     }
     if (period === 'weekly') {
       return weekDays.map((w) => ({
-        label: WEEKDAY_NAMES[w.weekday],
+        label: weekdayName(w.weekday),
         total: w.total,
         count: w.count,
       }))
@@ -187,7 +188,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
       return monthCells.map((c) => ({ label: String(c.day), total: c.total, count: c.count }))
     }
     return mergedTrends.map((t) => ({
-      label: MONTH_NAMES[t.month - 1].slice(0, 3),
+       label: monthName(t.month, 'short'),
       total: t.total,
       count: t.count,
     }))
@@ -201,12 +202,12 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
   const overviewRemaining = (overview?.remaining ?? 0) - (paidFixed?.total ?? 0)
 
   const trendTitle = period === 'daily'
-    ? `Gastos por Hora — ${selectedDay} de ${MONTH_NAMES[month - 1]}`
+    ? t('statistics.titleDaily', { day: selectedDay, month: monthName(month) })
     : period === 'weekly'
-      ? `Gastos por Día de la Semana`
+      ? t('statistics.titleWeekly')
       : period === 'monthly'
-        ? `Calendario de Gastos — ${MONTH_NAMES[month - 1]} ${year}`
-        : `Tendencia Mensual — ${year}`
+        ? t('statistics.titleMonthly', { month: monthName(month), year })
+        : t('statistics.titleYearly', { year })
 
   const renderTrend = () => {
     if (period === 'yearly') {
@@ -215,7 +216,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
           {mergedTrends.map((t) => (
             <div key={t.month} className="flex items-center gap-3">
               <span className="w-16 sm:w-24 shrink-0 text-xs sm:text-sm font-semibold capitalize">
-                {MONTH_NAMES[t.month - 1]}
+                {monthName(t.month)}
               </span>
               <div className="flex-1 bg-slate-100 h-6 rounded-full overflow-hidden">
                 <div
@@ -228,14 +229,14 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
           ))}
         </div>
       ) : (
-        <p className="text-gray-500">Sin datos para este año</p>
+         <p className="text-gray-500">{t('statistics.noYear')}</p>
       )
     }
 
     if (period === 'monthly') {
       return (
         <div className="grid grid-cols-7 gap-1 sm:gap-2">
-          {WEEKDAY_NAMES.map((n) => (
+             {Array.from({ length: 7 }, (_, i) => weekdayName(i)).map((n) => (
             <div key={n} className="text-center text-xs font-bold text-gray-500 mb-1">{n}</div>
           ))}
           {Array.from({ length: firstWeekday }).map((_, i) => (
@@ -272,7 +273,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
                 w.total > 0 ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-transparent'
               }`}
             >
-              <div className="text-xs font-bold text-gray-500">{WEEKDAY_NAMES[w.weekday]}</div>
+               <div className="text-xs font-bold text-gray-500">{weekdayName(w.weekday)}</div>
               <div
                 className={`mx-auto mt-2 w-10 h-10 rounded-full flex items-center justify-center font-bold ${
                   w.total > 0 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-gray-400'
@@ -306,7 +307,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
                     <div
                       className="absolute bottom-0 w-full bg-blue-600 rounded-t-sm"
                       style={{ height: `${pct}%` }}
-                      title={`${h}:00 — ${formatCurrecy(v.total)} (${v.count} gastos)`}
+                       title={t('statistics.hourTitle', { hour: h, amount: formatCurrecy(v.total), count: v.count })}
                     />
                   )}
                 </div>
@@ -316,20 +317,18 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
           })}
         </div>
         <p className="text-sm text-gray-500 mt-4 text-center">
-          {totalDayCount > 0
-            ? `${totalDayCount} gastos el día ${selectedDay} por un total de ${formatCurrecy(totalDay)}.${
-                paidDayTotal > 0 ? ` Incluye ${formatCurrecy(paidDayTotal)} en gastos fijos pagados.` : ''
-              }`
-            : paidDayTotal > 0
-              ? `Hay ${formatCurrecy(paidDayTotal)} en gastos fijos pagados el día ${selectedDay}, sin gastos puntuales.`
-              : 'Sin gastos registrados este día.'}
+           {totalDayCount > 0
+             ? `${t('statistics.dayTotal', { count: totalDayCount, day: selectedDay, total: formatCurrecy(totalDay) })}${paidDayTotal > 0 ? t('statistics.fixedIncluded', { amount: formatCurrecy(paidDayTotal) }) : ''}`
+             : paidDayTotal > 0
+               ? t('statistics.fixedOnly', { amount: formatCurrecy(paidDayTotal), day: selectedDay })
+               : t('statistics.noDay')}
         </p>
         </div>
       </div>
     )
   }
 
-  if (loading) return <p className="text-center py-8 text-gray-500">Cargando estadísticas...</p>
+  if (loading) return <p className="text-center py-8 text-gray-500">{t('common.loading')}</p>
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -344,7 +343,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
                   period === p ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                 }`}
               >
-                {p === 'daily' ? 'Diario' : p === 'weekly' ? 'Semanal' : p === 'monthly' ? 'Mensual' : 'Anual'}
+                 {p === 'daily' ? t('statistics.daily') : p === 'weekly' ? t('statistics.weekly') : p === 'monthly' ? t('statistics.monthly') : t('statistics.yearly')}
               </button>
             ))}
           </div>
@@ -365,8 +364,8 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
             >
-              {MONTH_NAMES.map((m, i) => (
-                <option key={i} value={i + 1}>{m}</option>
+               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                 <option key={m} value={m}>{monthName(m)}</option>
               ))}
             </select>
             <input
@@ -383,18 +382,18 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
         {overview && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
             <div className="bg-blue-50 p-3 sm:p-4 rounded-lg text-center">
-              <p className="text-sm text-gray-600">Presupuesto</p>
+               <p className="text-sm text-gray-600">{t('statistics.budget')}</p>
               <p className="text-2xl font-black text-blue-600">{formatCurrecy(overview.budgeted)}</p>
             </div>
             <div className="bg-green-50 p-3 sm:p-4 rounded-lg text-center">
-              <p className="text-sm text-gray-600">Gastado</p>
+               <p className="text-sm text-gray-600">{t('statistics.spent')}</p>
               <p className="text-2xl font-black text-green-600">{formatCurrecy(overviewSpent)}</p>
               {paidFixed && paidFixed.total > 0 && (
-                <p className="text-xs text-gray-500 mt-1">Incluye {formatCurrecy(paidFixed.total)} en fijos pagados</p>
+                 <p className="text-xs text-gray-500 mt-1">{t('statistics.includesFixed', { amount: formatCurrecy(paidFixed.total) })}</p>
               )}
             </div>
             <div className="bg-orange-50 p-3 sm:p-4 rounded-lg text-center">
-              <p className="text-sm text-gray-600">Disponible</p>
+               <p className="text-sm text-gray-600">{t('statistics.available')}</p>
               <p className="text-2xl font-black text-orange-600">{formatCurrecy(overviewRemaining)}</p>
             </div>
           </div>
@@ -404,11 +403,11 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
       <div className="bg-white shadow-lg rounded-lg p-4 sm:p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="min-w-0">
-            <h3 className="text-lg sm:text-xl font-bold mb-4">Distribución por Categoría</h3>
+             <h3 className="text-lg sm:text-xl font-bold mb-4">{t('statistics.byCategory')}</h3>
             <CategoryPieChart data={mergedCategoryData} />
           </div>
           <div className="min-w-0">
-            <h3 className="text-lg sm:text-xl font-bold mb-4">Tendencia de Gastos</h3>
+             <h3 className="text-lg sm:text-xl font-bold mb-4">{t('statistics.trend')}</h3>
             {hasTrendData ? (
               <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={trendLineData}>
@@ -418,11 +417,11 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
                     tick={{ fontSize: 11 }}
                     tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v))}
                   />
-                  <Tooltip formatter={(value) => [formatCurrecy(Number(value)), 'Gastos']} />
+                   <Tooltip formatter={(value) => [formatCurrecy(Number(value)), t('statistics.tooltip')]} />
                   <Line
                     type="monotone"
                     dataKey="total"
-                    name="Gastos"
+                     name={t('statistics.tooltip')}
                     stroke="#3b82f6"
                     strokeWidth={2}
                     dot={{ r: 3 }}
@@ -431,7 +430,7 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-gray-500 text-center py-8">Sin datos para mostrar</p>
+               <p className="text-gray-500 text-center py-8">{t('statistics.noData')}</p>
             )}
           </div>
         </div>

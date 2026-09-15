@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { templatesApi, categoriesApi } from '../api'
 import { NumericFormat } from 'react-number-format'
 import PaymentStatusBadge from './PaymentStatusBadge'
+import { useTranslation } from 'react-i18next'
+import { formatCurrecy } from '../helpers'
 
 interface TemplateItem {
   id: string
@@ -23,6 +25,7 @@ interface TemplateGroup {
 }
 
 export default function ExpenseTemplates() {
+  const { t } = useTranslation()
   const [groups, setGroups] = useState<TemplateGroup[]>([])
   const [categories, setCategories] = useState<{ id: string; name: string; color: string | null }[]>([])
   const [showNewGroup, setShowNewGroup] = useState(false)
@@ -83,7 +86,7 @@ export default function ExpenseTemplates() {
   }
 
   const handleDeleteGroup = async (id: string) => {
-    if (!window.confirm('¿Seguro que deseas eliminar esta plantilla?')) return
+    if (!window.confirm(t('templates.deleteConfirm'))) return
     await templatesApi.deleteTemplate(id)
     setGroups((prev) => prev.filter((g) => g.id !== id))
   }
@@ -107,7 +110,7 @@ export default function ExpenseTemplates() {
   }
 
   const handleDeleteItem = async (groupId: string, itemId: string) => {
-    if (!window.confirm('¿Seguro que deseas eliminar este gasto fijo?')) return
+    if (!window.confirm(t('templates.deleteItemConfirm'))) return
     await templatesApi.deleteItem(groupId, itemId)
     setGroups((prev) =>
       prev.map((g) => (g.id === groupId ? { ...g, items: g.items.filter((i) => i.id !== itemId) } : g)),
@@ -133,12 +136,12 @@ export default function ExpenseTemplates() {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-bold">Plantillas de Gastos Fijos</h3>
+        <h3 className="text-xl font-bold">{t('templates.title')}</h3>
         <button
           onClick={() => { setShowNewGroup(!showNewGroup); setGroupName('') }}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700"
         >
-          {showNewGroup ? 'Cancelar' : '+ Nueva Plantilla'}
+          {showNewGroup ? t('templates.cancel') : t('templates.new')}
         </button>
       </div>
 
@@ -148,16 +151,16 @@ export default function ExpenseTemplates() {
             className="flex-1 bg-white p-2 border rounded"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
-            placeholder="Nombre del grupo (Ej. Gastos Fijos Mensuales)"
+            placeholder={t('templates.groupPlaceholder')}
           />
           <button onClick={handleCreateGroup} className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700">
-            Crear
+            {t('templates.create')}
           </button>
         </div>
       )}
 
       {groups.length === 0 ? (
-        <p className="text-gray-500 text-center py-4">Sin plantillas. Crea una para gestionar gastos recurrentes.</p>
+        <p className="text-gray-500 text-center py-4">{t('templates.empty')}</p>
       ) : (
         groups.map((group) => (
           <div key={group.id} className="bg-white shadow rounded-lg overflow-hidden">
@@ -172,40 +175,40 @@ export default function ExpenseTemplates() {
                       className="flex-1 bg-white p-2 border rounded text-sm"
                       value={groupNameEdit}
                       onChange={(e) => setGroupNameEdit(e.target.value)}
-                      placeholder="Nombre de la plantilla"
+                       placeholder={t('templates.groupName')}
                       autoFocus
                     />
                     <button
                       onClick={() => handleRenameGroup(group.id)}
                       className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold hover:bg-green-700"
                     >
-                      Guardar
+                       {t('templates.save')}
                     </button>
                     <button
                       onClick={() => setEditingGroup(null)}
                       className="bg-gray-300 px-3 py-1 rounded text-sm"
                     >
-                      Cancelar
+                       {t('templates.cancel')}
                     </button>
                   </div>
                 ) : (
                   <>
                     <h4 className="font-bold text-lg">{group.name}</h4>
-                    <p className="text-sm text-gray-500">{group.items.length} gastos fijos</p>
+                     <p className="text-sm text-gray-500">{t('templates.fixedCount', { count: group.items.length })}</p>
                   </>
                 )}
               </div>
               <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => { setEditingGroup(group.id); setGroupNameEdit(group.name) }}
-                  title="Editar plantilla"
+                   title={t('templates.edit')}
                   className="p-2 rounded text-gray-600 hover:bg-gray-200"
                 >
                   <span className="material-symbols-outlined text-[20px]">edit</span>
                 </button>
                 <button
                   onClick={() => handleDeleteGroup(group.id)}
-                  title="Eliminar plantilla"
+                   title={t('templates.delete')}
                   className="p-2 rounded text-red-600 hover:bg-red-100"
                 >
                   <span className="material-symbols-outlined text-[20px]">delete</span>
@@ -221,7 +224,7 @@ export default function ExpenseTemplates() {
                       <div className="space-y-2">
                         <div className="flex gap-2 items-center">
                           <span className="font-semibold">{item.name}</span>
-                          <span className="text-lg font-black text-blue-600">${item.amount.toLocaleString('es-MX')}</span>
+                           <span className="text-lg font-black text-blue-600">{formatCurrecy(item.amount)}</span>
                           <span className="text-xs bg-slate-200 px-2 py-0.5 rounded">{item.category.name}</span>
                         </div>
                         <div className="flex gap-2 items-center flex-wrap">
@@ -230,35 +233,35 @@ export default function ExpenseTemplates() {
                             value={editStatus || item.status}
                             onChange={(e) => setEditStatus(e.target.value)}
                           >
-                            <option value="pending">Pendiente</option>
-                            <option value="paid">Pagado</option>
-                            <option value="partial">Pago Parcial</option>
+                             <option value="pending">{t('templates.pending')}</option>
+                             <option value="paid">{t('templates.paid')}</option>
+                             <option value="partial">{t('templates.partial')}</option>
                           </select>
                           {(editStatus || item.status) === 'partial' && (
                             <NumericFormat
                               className="bg-white p-1 text-sm border rounded w-24"
                               value={editPartial !== undefined ? editPartial : item.partialAmount || ''}
                               onChange={(e) => setEditPartial(e.target.value)}
-                              placeholder="Monto"
+                               placeholder={t('templates.amount')}
                             />
                           )}
                           <input
                             className="bg-white p-1 text-sm border rounded flex-1"
                             value={editComment !== undefined ? editComment : item.comment || ''}
                             onChange={(e) => setEditComment(e.target.value)}
-                            placeholder="Comentario..."
+                             placeholder={t('templates.comment')}
                           />
                           <button
                             onClick={() => handleSaveItemStatus(group.id, item)}
                             className="bg-green-600 text-white px-2 py-1 rounded text-xs"
                           >
-                            Guardar
+                             {t('templates.save')}
                           </button>
                           <button
                             onClick={() => setEditingItem(null)}
                             className="bg-gray-300 px-2 py-1 rounded text-xs"
                           >
-                            Cancelar
+                             {t('templates.cancel')}
                           </button>
                         </div>
                       </div>
@@ -269,9 +272,9 @@ export default function ExpenseTemplates() {
                             <p className="font-semibold">{item.name}</p>
                             <span className="text-xs bg-slate-200 px-2 py-0.5 rounded">{item.category.name}</span>
                             <PaymentStatusBadge status={item.status as 'pending' | 'paid' | 'partial'} partialAmount={item.partialAmount ?? undefined} expense={item as any} />
-                            {item.dayOfMonth && <span className="text-xs text-gray-500">Día {item.dayOfMonth}</span>}
+                           {item.dayOfMonth && <span className="text-xs text-gray-500">{t('fixedExpenses.due', { day: item.dayOfMonth })}</span>}
                           </div>
-                          <p className="text-lg font-black text-blue-600">${item.amount.toLocaleString('es-MX')}</p>
+                           <p className="text-lg font-black text-blue-600">{formatCurrecy(item.amount)}</p>
                           {item.comment && <p className="text-xs text-gray-500 italic">{item.comment}</p>}
                         </div>
                         <div className="flex gap-2 items-center">
@@ -279,9 +282,9 @@ export default function ExpenseTemplates() {
                             onClick={() => { setEditingItem(item.id); setEditStatus(item.status); setEditComment(item.comment || ''); setEditPartial(item.partialAmount ? String(item.partialAmount) : '') }}
                             className="text-xs text-blue-600 hover:underline"
                           >
-                            Estado / Comentario
+                             {t('templates.statusComment')}
                           </button>
-                          <button onClick={() => handleDeleteItem(group.id, item.id)} title="Eliminar gasto fijo" className="text-red-600 hover:text-red-800">
+                           <button onClick={() => handleDeleteItem(group.id, item.id)} title={t('templates.deleteExpense')} className="text-red-600 hover:text-red-800">
                             <span className="material-symbols-outlined text-[20px]">delete</span>
                           </button>
                         </div>
@@ -298,20 +301,20 @@ export default function ExpenseTemplates() {
                         className="bg-white p-2 border rounded text-sm"
                         value={itemName}
                         onChange={(e) => setItemName(e.target.value)}
-                        placeholder="Nombre"
+                         placeholder={t('templates.addName')}
                       />
                       <NumericFormat
                         className="bg-white p-2 border rounded text-sm"
                         value={itemAmount}
                         onChange={(e) => setItemAmount(e.target.value)}
-                        placeholder="Monto"
+                         placeholder={t('templates.addAmount')}
                       />
                       <select
                         className="bg-white p-2 border rounded text-sm"
                         value={itemCategory}
                         onChange={(e) => setItemCategory(e.target.value)}
                       >
-                        <option value="">Categoría</option>
+                         <option value="">{t('templates.addCategory')}</option>
                         {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                       <input
@@ -321,12 +324,12 @@ export default function ExpenseTemplates() {
                         max="31"
                         value={itemDay}
                         onChange={(e) => setItemDay(e.target.value)}
-                        placeholder="Día del mes"
+                         placeholder={t('templates.addDay')}
                       />
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => handleAddItem(group.id)} className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold">Agregar</button>
-                      <button onClick={resetItemForm} className="bg-gray-300 px-3 py-1 rounded text-sm">Cancelar</button>
+                      <button onClick={() => handleAddItem(group.id)} className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold">{t('templates.add')}</button>
+                      <button onClick={resetItemForm} className="bg-gray-300 px-3 py-1 rounded text-sm">{t('templates.cancel')}</button>
                     </div>
                   </div>
                 ) : (
@@ -334,7 +337,7 @@ export default function ExpenseTemplates() {
                     onClick={() => { resetItemForm(); setShowItemForm(group.id) }}
                     className="text-blue-600 text-sm font-semibold hover:underline"
                   >
-                    + Agregar gasto fijo
+                     {t('templates.addFixed')}
                   </button>
                 )}
               </div>

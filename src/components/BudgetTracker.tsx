@@ -2,10 +2,12 @@ import { useBudget } from "../hooks/useBudget";
 import AmountDisplay from "./AmountDisplay";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css"
+import { useTranslation } from 'react-i18next'
 
 export default function BudgetTracker() {
 
   const { state, reminderBudget, totalExpense, restartApp, apiLoading } = useBudget()
+  const { t } = useTranslation()
   const percentage = +((totalExpense / state.budget) * 100).toFixed(2)
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -18,7 +20,7 @@ export default function BudgetTracker() {
             textSize: 8,
             textColor: percentage === 100 ? '#1B3B5A' : '#34506D',
           })}
-          text={`${percentage}% Gastado`}
+          text={t('budgetTracker.spentPercentage', { percentage })}
         />
       </div>
       <div className="flex flex-col justify-center items-center gap-8">
@@ -28,18 +30,18 @@ export default function BudgetTracker() {
           onClick={() => restartApp()}
           disabled={apiLoading}
         >
-          {apiLoading ? 'Reiniciando...' : 'Reset App'}
+          {apiLoading ? t('budgetTracker.resetting') : t('budgetTracker.reset')}
         </button>
         <AmountDisplay
-          label={'Presupuesto'}
+           label={t('dashboard.budget')}
           amount={state.budget}
         />
         <AmountDisplay
-          label={'Disponible'}
+           label={t('dashboard.available')}
           amount={reminderBudget}
         />
         <AmountDisplay
-          label={'Gastado'}
+           label={t('dashboard.spent')}
           amount={totalExpense}
         />
       </div>

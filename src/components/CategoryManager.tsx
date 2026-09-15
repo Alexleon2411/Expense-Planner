@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { categoriesApi } from '../api'
 import IconPicker from './IconPicker'
 import CategoryIcon from './CategoryIcon'
+import { useTranslation } from 'react-i18next'
 
 interface Category {
   id: string
@@ -12,6 +13,7 @@ interface Category {
 }
 
 export default function CategoryManager() {
+  const { t } = useTranslation()
   const [categories, setCategories] = useState<Category[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -58,7 +60,7 @@ export default function CategoryManager() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('¿Seguro que deseas eliminar esta categoría?')) return
+    if (!window.confirm(t('categories.confirmDelete'))) return
     try {
       await categoriesApi.deleteCategory(id)
       setCategories((prev) => prev.filter((c) => c.id !== id))
@@ -68,28 +70,28 @@ export default function CategoryManager() {
   return (
     <div className="bg-white shadow-lg rounded-lg p-6">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold">Categorías</h3>
+        <h3 className="text-xl font-bold">{t('categories.title')}</h3>
         <button
           onClick={() => (showForm ? resetForm() : setShowForm(true))}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700"
         >
-          {showForm ? 'Cancelar' : '+ Nueva'}
+          {showForm ? t('common.cancel') : t('categories.new')}
         </button>
       </div>
 
       {showForm && (
         <div className="bg-slate-50 p-4 rounded-lg mb-4 space-y-3">
           <div>
-            <label className="text-sm">{editingId ? 'Editar categoría' : 'Nombre'}</label>
+            <label className="text-sm">{editingId ? t('categories.edit') : t('categories.name')}</label>
             <input
               className="w-full bg-white p-2 border rounded"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ej. Transporte"
+              placeholder={t('categories.placeholder')}
             />
           </div>
           <div>
-            <label className="text-sm">Color</label>
+            <label className="text-sm">{t('categories.color')}</label>
             <div className="flex gap-2 flex-wrap mt-1">
               {/* {COLORS.map((c) => (
                 <button
@@ -110,17 +112,17 @@ export default function CategoryManager() {
           <IconPicker value={icon} onChange={setIcon} />
           <div className="flex gap-2">
             <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700">
-              {editingId ? 'Guardar' : 'Crear'}
+              {editingId ? t('common.save') : t('categories.create')}
             </button>
             <button onClick={resetForm} className="bg-gray-300 px-4 py-2 rounded-lg font-bold">
-              Cancelar
+              {t('common.cancel')}
             </button>
           </div>
         </div>
       )}
 
       {categories.length === 0 ? (
-        <p className="text-gray-500 text-center py-4">Sin categorías. Crea una para organizar tus gastos.</p>
+        <p className="text-gray-500 text-center py-4">{t('categories.empty')}</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {categories.map((cat) => (
@@ -133,7 +135,7 @@ export default function CategoryManager() {
               <div className="flex gap-1 mt-1">
                 <button
                   onClick={() => startEdit(cat)}
-                  title="Editar categoría"
+                  title={t('categories.editAction')}
                   className="p-1.5 rounded text-gray-600 hover:bg-gray-200"
                 >
                   <span className="material-symbols-outlined text-[18px]">edit</span>
@@ -141,7 +143,7 @@ export default function CategoryManager() {
                 {!cat.isDefault && (
                   <button
                     onClick={() => handleDelete(cat.id)}
-                    title="Eliminar categoría"
+                    title={t('categories.deleteAction')}
                     className="p-1.5 rounded text-red-600 hover:bg-red-100"
                   >
                     <span className="material-symbols-outlined text-[18px]">delete</span>

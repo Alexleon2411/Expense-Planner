@@ -6,21 +6,24 @@ import CalendarView from './CalendarView'
 import Statistics from './Statistics'
 import { useBudget } from '../hooks/useBudget'
 import PaymentStatusBadge from './PaymentStatusBadge'
+import { useTranslation } from 'react-i18next'
+import { formatCurrecy, formatDate } from '../helpers'
 
 type Tab = 'resumen' | 'plantillas' | 'categorias' | 'calendario' | 'estadisticas'
 
 export default function Dashboard() {
   const [tab, setTab] = useState<Tab>('resumen')
   const { state, totalExpense, reminderBudget } = useBudget()
+  const { t } = useTranslation()
   const now = new Date()
   const percentage = state.budget > 0 ? +((totalExpense / state.budget) * 100).toFixed(2) : 0
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'resumen', label: 'Resumen' },
-    { id: 'plantillas', label: 'Plantillas' },
-    { id: 'categorias', label: 'Categorías' },
-    { id: 'calendario', label: 'Calendario' },
-    { id: 'estadisticas', label: 'Estadísticas' },
+    { id: 'resumen', label: t('dashboard.tabs.summary') },
+    { id: 'plantillas', label: t('dashboard.tabs.templates') },
+    { id: 'categorias', label: t('dashboard.tabs.categories') },
+    { id: 'calendario', label: t('dashboard.tabs.calendar') },
+    { id: 'estadisticas', label: t('dashboard.tabs.statistics') },
   ]
 
   const recentExpenses = [...state.expenses]
@@ -37,20 +40,20 @@ export default function Dashboard() {
         <SalarySection />
 
         <div className="bg-white shadow-lg rounded-lg p-6">
-          <h3 className="text-xl font-bold mb-4">Resumen Rápido</h3>
+           <h3 className="text-xl font-bold mb-4">{t('dashboard.quickSummary')}</h3>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span>Presupuesto:</span>
-              <span className="font-bold">${state.budget.toLocaleString('es-MX')}</span>
+               <span>{t('dashboard.budget')}:</span>
+               <span className="font-bold">{formatCurrecy(state.budget)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Gastado:</span>
-              <span className="font-bold text-blue-600">${totalExpense.toLocaleString('es-MX')}</span>
+               <span>{t('dashboard.spent')}:</span>
+               <span className="font-bold text-blue-600">{formatCurrecy(totalExpense)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Disponible:</span>
+               <span>{t('dashboard.available')}:</span>
               <span className={`font-bold ${reminderBudget < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                ${reminderBudget.toLocaleString('es-MX')}
+                {formatCurrecy(reminderBudget)}
               </span>
             </div>
             <div className="w-full bg-slate-200 h-3 rounded-full mt-2">
@@ -59,7 +62,7 @@ export default function Dashboard() {
                 style={{ width: `${Math.min(percentage, 100)}%` }}
               />
             </div>
-            <p className="text-sm text-gray-500 text-center">{percentage}% utilizado</p>
+            <p className="text-sm text-gray-500 text-center">{percentage}% {t('dashboard.used')}</p>
           </div>
         </div>
       </div>
@@ -84,7 +87,7 @@ export default function Dashboard() {
             <div>
               {recentExpenses.length > 0 ? (
                 <div className="space-y-2">
-                  <h4 className="font-bold text-lg mb-3">Últimos Gastos</h4>
+                  <h4 className="font-bold text-lg mb-3">{t('dashboard.latest')}</h4>
                   {recentExpenses.map((exp) => (
                     <div key={exp.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-lg">
                       <div>
@@ -92,20 +95,20 @@ export default function Dashboard() {
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-500">
                             {exp.date instanceof Date
-                              ? exp.date.toLocaleDateString('es-MX')
-                              : new Date(String(exp.date)).toLocaleDateString('es-MX')}
+                               ? formatDate(exp.date.toISOString())
+                               : formatDate(String(exp.date))}
                           </span>
                           <PaymentStatusBadge status={exp.status || 'pending'} partialAmount={exp.partialAmount} />
                         </div>
                       </div>
-                      <p className="text-lg font-black text-blue-600">${exp.amount.toLocaleString('es-MX')}</p>
+                      <p className="text-lg font-black text-blue-600">{formatCurrecy(exp.amount)}</p>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center text-gray-500 py-4">
-                  <p className="text-lg">Bienvenido al Dashboard</p>
-                  <p className="text-sm">Usa las pestañas para explorar plantillas, categorías, calendario y estadísticas.</p>
+                   <p className="text-lg">{t('dashboard.welcome')}</p>
+                   <p className="text-sm">{t('dashboard.explore')}</p>
                 </div>
               )}
             </div>

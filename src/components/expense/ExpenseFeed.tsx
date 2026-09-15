@@ -6,6 +6,7 @@ import TableRecentTransactions from "./TableRecentTrasactions"
 import AddNewTrasaction from './AddNewTransaction';
 import { useBudget } from "../../hooks/useBudget"
 import { Expense } from '../../types';
+import { useTranslation } from 'react-i18next';
 
 interface ExpenseFeedProps {
   title?: string;
@@ -76,6 +77,7 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [partialData, setPartialData] = useState<{ category: string; amount: number } | null>(null);
   const { state, getAllExpenses, loadMoreExpenses } = useBudget();
+  const { t } = useTranslation()
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -146,8 +148,8 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
         <div className="p-lg space-y-lg">
             <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
                 <div className="relative z-10">
-                    <h2 className="text-headline-lg font-headline-lg mb-xs">Expenses</h2>
-                    <p className="text-body-md opacity-80 max-w-2xl mx-auto">Manage your expenses and track your spending.</p>
+                    <h2 className="text-headline-lg font-headline-lg mb-xs">{t('expense.title')}</h2>
+                    <p className="text-body-md opacity-80 max-w-2xl mx-auto">{t('expense.description')}</p>
                 </div>
             </div>
             <div className="flex justify-start">
@@ -155,7 +157,7 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
                 className="py-md px-lg bg-primary text-on-primary rounded-lg font-body-md font-bold flex items-center gap-xs shadow-md hover:opacity-90"
                 onClick={openEmptyModal}>
               <span className="material-symbols-outlined" data-icon="add">add</span>
-              Add Transaction
+              {t('expense.addTransaction')}
               </button>
             </div>
           <Filter

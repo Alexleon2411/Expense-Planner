@@ -1,5 +1,6 @@
 import { Fragment, useState, useEffect } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
+import { useTranslation } from 'react-i18next'
 
 type PartialPaymentModalProps = {
   isOpen: boolean
@@ -16,6 +17,7 @@ export default function PartialPaymentModal({
   currentAmount = 0,
   currentComment = ''
 }: PartialPaymentModalProps) {
+  const { t } = useTranslation()
   const [amount, setAmount] = useState(currentAmount)
   const [comment, setComment] = useState(currentComment)
 
@@ -59,18 +61,18 @@ export default function PartialPaymentModal({
             >
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title className="text-lg font-bold text-slate-800 mb-4">
-                  Pago Parcial
+                  {t('expense.partial')}
                 </Dialog.Title>
 
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-600 mb-1">
-                      Monto
+                      {t('expense.amountLabel')}
                     </label>
                     <input
                       type="number"
                       className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
-                      placeholder="Monto del pago parcial"
+                      placeholder={t('expense.partialAmount')}
                       value={amount}
                       onChange={(e) => setAmount(Number(e.target.value))}
                       min={0}
@@ -79,12 +81,12 @@ export default function PartialPaymentModal({
 
                   <div>
                     <label className="block text-sm font-medium text-slate-600 mb-1">
-                      Comentario
+                      {t('comments.comment')}
                     </label>
                     <textarea
                       className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none resize-none"
                       rows={3}
-                      placeholder="Agregar un comentario..."
+                      placeholder={t('comments.placeholder')}
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                     />
@@ -95,14 +97,14 @@ export default function PartialPaymentModal({
                       onClick={onClose}
                       className="text-sm font-semibold bg-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-300 transition-colors"
                     >
-                      Cancelar
+                      {t('common.cancel')}
                     </button>
                     <button
                       onClick={handleSave}
                       disabled={amount <= 0}
                       className="text-sm font-semibold bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Guardar
+                      {t('common.save')}
                     </button>
                   </div>
                 </div>

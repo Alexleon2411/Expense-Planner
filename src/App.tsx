@@ -18,11 +18,14 @@ import UserProfile from "./components/user/UserProfile"
 import Dashboard2 from "./components/Dashboard3"
 import Report from "./components/Report2"
 import { usePaymentReminders } from './hooks/usePaymentReminders'
+import './i18n/dashboardResources'
+import { useTranslation } from 'react-i18next'
 
 function App() {
 
   const { syncBudgetWithSalary, getAllExpenses } = useBudget()
   const { user, loading } = useAuth()
+  const { t } = useTranslation()
   const { reminders, permission: notificationPermission, requestPermission } = usePaymentReminders()
   // 'view' ahora vive aquí y se comparte entre SideBar (que la cambia)
   // y App (que decide qué renderizar según su valor).
@@ -59,7 +62,7 @@ function App() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-100">
-        <p className="text-2xl text-gray-600">Cargando...</p>
+         <p className="text-2xl text-gray-600">{t('common.loading')}</p>
       </div>
     )
   }

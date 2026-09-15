@@ -1,6 +1,8 @@
 import { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { authApi, userApi } from '../api';
 import type { User, UpdateProfileData } from '../types/user';
+import i18n from '../i18n/config';
+import { normalizeLanguage, type AppLanguage } from '../i18n/types';
 
 interface AuthContextProps {
   user: User | null;
@@ -11,6 +13,7 @@ interface AuthContextProps {
   editProfile: (data: UpdateProfileData) => Promise<void>;
   updateProfileInformation: (data: UpdateProfileData) => Promise<void>;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  updateLanguage: (language: AppLanguage) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextProps>(null!);
@@ -21,6 +24,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return stored ? JSON.parse(stored) : null;
   });
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user?.language) void i18n.changeLanguage(normalizeLanguage(user.language));
+  }, [user?.language]);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -107,8 +114,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authApi.UpdatePassword(currentPassword, newPassword);
   }, []);
 
+  const updateLanguage = useCallback(async (language: AppLanguage) => {
+    const updated = await userApi.updateProfile({ language });
+    setUser(prev => {
+      if (!prev) return null;
+      const next = { ...prev, language: normalizeLanguage(updated.language ?? language) };
+      localStorage.setItem('auth_user', JSON.stringify(next));
+      return next;
+    });
+    await i18n.changeLanguage(language);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, editProfile, updateProfileInformation, updatePassword }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, editProfile, updateProfileInformation, updatePassword, updateLanguage }}>
       {children}
     </AuthContext.Provider>
   );

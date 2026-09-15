@@ -1,5 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { useCategories } from '../hooks/useCategories'
+import { useTranslation } from 'react-i18next'
+import i18n from '../i18n/config'
 
 const COLORS = ['#0A1B2E', '#112A46', '#1B3B5A', '#34506D', '#557392', '#7A8CA6', '#A1B3C4', '#C4D2E1']
 
@@ -8,11 +10,11 @@ interface Props {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const tooltipFormatter = (value: any) =>
-  [`$${Number(value).toLocaleString('es-MX')}`, 'Monto'] as [string, string]
-
 export default function CategoryPieChart({ data }: Props) {
   const { categories } = useCategories()
+  const { t } = useTranslation()
+  const tooltipFormatter = (value: unknown) =>
+    [Number(value).toLocaleString(i18n.language, { style: 'currency', currency: 'EUR' }), t('expense.amountLabel')] as [string, string]
   const total = data.reduce((s, d) => s + d.total, 0)
 
   const enrichedData = data.map((d) => {
@@ -21,7 +23,7 @@ export default function CategoryPieChart({ data }: Props) {
   })
 
   if (data.length === 0) {
-    return <p className="text-gray-500 text-center py-8">Sin datos para mostrar</p>
+    return <p className="text-gray-500 text-center py-8">{t('common.noData')}</p>
   }
 
   return (
@@ -54,11 +56,11 @@ export default function CategoryPieChart({ data }: Props) {
               style={{ backgroundColor: COLORS[i % COLORS.length] }}
             />
             <span className="flex-1 truncate">{d.name}</span>
-            <span className="font-bold shrink-0 text-xs sm:text-sm text-right">${d.total.toLocaleString('es-MX')} · {((d.total / total) * 100).toFixed(0)}%</span>
+            <span className="font-bold shrink-0 text-xs sm:text-sm text-right">{d.total.toLocaleString(i18n.language, { style: 'currency', currency: 'EUR' })} · {((d.total / total) * 100).toLocaleString(i18n.language, { maximumFractionDigits: 0 })}%</span>
           </li>
         ))}
       </ul>
-      <p className="text-center text-lg font-bold mt-2">Total: ${total.toLocaleString('es-MX')}</p>
+      <p className="text-center text-lg font-bold mt-2">{t('common.total')}: {total.toLocaleString(i18n.language, { style: 'currency', currency: 'EUR' })}</p>
     </div>
   )
 }

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { templatesApi } from '../api'
 import { useAuth } from './useAuth'
+import i18n from '../i18n/config'
+import { formatCurrecy } from '../helpers'
 
 export type PaymentReminder = {
   id: string
@@ -51,10 +53,10 @@ export function usePaymentReminders() {
       if (localStorage.getItem(storageKey)) return
 
       const amount = dueToday.reduce((total, reminder) => total + reminder.amount, 0)
-      new Notification('Recordatorio de pagos fijos', {
+       new Notification(i18n.t('expense.paymentReminder'), {
         body: dueToday.length === 1
-          ? `Hoy vence ${dueToday[0].name} por ${amount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}.`
-          : `Hoy vencen ${dueToday.length} pagos fijos por ${amount.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}.`,
+          ? `${i18n.t('expense.dueToday')}: ${dueToday[0].name} · ${formatCurrecy(amount)}`
+          : `${i18n.t('expense.dueToday')}: ${dueToday.length} · ${formatCurrecy(amount)}`,
         icon: '/icon-192x192.png',
         tag: storageKey,
       })

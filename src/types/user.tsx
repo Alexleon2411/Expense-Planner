@@ -1,3 +1,5 @@
+import type { AppLanguage } from '../i18n/types'
+
 export type User = {
   id: string
   name: string
@@ -7,7 +9,7 @@ export type User = {
   country?: string
   street?: string
   houseNumber?: string
-  language?: string
+  language?: AppLanguage
   phoneNumber?: string
 }
 
@@ -20,7 +22,7 @@ export type UpdateProfileData = {
   country?: string
   street?: string
   houseNumber?: string
-  language?: string
+  language?: AppLanguage
   phoneNumber?: string
   password?: string
 }

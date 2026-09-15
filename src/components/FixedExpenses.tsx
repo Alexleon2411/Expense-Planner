@@ -3,6 +3,8 @@ import { useFixedExpenses } from '../hooks/useFixedExpenses';
 import { categoriesApi, statsApi } from '../api';
 import FixedExpensesCalendar from './FixedExpensesCalendar';
 import CategoryIcon from './CategoryIcon';
+import { useTranslation } from 'react-i18next';
+import { formatCurrecy } from '../helpers';
 
 export default function FixedExpenses() {
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
@@ -26,10 +28,8 @@ export default function FixedExpenses() {
     const [trends, setTrends] = useState<{ month: number; total: number }[]>([]);
     const [overview, setOverview] = useState<{ totalSpent: number; budgeted: number; remaining: number; percentage: number } | null>(null);
 
-    const MONTH_NAMES = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December',
-    ];
+    const { t, i18n } = useTranslation();
+    const monthName = (month: number) => new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(new Date(selectedYear, month - 1, 1));
 
     function navigateMonth(direction: number) {
         setSelectedMonth((prev) => {
@@ -161,13 +161,6 @@ export default function FixedExpenses() {
         resetForm();
     }
 
-    function getOrdinalSuffix(day: number): string {
-        if (day === 1 || day === 21 || day === 31) return 'st';
-        if (day === 2 || day === 22) return 'nd';
-        if (day === 3 || day === 23) return 'rd';
-        return 'th';
-    }
-
     function getStatusColor(status: string): string {
         switch (status) {
             case 'paid': return 'status-gain';
@@ -193,32 +186,32 @@ export default function FixedExpenses() {
                         <div className="relative z-10">
                             <div className="flex items-center gap-sm mb-sm sm:justify-center">
                                 <span className="material-symbols-outlined text-secondary-fixed">event_repeat</span>
-                                <span className="text-label-caps font-label-caps uppercase tracking-widest opacity-70">Monthly planning</span>
+                            <span className="text-label-caps font-label-caps uppercase tracking-widest opacity-70">{t('fixedExpenses.planning')}</span>
                             </div>
-                            <h2 className="text-headline-lg font-headline-lg mb-xs">Fixed Expenses</h2>
-                            <p className="text-body-md opacity-80 max-w-2xl sm:mx-auto">Keep recurring costs visible, predictable, and easy to act on.</p>
+                            <h2 className="text-headline-lg font-headline-lg mb-xs">{t('fixedExpenses.title')}</h2>
+                            <p className="text-body-md opacity-80 max-w-2xl sm:mx-auto">{t('fixedExpenses.subtitle')}</p>
                         </div>
                     </div>
                 <div className="flex flex-col gap-md sm:flex-row sm:justify-between sm:items-center">
                     <div className="flex items-center justify-between gap-sm sm:justify-end">
-                        <div className="flex bg-surface-container-highest rounded-lg overflow-hidden" aria-label="View mode">
+                            <div className="flex bg-surface-container-highest rounded-lg overflow-hidden" aria-label={t('fixedExpenses.viewMode')}>
                             <button
                                 className={`flex items-center gap-xs px-sm sm:px-md py-sm font-bold transition-colors ${viewMode === 'grid' ? 'bg-primary text-on-primary' : 'text-on-surface hover:bg-surface-container-high'}`}
                                 type="button"
                                 onClick={() => setViewMode('grid')}
-                                aria-label="Show expense cards"
+                                aria-label={t('fixedExpenses.showCards')}
                             >
                                 <span className="material-symbols-outlined">grid_view</span>
-                                <span className="hidden sm:inline text-body-sm">Cards</span>
+                                <span className="hidden sm:inline text-body-sm">{t('fixedExpenses.cards')}</span>
                             </button>
                             <button
                                 className={`flex items-center gap-xs px-sm sm:px-md py-sm font-bold transition-colors ${viewMode === 'table' ? 'bg-primary text-on-primary' : 'text-on-surface hover:bg-surface-container-high'}`}
                                 type="button"
                                 onClick={() => setViewMode('table')}
-                                aria-label="Show expense table"
+                                aria-label={t('fixedExpenses.showTable')}
                             >
                                 <span className="material-symbols-outlined">table_rows</span>
-                                <span className="hidden sm:inline text-body-sm">Table</span>
+                                <span className="hidden sm:inline text-body-sm">{t('fixedExpenses.table')}</span>
                             </button>
                         </div>
                         <button
@@ -227,7 +220,7 @@ export default function FixedExpenses() {
                             onClick={() => setShowCalendar(!showCalendar)}
                         >
                             <span className="material-symbols-outlined">calendar_month</span>
-                            <span>Calendar</span>
+                            <span>{t('fixedExpenses.calendar')}</span>
                         </button>
                         <div className="relative group">
                             <button
@@ -238,7 +231,7 @@ export default function FixedExpenses() {
                                 onClick={() => setShowNewMenu((visible) => !visible)}
                             >
                                 <span className="material-symbols-outlined">add</span>
-                                <span>New</span>
+                                <span>{t('fixedExpenses.new')}</span>
                                 <span className="material-symbols-outlined text-xs">expand_more</span>
                             </button>
                             <div className={`absolute right-0 top-full mt-1 w-56 bg-surface-container-lowest rounded-lg shadow-lg border border-outline-variant transition-all z-50 ${showNewMenu ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'}`}>
@@ -248,7 +241,7 @@ export default function FixedExpenses() {
                                     className="w-full flex items-center space-x-sm px-md py-sm text-on-surface hover:bg-surface-container-high transition-colors rounded-t-lg text-left"
                                 >
                                     <span className="material-symbols-outlined text-primary">add_circle</span>
-                                    <span className="text-body-md">Add Fixed Expense</span>
+                                    <span className="text-body-md">{t('fixedExpenses.addExpense')}</span>
                                 </button>
                                 <button
                                     type="button"
@@ -256,7 +249,7 @@ export default function FixedExpenses() {
                                     className="w-full flex items-center space-x-sm px-md py-sm text-on-surface hover:bg-surface-container-high transition-colors rounded-b-lg text-left"
                                 >
                                     <span className="material-symbols-outlined text-primary">library_add</span>
-                                    <span className="text-body-md">New Template + Expense</span>
+                                    <span className="text-body-md">{t('fixedExpenses.newTemplateExpense')}</span>
                                 </button>
                             </div>
                         </div>
@@ -266,7 +259,7 @@ export default function FixedExpenses() {
                 {loading && (
                     <div className="flex items-center justify-center py-xl">
                         <span className="material-symbols-outlined animate-spin text-primary">progress_activity</span>
-                        <span className="ml-sm text-on-surface-variant">Loading fixed expenses...</span>
+                            <span className="ml-sm text-on-surface-variant">{t('fixedExpenses.loading')}</span>
                     </div>
                 )}
 
@@ -281,22 +274,22 @@ export default function FixedExpenses() {
                     <div className="flex items-center justify-between px-md py-sm bg-surface-container-low border-b border-outline-variant">
                         <div className="flex items-center space-x-sm">
                             <span className="material-symbols-outlined text-primary">receipt_long</span>
-                            <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">Total Fixed</span>
+                            <span className="text-label-caps font-label-caps text-on-surface-variant uppercase">{t('fixedExpenses.total')}</span>
                         </div>
-                        <span className="text-headline-md font-headline-md text-primary">${totalFixed.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                        <span className="text-headline-md font-headline-md text-primary">{formatCurrecy(totalFixed)}</span>
                     </div>
                     <div className="p-md space-y-sm">
                         <div className="flex justify-between items-baseline">
                             <span className="text-body-sm text-on-surface-variant">
-                                Pagado <span className="text-on-surface-variant/60">· {paidExpenses.length} {paidExpenses.length === 1 ? 'item' : 'items'}</span>
+                                {t('fixedExpenses.paid')} <span className="text-on-surface-variant/60">· {paidExpenses.length} {paidExpenses.length === 1 ? t('fixedExpenses.item') : t('fixedExpenses.items')}</span>
                             </span>
-                            <span className="text-headline-sm font-headline-sm text-green-500">${paidFixedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                            <span className="text-headline-sm font-headline-sm text-green-500">{formatCurrecy(paidFixedAmount)}</span>
                         </div>
                         <div className="flex justify-between items-baseline">
                             <span className="text-body-sm text-on-surface-variant">
-                                Pendiente <span className="text-on-surface-variant/60">· {pendingExpenses.length} {pendingExpenses.length === 1 ? 'item' : 'items'}</span>
+                                {t('fixedExpenses.pending')} <span className="text-on-surface-variant/60">· {pendingExpenses.length} {pendingExpenses.length === 1 ? t('fixedExpenses.item') : t('fixedExpenses.items')}</span>
                             </span>
-                            <span className="text-headline-sm font-headline-sm text-red-500">${remainingFixedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                            <span className="text-headline-sm font-headline-sm text-red-500">{formatCurrecy(remainingFixedAmount)}</span>
                         </div>
                         <div className="w-full h-2 rounded-full bg-surface-container-high overflow-hidden">
                             <div
@@ -311,7 +304,7 @@ export default function FixedExpenses() {
                 {showCalendar && (
                     <section>
                         <div className="flex items-center justify-between mb-md">
-                            <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase tracking-widest">Calendar</h3>
+                            <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase tracking-widest">{t('fixedExpenses.calendar')}</h3>
                             <div className="flex items-center">
                                 <button
                                     type="button"
@@ -321,7 +314,7 @@ export default function FixedExpenses() {
                                     <span className="material-symbols-outlined text-on-surface">chevron_left</span>
                                 </button>
                                 <span className="text-body-md font-body-md text-on-surface min-w-[140px] text-center">
-                                    {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
+                                    {monthName(selectedMonth)} {selectedYear}
                                 </span>
                                 <button
                                     type="button"
@@ -347,14 +340,14 @@ export default function FixedExpenses() {
                 {templateGroups.length === 0 && !loading && (
                     <div className="bg-surface-container-low rounded-xl p-xl text-center">
                         <span className="material-symbols-outlined text-6xl text-on-surface-variant mb-md block">folder_open</span>
-                        <p className="text-headline-sm font-headline-sm text-on-surface mb-xs">No templates yet</p>
-                        <p className="text-body-md text-on-surface-variant mb-lg">Create your first template to start managing fixed expenses.</p>
+                        <p className="text-headline-sm font-headline-sm text-on-surface mb-xs">{t('fixedExpenses.noTemplates')}</p>
+                        <p className="text-body-md text-on-surface-variant mb-lg">{t('fixedExpenses.createFirst')}</p>
                         <button
                             type="button"
                             onClick={openNewTemplateForm}
                             className="px-md py-sm bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity"
                         >
-                            Create Template
+                            {t('fixedExpenses.createTemplate')}
                         </button>
                     </div>
                 )}
@@ -372,17 +365,17 @@ export default function FixedExpenses() {
                                 </div>
                                 <div className="flex items-center space-x-md">
                                      <span className="text-body-xs sm:text-body-sm font-data-mono text-on-surface-variant whitespace-nowrap">
-                                        ${groupTotal.toLocaleString('en-US', { minimumFractionDigits: 2 })}/mo
+                                         {formatCurrecy(groupTotal)} / {t('fixedExpenses.month')}
                                     </span>
                                     <button
                                          type="button"
                                          onClick={() => openAddItemForm(group.id)}
                                          className="flex items-center space-x-xs px-sm py-xs bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity text-body-sm"
-                                         title={`Add expense to ${group.name}`}
-                                         aria-label={`Add expense to ${group.name}`}
+                                          title={t('fixedExpenses.addTo', { name: group.name })}
+                                          aria-label={t('fixedExpenses.addTo', { name: group.name })}
                                      >
                                          <span className="material-symbols-outlined text-sm">add</span>
-                                         <span className="hidden sm:inline">Add expense</span>
+                                          <span className="hidden sm:inline">{t('fixedExpenses.addExpenseShort')}</span>
                                     </button>
                                 </div>
                             </div>
@@ -422,26 +415,26 @@ export default function FixedExpenses() {
                                                                     />
                                                                     <div className="flex items-center gap-xs">
                                                                         {isPaid ? (
-                                                                            <span className="status-gain px-2 py-0.5 rounded-full text-label-caps">Paid</span>
+                                                                             <span className="status-gain px-2 py-0.5 rounded-full text-label-caps">{t('fixedExpenses.paid')}</span>
                                                                         ) : (
-                                                                            <span className="status-loss px-2 py-0.5 rounded-full text-label-caps">Pending</span>
+                                                                             <span className="status-loss px-2 py-0.5 rounded-full text-label-caps">{t('fixedExpenses.pending')}</span>
                                                                         )}
                                                                         <button
                                                                             type="button"
                                                                             onClick={(e) => { e.stopPropagation(); openEditItemForm(expense); }}
                                                                             className="p-xs rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors"
-                                                                            title="Edit"
+                                                                             title={t('fixedExpenses.edit')}
                                                                         >
                                                                             <span className="material-symbols-outlined text-sm">edit</span>
                                                                         </button>
                                                                     </div>
                                                                 </div>
                                                                 <h4 className="text-body-md font-body-md mb-xs">{expense.name}</h4>
-                                                                <p className="text-data-mono font-data-mono text-lg text-primary">${expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                                                                 <p className="text-data-mono font-data-mono text-lg text-primary">{formatCurrecy(expense.amount)}</p>
                                                             </div>
                                                             <div className="space-y-xs">
                                                                 <p className="text-body-xs text-on-surface-variant">
-                                                                    {expense.dueDay ? `Due ${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : 'No due date'}
+                                                                     {expense.dueDay ? t('fixedExpenses.due', { day: expense.dueDay }) : t('fixedExpenses.noDue')}
                                                                 </p>
                                                                 <p className="text-body-xs text-on-surface-variant">{expense.category}</p>
                                                                 {!isPaid ? (
@@ -450,7 +443,7 @@ export default function FixedExpenses() {
                                                                         type="button"
                                                                         onClick={(e) => { e.stopPropagation(); handleMarkAsPaid(expense.templateId, expense.id); }}
                                                                     >
-                                                                        Mark as Paid
+                                                                         {t('fixedExpenses.markPaid')}
                                                                     </button>
                                                                 ) : (
                                                                     <button
@@ -458,7 +451,7 @@ export default function FixedExpenses() {
                                                                         type="button"
                                                                         onClick={(e) => { e.stopPropagation(); deleteItem(expense.templateId, expense.id); }}
                                                                     >
-                                                                        Remove
+                                                                         {t('fixedExpenses.remove')}
                                                                     </button>
                                                                 )}
                                                             </div>
@@ -472,7 +465,7 @@ export default function FixedExpenses() {
                                                                 <h4 className="text-body-md font-body-md">{expense.name}</h4>
                                                                 <span className="material-symbols-outlined text-on-surface-variant text-sm">history</span>
                                                             </div>
-                                                            <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs text-xs">Payment History</p>
+                                                             <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs text-xs">{t('fixedExpenses.history')}</p>
                                                             <div className="flex-1 space-y-xs overflow-y-auto">
                                                                 {[...expense.history].reverse().map((record, i) => (
                                                                     <div
@@ -488,7 +481,7 @@ export default function FixedExpenses() {
                                                                     </div>
                                                                 ))}
                                                             </div>
-                                                            <p className="text-body-xs text-on-surface-variant text-center mt-xs">Tap to flip back</p>
+                                                             <p className="text-body-xs text-on-surface-variant text-center mt-xs">{t('fixedExpenses.flipBack')}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -501,12 +494,12 @@ export default function FixedExpenses() {
                                         <table className="w-full min-w-[900px] border-collapse sm:table-fixed">
                                             <thead>
                                                 <tr className="text-left border-b border-outline-variant">
-                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Name</th>
-                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Category</th>
-                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Amount</th>
-                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Due</th>
-                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">Status</th>
-                                                    <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase text-end">Action</th>
+                                                     <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">{t('fixedExpenses.name')}</th>
+                                                     <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">{t('fixedExpenses.category')}</th>
+                                                     <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">{t('fixedExpenses.amount')}</th>
+                                                     <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">{t('fixedExpenses.dueDay')}</th>
+                                                     <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase">{t('fixedExpenses.status')}</th>
+                                                     <th className="px-md py-sm font-label-caps text-label-caps text-on-surface-variant uppercase text-end">{t('fixedExpenses.action')}</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-outline-variant">
@@ -527,13 +520,13 @@ export default function FixedExpenses() {
                                                                 </div>
                                                             </td>
                                                             <td className="px-md py-sm text-body-sm text-on-surface-variant">{expense.category}</td>
-                                                            <td className="px-md py-sm text-body-sm font-data-mono text-data-mono">${expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                                                             <td className="px-md py-sm text-body-sm font-data-mono text-data-mono">{formatCurrecy(expense.amount)}</td>
                                                             <td className="px-md py-sm text-body-sm text-on-surface-variant">
-                                                                {expense.dueDay ? `${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : '-'}
+                                                                     {expense.dueDay ? t('fixedExpenses.due', { day: expense.dueDay }) : '-'}
                                                             </td>
                                                             <td className="px-md py-sm">
                                                                 <span className={`px-xs py-0.5 rounded text-body-xs ${getStatusColor(expense.status)}`}>
-                                                                    {expense.status === 'paid' ? 'Paid' : expense.status === 'partial' ? 'Partial' : 'Pending'}
+                                                                     {expense.status === 'paid' ? t('fixedExpenses.paid') : expense.status === 'partial' ? t('templates.partial') : t('fixedExpenses.pending')}
                                                                 </span>
                                                             </td>
                                                             <td className="px-md py-sm">
@@ -543,8 +536,8 @@ export default function FixedExpenses() {
                                                                             className="font-bold rounded hover:opacity-90 transition-opacity text-body-xs"
                                                                             type="button"
                                                                             onClick={() => handleMarkAsPaid(expense.templateId, expense.id)}
-                                                                            title={`Mark ${expense.name} as paid`}
-                                                                            aria-label={`Mark ${expense.name} as paid`}
+                                                                             title={t('fixedExpenses.addPaid', { name: expense.name })}
+                                                                             aria-label={t('fixedExpenses.addPaid', { name: expense.name })}
                                                                         >
                                                                              <span className="material-symbols-outlined text-primary">paid</span>
                                                                         </button>
@@ -553,7 +546,7 @@ export default function FixedExpenses() {
                                                                         className="p-0.5 text-on-surface-variant hover:text-primary transition-colors"
                                                                         type="button"
                                                                         onClick={() => openEditItemForm(expense)}
-                                                                        title="Edit"
+                                                                         title={t('fixedExpenses.edit')}
                                                                     >
                                                                         <span className="material-symbols-outlined text-sm">edit</span>
                                                                     </button>
@@ -561,7 +554,7 @@ export default function FixedExpenses() {
                                                                         className="p-0.5 text-on-surface-variant hover:text-red-500 transition-colors"
                                                                         type="button"
                                                                         onClick={() => deleteItem(expense.templateId, expense.id)}
-                                                                        title="Remove"
+                                                                         title={t('fixedExpenses.remove')}
                                                                     >
                                                                         <span className="material-symbols-outlined text-sm">delete</span>
                                                                     </button>
@@ -593,15 +586,15 @@ export default function FixedExpenses() {
                                                              </div>
                                                          </div>
                                                          <span className="shrink-0 text-data-mono font-data-mono text-body-md text-primary">
-                                                             ${expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                                              {formatCurrecy(expense.amount)}
                                                          </span>
                                                      </div>
                                                      <div className="mt-md flex items-center justify-between gap-sm border-t border-outline-variant pt-sm">
                                                          <div className="flex items-center gap-xs text-body-xs text-on-surface-variant">
                                                              <span className="material-symbols-outlined text-sm">event</span>
-                                                             <span>{expense.dueDay ? ` ${expense.dueDay}${getOrdinalSuffix(expense.dueDay)}` : 'No due date'}</span>
+                                                              <span>{expense.dueDay ? t('fixedExpenses.due', { day: expense.dueDay }) : t('fixedExpenses.noDue')}</span>
                                                              <span className={`ml-xs rounded-full px-xs py-0.5 ${getStatusColor(expense.status)}`}>
-                                                                 {isPaid ? 'Paid' : expense.status === 'partial' ? 'Partial' : 'Pending'}
+                                                                  {isPaid ? t('fixedExpenses.paid') : expense.status === 'partial' ? t('templates.partial') : t('fixedExpenses.pending')}
                                                              </span>
                                                          </div>
                                                          <div className="flex shrink-0 items-center ">
@@ -610,8 +603,8 @@ export default function FixedExpenses() {
                                                                      className="rounded-lg  pr-xs  py-xs font-bold text-primary hover:opacity-90"
                                                                      type="button"
                                                                      onClick={() => handleMarkAsPaid(expense.templateId, expense.id)}
-                                                                     title={`Mark ${expense.name} as paid`}
-                                                                     aria-label={`Mark ${expense.name} as paid`}
+                                                                      title={t('fixedExpenses.addPaid', { name: expense.name })}
+                                                                      aria-label={t('fixedExpenses.addPaid', { name: expense.name })}
                                                                  >
                                                                      <span className="material-symbols-outlined text-primary">paid</span>
                                                                  </button>
@@ -620,8 +613,8 @@ export default function FixedExpenses() {
                                                                  className="rounded-lg  text-on-surface-variant hover:bg-surface-container-high hover:text-primary"
                                                                  type="button"
                                                                  onClick={() => openEditItemForm(expense)}
-                                                                 title="Edit fixed expense"
-                                                                 aria-label={`Edit ${expense.name}`}
+                                                                  title={t('fixedExpenses.editExpense')}
+                                                                  aria-label={t('fixedExpenses.editExpense')}
                                                              >
                                                                  <span className="material-symbols-outlined text-sm">edit</span>
                                                              </button>
@@ -629,8 +622,8 @@ export default function FixedExpenses() {
                                                                  className="rounded-lg p-xs text-on-surface-variant hover:bg-red-500/10 hover:text-red-500"
                                                                  type="button"
                                                                  onClick={() => deleteItem(expense.templateId, expense.id)}
-                                                                 title="Delete fixed expense"
-                                                                 aria-label={`Delete ${expense.name}`}
+                                                                  title={t('fixedExpenses.deleteExpense')}
+                                                                  aria-label={t('fixedExpenses.deleteExpense')}
                                                              >
                                                                  <span className="material-symbols-outlined text-sm">delete</span>
                                                              </button>
@@ -655,7 +648,7 @@ export default function FixedExpenses() {
                     <div className="relative bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-lg mx-4 p-lg space-y-lg">
                         <div className="flex items-center justify-between">
                             <h3 className="text-headline-sm font-headline-sm text-on-surface">
-                                {formMode === 'template' ? 'New Template + Expense' : editingExpense ? 'Edit Fixed Expense' : 'Add Fixed Expense'}
+                                 {formMode === 'template' ? t('fixedExpenses.newTemplate') : editingExpense ? t('fixedExpenses.editExpense') : t('fixedExpenses.addTitle')}
                             </h3>
                             <button
                                 type="button"
@@ -669,12 +662,12 @@ export default function FixedExpenses() {
                         <div className="space-y-md">
                             {formMode === 'template' && (
                                 <div>
-                                    <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">Template Name</label>
+                                     <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">{t('fixedExpenses.templateName')}</label>
                                     <input
                                         type="text"
                                         value={groupName}
                                         onChange={(e) => setGroupName(e.target.value)}
-                                        placeholder="e.g. Monthly Bills, Office Expenses"
+                                         placeholder={t('fixedExpenses.templatePlaceholder')}
                                         className="w-full px-md py-sm bg-surface-container border border-outline rounded-lg text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary"
                                     />
                                 </div>
@@ -682,13 +675,13 @@ export default function FixedExpenses() {
 
                             {formMode === 'item' && !editingExpense && (
                                 <div>
-                                    <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">Template Group</label>
+                                     <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">{t('fixedExpenses.templateGroup')}</label>
                                     <select
                                         value={existingTemplateId}
                                         onChange={(e) => setExistingTemplateId(e.target.value)}
                                         className="w-full px-md py-sm bg-surface-container border border-outline rounded-lg text-on-surface focus:outline-none focus:border-primary"
                                     >
-                                        <option value="">Select a template group</option>
+                                         <option value="">{t('fixedExpenses.selectTemplate')}</option>
                                         {templateGroups.map((g) => (
                                             <option key={g.id} value={g.id}>{g.name} ({g.expenses.length} expenses)</option>
                                         ))}
@@ -697,51 +690,51 @@ export default function FixedExpenses() {
                             )}
 
                             <div>
-                                <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">Expense Name</label>
+                                     <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">{t('fixedExpenses.expenseName')}</label>
                                 <input
                                     type="text"
                                     value={itemName}
                                     onChange={(e) => setItemName(e.target.value)}
-                                    placeholder="e.g. Rent, Internet, Insurance"
+                                         placeholder={t('fixedExpenses.expensePlaceholder')}
                                     className="w-full px-md py-sm bg-surface-container border border-outline rounded-lg text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-md">
                                 <div>
-                                    <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">Amount</label>
+                                     <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">{t('fixedExpenses.amount')}</label>
                                     <input
                                         type="number"
                                         min="0"
                                         step="0.01"
                                         value={itemAmount}
                                         onChange={(e) => setItemAmount(e.target.value)}
-                                        placeholder="0.00"
+                                         placeholder={t('fixedExpenses.amountPlaceholder')}
                                         className="w-full px-md py-sm bg-surface-container border border-outline rounded-lg text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">Due Day (optional)</label>
+                                     <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">{t('fixedExpenses.dueDay')}</label>
                                     <input
                                         type="number"
                                         min="1"
                                         max="31"
                                         value={itemDay}
                                         onChange={(e) => setItemDay(e.target.value)}
-                                        placeholder="1-31"
+                                         placeholder={t('fixedExpenses.duePlaceholder')}
                                         className="w-full px-md py-sm bg-surface-container border border-outline rounded-lg text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:border-primary"
                                     />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">Category</label>
+                                 <label className="block text-body-sm font-body-sm text-on-surface-variant mb-xs">{t('fixedExpenses.category')}</label>
                                 <select
                                     value={itemCategory}
                                     onChange={(e) => setItemCategory(e.target.value)}
                                     className="w-full px-md py-sm bg-surface-container border border-outline rounded-lg text-on-surface focus:outline-none focus:border-primary"
                                 >
-                                    <option value="">Select a category</option>
+                                     <option value="">{t('fixedExpenses.selectCategory')}</option>
                                     {categories.map((c) => (
                                         <option key={c.id} value={c.id}>{c.name}</option>
                                     ))}
@@ -755,7 +748,7 @@ export default function FixedExpenses() {
                                 onClick={() => { setShowForm(false); resetForm(); }}
                                 className="px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg font-bold transition-colors"
                             >
-                                Cancel
+                                 {t('fixedExpenses.cancel')}
                             </button>
                             <button
                                 type="button"
@@ -767,7 +760,7 @@ export default function FixedExpenses() {
                                         : !existingTemplateId || !itemName.trim() || !itemAmount || !itemCategory}
                                 className="px-md py-sm bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {formMode === 'template' ? 'Create Template' : editingExpense ? 'Save Changes' : 'Add Expense'}
+                                 {formMode === 'template' ? t('fixedExpenses.create') : editingExpense ? t('fixedExpenses.save') : t('fixedExpenses.add')}
                             </button>
                         </div>
                     </div>

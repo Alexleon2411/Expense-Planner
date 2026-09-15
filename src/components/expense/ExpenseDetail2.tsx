@@ -4,6 +4,8 @@ import { useCategories } from '../../hooks/useCategories';
 import { Expense } from '../../types';
 import { scanReceipt } from '../../services/receiptScanner';
 import CategoryIcon from '../CategoryIcon';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/config';
 
 export interface TransactionDetail {
     merchant: string;
@@ -40,12 +42,13 @@ function formatDisplayDate(date: Expense['date']): string {
     if (Array.isArray(date)) return '';
     const d = date instanceof Date ? date : new Date(date as string);
     if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return d.toLocaleDateString(i18n.language, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDetail2Props) {
     const { editExpense, updateExpensePartialAmount } = useBudget();
     const { categories } = useCategories();
+    const { t } = useTranslation()
     const categoryById = Object.fromEntries(categories.map(c => [c.id, c]));
 
     const [editing, setEditing] = useState(false);
@@ -90,7 +93,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
         const file = e.target.files?.[0];
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) {
-            alert('File size must be under 5MB');
+            alert(t('upload.fileTooLarge'));
             return;
         }
         setReceiptFile(file);
@@ -113,7 +116,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                 setCategory(matched?.id || '');
             }
         } catch (error) {
-            console.error('Error scanning receipt:', error);
+            console.error(t('upload.scanError'), error);
         } finally {
             setScanning(false);
         }
@@ -144,7 +147,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
             }
             setEditing(false);
         } catch (error) {
-            console.error('Error al guardar el gasto', error);
+            console.error(t('expense.saveError'), error);
         } finally {
             setSaving(false);
         }
@@ -158,7 +161,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
             setStatus('paid');
             setEditing(false);
         } catch (error) {
-            console.error('Error al confirmar el pago', error);
+            console.error(t('expense.confirmError'), error);
         } finally {
             setSaving(false);
         }
@@ -180,9 +183,9 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
             <div className="w-full max-w-md max-h-[90vh] bg-surface shadow-2xl rounded-xl flex flex-col p-lg" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-xl">
                     <h3 className="text-headline-md font-headline-md">
-                        {editing ? 'Edit Transaction' : 'Transaction Details'}
+                         {editing ? t('expense.editTransaction') : t('expense.transactionDetails')}
                     </h3>
-                    <button className="p-xs hover:bg-surface-container rounded-full" onClick={onClose}>
+                     <button className="p-xs hover:bg-surface-container rounded-full" onClick={onClose} aria-label={t('common.close')} title={t('common.close')}>
                         <span className="material-symbols-outlined" data-icon="close">close</span>
                     </button>
                 </div>
@@ -225,7 +228,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                     {/* Amount & Status */}
                     <div className={editing ? "space-y-md p-lg bg-surface-container-low rounded-xl" : "grid grid-cols-2 gap-md p-lg bg-surface-container-low rounded-xl"}>
                         <div>
-                            <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">Amount</p>
+                            <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.amountLabel')}</p>
                             {editing ? (
                                 <div className="relative">
                                     <span className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant font-data-mono p-2 text-sm">$</span>
@@ -239,20 +242,20 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                                     />
                                 </div>
                             ) : (
-                                <p className="text-headline-md font-data-mono text-on-surface">${expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                                <p className="text-headline-md font-data-mono text-on-surface">{expense.amount.toLocaleString(i18n.language, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 })}</p>
                             )}
                         </div>
                         <div>
-                            <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">Status</p>
+                            <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.statusLabel')}</p>
                             {editing ? (
                                 <div className="flex gap-1">
-                                    <button className={`${statusBtnClass('paid')} flex-1`} onClick={() => setStatus('paid')} type="button">Paid</button>
-                                    <button className={`${statusBtnClass('pending')} flex-1`} onClick={() => setStatus('pending')} type="button">Pending</button>
-                                    <button className={`${statusBtnClass('partial')} flex-1`} onClick={() => setStatus('partial')} type="button">Partial</button>
+                                    <button className={`${statusBtnClass('paid')} flex-1`} onClick={() => setStatus('paid')} type="button">{t('expense.paid')}</button>
+                                    <button className={`${statusBtnClass('pending')} flex-1`} onClick={() => setStatus('pending')} type="button">{t('expense.pending')}</button>
+                                    <button className={`${statusBtnClass('partial')} flex-1`} onClick={() => setStatus('partial')} type="button">{t('expense.partial')}</button>
                                 </div>
                             ) : (
                                 <span className={`px-sm py-xs rounded-full text-label-caps font-label-caps uppercase ${statusClass(expense.status || 'pending')}`}>
-                                    {expense.status || 'pending'}
+                                    {t(`expense.${expense.status || 'pending'}`)}
                                 </span>
                             )}
                         </div>
@@ -262,11 +265,11 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                     {editing && status === 'partial' && (
                         <div className="space-y-md animate-in fade-in slide-in-from-top-2 duration-300">
                             <div className="flex justify-between items-center py-sm border-b border-outline-variant">
-                                <span className="text-body-md text-on-surface-variant">Amount Paid So Far</span>
+                                     <span className="text-body-md text-on-surface-variant">{t('expense.paidSoFar')}</span>
                                 <span className="text-body-md font-semibold font-data-mono">
                                     <input
                                         className="text-right bg-transparent outline-none w-24 border-b border-outline-variant focus:border-primary"
-                                        placeholder="0.00"
+                                         placeholder={t('expense.amountPlaceholder')}
                                         step="0.01"
                                         type="number"
                                         min="0"
@@ -277,7 +280,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                                 </span>
                             </div>
                             <div className="flex justify-between items-center py-sm border-b border-outline-variant">
-                                <span className="text-body-md text-on-surface-variant">Remaining Balance</span>
+                                 <span className="text-body-md text-on-surface-variant">{t('expense.remaining')}</span>
                                 <span className="text-body-md font-semibold font-data-mono text-error">
                                     ${Math.max(0, amount - (parseFloat(partialAmount) || 0)).toFixed(2)}
                                 </span>
@@ -288,7 +291,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                     {/* Detail rows */}
                     <div className="space-y-md">
                         <div className="flex justify-between items-center py-sm border-b border-outline-variant">
-                            <span className="text-body-md text-on-surface-variant">Date of Payment</span>
+                             <span className="text-body-md text-on-surface-variant">{t('expense.datePayment')}</span>
                             {editing ? (
                                 <input
                                     className="text-right bg-transparent outline-none border-b border-outline-variant focus:border-primary text-body-md font-semibold"
@@ -305,12 +308,12 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                     {/* Comment */}
                     <div className="space-y-sm">
                         <p className="text-label-caps font-label-caps text-on-surface-variant uppercase">
-                            {editing ? 'Comment' : 'Payment Comment'}
+                             {editing ? t('comments.comment') : t('expense.paymentComments')}
                         </p>
                         {editing ? (
                             <textarea
                                 className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg text-body-sm focus:ring-2 focus:ring-primary transition-all resize-none"
-                                placeholder="Add a comment..."
+                                 placeholder={t('comments.placeholder')}
                                 rows={3}
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
@@ -318,26 +321,26 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                         ) : expense.comment ? (
                             <p className="text-body-sm text-on-surface-variant bg-surface-container-low p-md rounded-lg">{expense.comment}</p>
                         ) : (
-                            <p className="text-body-sm text-outline italic">No comments</p>
+                             <p className="text-body-sm text-outline italic">{t('comments.emptyTitle')}</p>
                         )}
                     </div>
 
                     {/* Receipt */}
                     <div className="space-y-sm">
-                        <p className="text-label-caps font-label-caps text-on-surface-variant uppercase">Receipt</p>
+                         <p className="text-label-caps font-label-caps text-on-surface-variant uppercase">{t('expense.receipt')}</p>
                         {editing ? (
                             <div className="space-y-sm">
                                 {scanning ? (
                                     <div className="p-md border border-outline-variant rounded-lg flex items-center gap-md bg-surface-container-low">
                                         <span className="material-symbols-outlined text-primary animate-spin" data-icon="sync">sync</span>
                                         <div className="flex-1">
-                                            <p className="text-body-sm font-semibold">Scanning receipt...</p>
-                                            <p className="text-body-sm text-outline">Extracting merchant, amount and date</p>
+                                         <p className="text-body-sm font-semibold">{t('upload.scanning')}</p>
+                                         <p className="text-body-sm text-outline">{t('upload.extracting')}</p>
                                         </div>
                                     </div>
                                 ) : receiptPreview ? (
                                     <div className="relative rounded-lg overflow-hidden border border-outline-variant">
-                                        <img src={receiptPreview} alt="Receipt preview" className="w-full max-h-48 object-contain bg-surface-container-low" />
+                                     <img src={receiptPreview} alt={t('upload.preview')} className="w-full max-h-48 object-contain bg-surface-container-low" />
                                         <button
                                             className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
                                             onClick={handleRemoveReceipt}
@@ -364,8 +367,8 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                                     >
                                         <span className="material-symbols-outlined text-outline" data-icon="upload">upload</span>
                                         <div className="flex-1">
-                                            <p className="text-body-sm font-semibold">Upload receipt or invoice</p>
-                                            <p className="text-body-sm text-outline">PDF, PNG or JPG up to 5MB</p>
+                                         <p className="text-body-sm font-semibold">{t('upload.upload')}</p>
+                                         <p className="text-body-sm text-outline">{t('upload.formats')}</p>
                                         </div>
                                     </div>
                                 )}
@@ -381,8 +384,8 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                             <div className="p-md border border-dashed border-outline-variant rounded-lg flex items-center gap-md hover:border-primary transition-colors cursor-pointer">
                                 <span className="material-symbols-outlined text-outline" data-icon="description">description</span>
                                 <div className="flex-1">
-                                    <p className="text-body-sm font-semibold">receipt_invoice_v2.pdf</p>
-                                    <p className="text-body-sm text-outline">1.2 MB</p>
+                                         <p className="text-body-sm font-semibold">{t('upload.receiptFile')}</p>
+                                         <p className="text-body-sm text-outline">{t('upload.fileSize')}</p>
                                 </div>
                                 <span className="material-symbols-outlined text-outline" data-icon="download">download</span>
                             </div>
@@ -398,14 +401,14 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                                 className="flex-1 py-md border border-outline-variant rounded-lg font-bold hover:bg-surface-container transition-colors"
                                 onClick={() => setEditing(false)}
                             >
-                                Cancel
+                                 {t('common.cancel')}
                             </button>
                             <button
                                 className="flex-1 py-md bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
                                 onClick={handleSave}
                                 disabled={saving || !merchant.trim() || amount <= 0}
                             >
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                 {saving ? t('budget.saving') : t('expense.saveChanges')}
                             </button>
                         </>
                     ) : (
@@ -415,14 +418,14 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                                 onClick={() => setEditing(true)}
                             >
                                 <span className="material-symbols-outlined text-[18px]" data-icon="edit">edit</span>
-                                Edit
+                                 {t('categories.edit')}
                             </button>
                             <button
                                 className="flex-1 py-md bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity"
                                 onClick={handleConfirmPayment}
                                 disabled={saving || expense.status === 'paid'}
                             >
-                                {expense.status === 'paid' ? 'Paid' : 'Confirm Payment'}
+                                 {expense.status === 'paid' ? t('expense.paid') : t('expense.confirmPayment')}
                             </button>
                         </>
                     )}

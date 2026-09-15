@@ -3,11 +3,10 @@ import { Dialog, Transition } from '@headlessui/react'
 import { expensesApi } from '../api'
 import type { ExpenseResponse } from '../api/expenses'
 import { useFixedExpenses } from '../hooks/useFixedExpenses'
-import { formatCurrecy } from '../helpers'
 import { buildTransactions } from '../helpers/transactions'
 import AllTransactions from './AllTransactions'
-
-const MONTHS_LONG = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+import { useTranslation } from 'react-i18next'
+import { formatCurrecy } from '../helpers'
 
 interface AllTransactionsModalProps {
   isOpen: boolean
@@ -21,6 +20,8 @@ export default function AllTransactionsModal({ isOpen, onClose, month, year }: A
   const [loading, setLoading] = useState(false)
 
   const { fixedExpenses } = useFixedExpenses()
+  const { t, i18n } = useTranslation()
+  const monthLabel = new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(new Date(year, month - 1, 1))
 
   useEffect(() => {
     if (!isOpen) return
@@ -70,8 +71,8 @@ export default function AllTransactionsModal({ isOpen, onClose, month, year }: A
                   <div className="flex items-center gap-md">
                     <span className="material-symbols-outlined text-primary">receipt_long</span>
                     <div>
-                      <h2 className="text-headline-md font-bold text-on-surface">All Transactions</h2>
-                      <p className="text-body-sm text-on-surface-variant">{MONTHS_LONG[month - 1]} {year}</p>
+                      <h2 className="text-headline-md font-bold text-on-surface">{t('transactions.title')}</h2>
+                      <p className="text-body-sm text-on-surface-variant">{monthLabel} {year}</p>
                     </div>
                   </div>
                   <button
@@ -85,7 +86,7 @@ export default function AllTransactionsModal({ isOpen, onClose, month, year }: A
                 <div className="flex-1 overflow-y-auto p-lg">
                   {loading ? (
                     <div className="flex items-center justify-center py-24">
-                      <p className="text-body-lg text-on-surface-variant">Loading transactions...</p>
+                      <p className="text-body-lg text-on-surface-variant">{t('transactions.loading')}</p>
                     </div>
                   ) : (
                     <AllTransactions transactions={transactions} />
@@ -94,13 +95,13 @@ export default function AllTransactionsModal({ isOpen, onClose, month, year }: A
 
                 <div className="px-lg py-md border-t border-outline-variant flex items-center justify-between">
                   <p className="text-body-sm text-on-surface-variant">
-                    {transactions.length} transaction{transactions.length === 1 ? '' : 's'} &middot; Total {formatCurrecy(total)}
+                     {transactions.length} {transactions.length === 1 ? t('transactions.transaction') : t('transactions.transactions')} &middot; {t('transactions.total')} {formatCurrecy(total)}
                   </p>
                   <button
                     className="px-md py-sm bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity"
                     onClick={onClose}
                   >
-                    Close
+                     {t('transactions.close')}
                   </button>
                 </div>
               </Dialog.Panel>

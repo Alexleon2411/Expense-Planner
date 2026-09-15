@@ -10,20 +10,22 @@ import AmountDisplay from "./AmountDisplay"
 import CategoryIcon from "./CategoryIcon"
 import ExpenseComments from "./expense/ExpenseTemplate"
 import PartialPaymentModal from "./PartialPaymentModal"
+import { useTranslation } from 'react-i18next'
 
 type ExpenseDetailProps = {
   expense: Expense
 }
 
 const STATUS_CONFIG = {
-  pending: { label: 'Pendiente', bg: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-400' },
-  paid: { label: 'Pagado', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-400' },
-  partial: { label: 'Parcial', bg: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-400' },
+  pending: { key: 'expense.pending', bg: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-400' },
+  paid: { key: 'expense.paid', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-400' },
+  partial: { key: 'expense.partial', bg: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-400' },
 } as const
 
 export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
 
   const { categories } = useCategories()
+  const { t } = useTranslation()
   const categoryInfo = useMemo(() => categories.filter(cat => cat.id === expense.category)[0], [expense, categories])
 
   const amountToDisplay = useMemo(
@@ -61,7 +63,7 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
   }
 
   const handleDeleteExpense = async (expenseId: string) => {
-    const confirmed = window.confirm("¿Estás seguro de que quieres eliminar este gasto? El Gasto no se podra recuperar.")
+    const confirmed = window.confirm(t('expense.confirmDelete'))
     if (confirmed) {
       await removeExpense(expenseId)
     }
@@ -81,11 +83,11 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
           <div className="flex items-center gap-2">
             <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border ${currentStatus.bg}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${currentStatus.dot}`} />
-              {currentStatus.label}
+              {t(currentStatus.key)}
             </span>
             {expense.status === 'partial' && expense.partialAmount ? (
               <span className="text-xs text-slate-400 font-medium">
-                ({expense.partialAmount}€ pagados)
+                ({t('expense.paidAmount', { amount: expense.partialAmount })})
               </span>
             ) : null}
           </div>
@@ -125,7 +127,7 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
             <button
               onClick={(e) => { e.stopPropagation(); handleDeleteExpense(expense.id) }}
               className="text-slate-300 hover:text-red-500 transition-colors text-xs"
-              title="Eliminar gasto"
+               title={t('expense.delete')}
             >
               <FontAwesomeIcon icon={faTrash} />
             </button>
@@ -152,15 +154,15 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
                     }
                   }}
                 >
-                  <option value="pending">Pendiente</option>
-                  <option value="paid">Pagado</option>
-                  <option value="partial">Pago Parcial</option>
+                   <option value="pending">{t('expense.pending')}</option>
+                   <option value="paid">{t('expense.paid')}</option>
+                   <option value="partial">{t('expense.partial')}</option>
                 </select>
                 <button onClick={handleSaveStatus} className="text-xs font-semibold bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">
-                  Guardar
+                   {t('common.save')}
                 </button>
                 <button onClick={() => setEditingStatus(false)} className="text-xs font-semibold bg-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-300 transition-colors">
-                  Cancelar
+                   {t('common.cancel')}
                 </button>
               </div>
             ) : (
@@ -192,7 +194,7 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
                   rows={2}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Agregar una nota..."
+                   placeholder={t('comments.placeholder')}
                 />
                 <div className="flex gap-1 shrink-0">
                   <button onClick={handleSaveComment} className="text-xs font-semibold bg-blue-600 text-white px-3 py-2 rounded-xl hover:bg-blue-700 transition-colors">
@@ -224,7 +226,7 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
           {/* Comment thread */}
           <div onClick={(e) => e.stopPropagation()}>
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-              Historial de comentarios
+              {t('expense.commentsHistory')}
             </p>
             <ExpenseComments
               expenseId={expense.id}

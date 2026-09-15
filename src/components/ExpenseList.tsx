@@ -1,9 +1,11 @@
 import { useEffect, useMemo } from "react"
 import { useBudget } from "../hooks/useBudget"
 import ExpenseDetail from "./ExpenseDetail"
+import { useTranslation } from 'react-i18next'
 
 export default function ExpenseList() {
   const { state, getAllExpenses } = useBudget()
+  const { t } = useTranslation()
 
   useEffect(() => {
     getAllExpenses()
@@ -13,9 +15,9 @@ export default function ExpenseList() {
   const isEmpty = useMemo(() => filteredExpenses.length === 0, [filteredExpenses])
   return (
     <div className="mt-10 ">
-      {isEmpty ? <p className="text-gray-600 text-2xl font-bold">No Hay registro de Gastos</p> :
+       {isEmpty ? <p className="text-gray-600 text-2xl font-bold">{t('expense.noRecords')}</p> :
       <>
-        <p className="text-gray-600 text-2xl font-bold my-5">Listado de Gastos</p>
+         <p className="text-gray-600 text-2xl font-bold my-5">{t('expense.list')}</p>
         {filteredExpenses.map(expense => (
           <ExpenseDetail
             key={expense.id}

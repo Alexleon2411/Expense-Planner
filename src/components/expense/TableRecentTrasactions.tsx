@@ -3,6 +3,8 @@ import { useCategories } from "../../hooks/useCategories"
 import { useBudget } from "../../hooks/useBudget"
 import { Expense } from '../../types';
 import CategoryIcon from '../CategoryIcon';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n/config';
 
 interface TableRecentTransactionsProps {
     expenses: Expense[];
@@ -29,10 +31,10 @@ interface Row {
     partialAmount?: number;
 }
 
-const statusMap: Record<string, { label: string; className: string }> = {
-    paid: { label: 'Paid', className: 'status-paid' },
-    pending: { label: 'Pending', className: 'status-pending' },
-    partial: { label: 'Partial', className: 'status-partial' },
+const statusMap: Record<string, { key: string; className: string }> = {
+    paid: { key: 'expense.paid', className: 'status-paid' },
+    pending: { key: 'expense.pending', className: 'status-pending' },
+    partial: { key: 'expense.partial', className: 'status-partial' },
 };
 
 function formatDate(date: Expense['date']): string {
@@ -40,11 +42,11 @@ function formatDate(date: Expense['date']): string {
     if (Array.isArray(date)) return '';
     const d = date instanceof Date ? date : new Date(date as string);
     if (isNaN(d.getTime())) return '';
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return d.toLocaleDateString(i18n.language, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 function formatAmount(amount: number): string {
-    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return amount.toLocaleString(i18n.language, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 type EditStatus = 'paid' | 'pending' | 'partial';
@@ -52,6 +54,7 @@ type EditStatus = 'paid' | 'pending' | 'partial';
 export default function TableRecentTransactions({ expenses, onRowClick, hasMore, loadingMore, onLoadMore }: TableRecentTransactionsProps) {
   const { categories } = useCategories();
   const { editExpense, updateExpensePartialAmount } = useBudget();
+  const { t } = useTranslation()
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editStatus, setEditStatus] = useState<EditStatus>('paid');
@@ -73,11 +76,11 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
         amount: formatAmount(expense.amount),
         category: categoryById[expense.category]?.name || expense.category,
         date: formatDate(expense.date),
-        status: statusInfo.label,
+        status: t(statusInfo.key),
         icon: categoryById[expense.category]?.icon || null,
         categoryColor: categoryById[expense.category]?.color || null,
         displayAmount: `-${formatAmount(expense.amount)}`,
-        statusLabel: statusInfo.label,
+        statusLabel: t(statusInfo.key),
         statusClassName: statusInfo.className,
         rawStatus: expense.status || 'pending',
         rawAmount: expense.amount,
@@ -129,18 +132,18 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
   return (
     <div className="bento-card  overflow-hidden relative">
       <div className=" flex justify-between items-center">
-        <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase">Recent Transactions</h3>
-        <span className="text-body-sm font-body-sm text-outline sm:display-none">Showing {rows.length} items</span>
+         <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase">{t('expense.recent')}</h3>
+         <span className="text-body-sm font-body-sm text-outline sm:display-none">{t('expense.showing', { count: rows.length })}</span>
       </div>
       <div className="hidden sm:block overflow-x-auto max-h-[480px] overflow-y-auto relative">
         <table className="w-full min-w-[900px] text-left border-collapse">
           <thead>
             <tr className="bg-surface-container-low border-b border-outline-variant">
-              <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">Date</th>
-              <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">Merchant / Recipient</th>
-              <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">Category</th>
-              <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase text-right">Amount</th>
-              <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase text-center">Status</th>
+               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">{t('expense.date')}</th>
+               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">{t('expense.merchant')}</th>
+               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">{t('expense.category')}</th>
+               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase text-right">{t('expense.amountLabel')}</th>
+               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase text-center">{t('expense.statusLabel')}</th>
               <th className="px-lg py-md"></th>
             </tr>
           </thead>
@@ -178,9 +181,9 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                     {isEditing ? (
                       <div className="flex flex-col items-center gap-xs" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-xs">
-                          <button className={statusBtnClass('paid')} onClick={() => setEditStatus('paid')} type="button">Paid</button>
-                          <button className={statusBtnClass('pending')} onClick={() => setEditStatus('pending')} type="button">Pending</button>
-                          <button className={statusBtnClass('partial')} onClick={() => setEditStatus('partial')} type="button">Partial</button>
+                           <button className={statusBtnClass('paid')} onClick={() => setEditStatus('paid')} type="button">{t('expense.paid')}</button>
+                           <button className={statusBtnClass('pending')} onClick={() => setEditStatus('pending')} type="button">{t('expense.pending')}</button>
+                           <button className={statusBtnClass('partial')} onClick={() => setEditStatus('partial')} type="button">{t('expense.partial')}</button>
                         </div>
                         {editStatus === 'partial' && (
                           <div className="flex items-center gap-xs animate-in fade-in duration-200">
@@ -191,7 +194,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                               step="0.01"
                               min="0"
                               max={row.rawAmount}
-                              placeholder="0.00"
+                               placeholder={t('expense.amountPlaceholder')}
                               value={editPartialAmount}
                               onChange={(e) => setEditPartialAmount(e.target.value)}
                             />
@@ -204,9 +207,9 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                             disabled={saving || (editStatus === 'partial' && (!editPartialAmount || parseFloat(editPartialAmount) <= 0))}
                             type="button"
                           >
-                            {saving ? '...' : 'Save'}
+                             {saving ? '...' : t('common.save')}
                           </button>
-                          <button className="px-sm py-xs rounded bg-gray-200 text-xs hover:bg-gray-300" onClick={cancelEditing} type="button">Cancel</button>
+                           <button className="px-sm py-xs rounded bg-gray-200 text-xs hover:bg-gray-300" onClick={cancelEditing} type="button">{t('common.cancel')}</button>
                         </div>
                       </div>
                     ) : (
@@ -268,9 +271,9 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                 {isEditing ? (
                   <div className="space-y-sm">
                     <div className="flex flex-wrap gap-xs">
-                      <button className={statusBtnClass('paid')} onClick={() => setEditStatus('paid')} type="button">Paid</button>
-                      <button className={statusBtnClass('pending')} onClick={() => setEditStatus('pending')} type="button">Pending</button>
-                      <button className={statusBtnClass('partial')} onClick={() => setEditStatus('partial')} type="button">Partial</button>
+                       <button className={statusBtnClass('paid')} onClick={() => setEditStatus('paid')} type="button">{t('expense.paid')}</button>
+                       <button className={statusBtnClass('pending')} onClick={() => setEditStatus('pending')} type="button">{t('expense.pending')}</button>
+                       <button className={statusBtnClass('partial')} onClick={() => setEditStatus('partial')} type="button">{t('expense.partial')}</button>
                     </div>
                     {editStatus === 'partial' && (
                       <input
@@ -279,20 +282,20 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                         step="0.01"
                         min="0"
                         max={row.rawAmount}
-                        placeholder="Partial amount"
+                         placeholder={t('expense.partialAmount')}
                         value={editPartialAmount}
                         onChange={(e) => setEditPartialAmount(e.target.value)}
                       />
                     )}
                     <div className="flex gap-xs">
-                      <button className="flex-1 px-sm py-xs rounded bg-green-600 text-white text-xs font-bold disabled:opacity-50" onClick={() => saveStatus(expense)} disabled={saving || (editStatus === 'partial' && (!editPartialAmount || parseFloat(editPartialAmount) <= 0))} type="button">{saving ? '...' : 'Save status'}</button>
-                      <button className="px-sm py-xs rounded bg-gray-200 text-xs" onClick={cancelEditing} type="button">Cancel</button>
+                       <button className="flex-1 px-sm py-xs rounded bg-green-600 text-white text-xs font-bold disabled:opacity-50" onClick={() => saveStatus(expense)} disabled={saving || (editStatus === 'partial' && (!editPartialAmount || parseFloat(editPartialAmount) <= 0))} type="button">{saving ? '...' : t('expense.saveStatus')}</button>
+                       <button className="px-sm py-xs rounded bg-gray-200 text-xs" onClick={cancelEditing} type="button">{t('common.cancel')}</button>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between gap-sm">
                     <button className={`rounded-full text-label-caps font-label-caps uppercase ${row.statusClassName}`} onClick={(e) => startEditing(row, e)} type="button">{row.statusLabel}</button>
-                    <span className="text-body-xs text-on-surface-variant">Tap to view details</span>
+                     <span className="text-body-xs text-on-surface-variant">{t('expense.details')}</span>
                   </div>
                 )}
               </div>
@@ -310,11 +313,11 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
             {loadingMore ? (
               <>
                 <span className="material-symbols-outlined animate-spin text-[18px]">sync</span>
-                Loading...
+                 {t('common.loading')}
               </>
             ) : (
               <>
-                Load More Transactions
+                 {t('expense.loadMore')}
                 <span className="material-symbols-outlined text-[18px]" data-icon="refresh">refresh</span>
               </>
             )}

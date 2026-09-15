@@ -3,6 +3,8 @@ import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import { FixedExpense } from '../types'
 import CategoryIcon from './CategoryIcon'
+import i18n from '../i18n/config'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   fixedExpenses: FixedExpense[]
@@ -23,6 +25,7 @@ interface DayInfo {
 
 export default function FixedExpensesCalendar({ fixedExpenses, onMarkAsPaid, selectedMonth, selectedYear, trends = [], overview = null }: Props) {
   const [selectedDay, setSelectedDay] = useState<DayInfo | null>(null)
+  const { t } = useTranslation()
 
   const dailyData = useMemo(() => {
     const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate()
@@ -63,13 +66,8 @@ export default function FixedExpensesCalendar({ fixedExpenses, onMarkAsPaid, sel
             fontSize: '10px',
           }}
         >
-          ${data.totalAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })}
+          ${data.totalAmount.toLocaleString(i18n.language, { maximumFractionDigits: 0 })}
         </div>
-        {/* {data.totalAmount > 0 && (
-          <div className="text-primary font-data-mono" style={{ fontSize: '10px' }}>
-            ${data.totalAmount.toLocaleString('en-US', { maximumFractionDigits: 0 })}
-          </div>
-        )} */}
       </div>
     )
   }
@@ -83,19 +81,19 @@ export default function FixedExpensesCalendar({ fixedExpenses, onMarkAsPaid, sel
   return (
     <div className="bg-surface-container-lowest shadow-lg rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-headline-md font-headline-md text-on-surface">Fixed Expenses Calendar</h3>
+        <h3 className="text-headline-md font-headline-md text-on-surface">{t('calendar.fixedExpensesCalendar')}</h3>
         <div className="flex items-center space-x-md text-body-xs">
           <div className="flex items-center space-x-xs">
             <div className="w-3 h-3 rounded bg-green-500/30 border border-green-500"></div>
-            <span className="text-on-surface-variant">Paid</span>
+            <span className="text-on-surface-variant">{t('common.paid')}</span>
           </div>
           <div className="flex items-center space-x-xs">
             <div className="w-3 h-3 rounded bg-red-500/30 border border-red-500"></div>
-            <span className="text-on-surface-variant">Pending</span>
+            <span className="text-on-surface-variant">{t('common.pending')}</span>
           </div>
           <div className="flex items-center space-x-xs">
             <div className="w-3 h-3 rounded bg-yellow-500/30 border border-yellow-500"></div>
-            <span className="text-on-surface-variant">Mixed</span>
+            <span className="text-on-surface-variant">{t('calendar.mixed')}</span>
           </div>
         </div>
       </div>
@@ -107,17 +105,17 @@ export default function FixedExpensesCalendar({ fixedExpenses, onMarkAsPaid, sel
             onClickDay={handleDayClick}
             activeStartDate={new Date(selectedYear, selectedMonth - 1)}
             view="month"
-            locale="es-ES"
+            locale={i18n.language}
             className="fixed-expenses-calendar"
           />
         </div>
 
         <div className="order-1 md:order-2 w-full md:w-1/2 min-w-0 mb-4 border p-4 rounded-md">
-          <h4 className="text-headline-sm font-headline-sm text-on-surface mb-md">Monthly Trend</h4>
+          <h4 className="text-headline-sm font-headline-sm text-on-surface mb-md">{t('calendar.monthlyTrend')}</h4>
           {overview && (
             <div className="mb-md p-md bg-surface-container rounded-lg">
               <div className="flex items-center justify-between mb-xs">
-                <span className="text-body-xs text-on-surface-variant">Budget used</span>
+                <span className="text-body-xs text-on-surface-variant">{t('calendar.budgetUsed')}</span>
                 <span className="text-body-sm font-data-mono text-on-surface">{overview.percentage.toFixed(0)}%</span>
               </div>
               <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
@@ -130,8 +128,8 @@ export default function FixedExpensesCalendar({ fixedExpenses, onMarkAsPaid, sel
                 />
               </div>
               <div className="flex items-center justify-between mt-xs text-body-xs">
-                <span className="text-on-surface-variant">Spent: <span className="font-data-mono text-on-surface">${overview.totalSpent.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span></span>
-                <span className="text-on-surface-variant">Budget: <span className="font-data-mono text-on-surface">${overview.budgeted.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span></span>
+                 <span className="text-on-surface-variant">{t('calendar.spent')}: <span className="font-data-mono text-on-surface">${overview.totalSpent.toLocaleString(i18n.language, { maximumFractionDigits: 0 })}</span></span>
+                 <span className="text-on-surface-variant">{t('calendar.budget')}: <span className="font-data-mono text-on-surface">${overview.budgeted.toLocaleString(i18n.language, { maximumFractionDigits: 0 })}</span></span>
               </div>
             </div>
           )}
@@ -140,7 +138,7 @@ export default function FixedExpensesCalendar({ fixedExpenses, onMarkAsPaid, sel
               {trends.map((t) => (
                 <div key={t.month} className="flex items-center gap-sm">
                   <span className="w-16 text-body-xs text-on-surface-variant capitalize">
-                    {new Date(0, t.month - 1).toLocaleString('en-US', { month: 'short' })}
+            {new Date(0, t.month - 1).toLocaleString(i18n.language, { month: 'short' })}
                   </span>
                   <div className="flex-1 bg-surface-container h-4 rounded-full overflow-hidden">
                     <div
@@ -148,12 +146,12 @@ export default function FixedExpensesCalendar({ fixedExpenses, onMarkAsPaid, sel
                       style={{ width: `${Math.min((t.total / (overview?.budgeted || 1)) * 100, 100)}%` }}
                     />
                   </div>
-                  <span className="w-16 text-right text-body-xs font-data-mono text-on-surface">${t.total.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>
+                  <span className="w-16 text-right text-body-xs font-data-mono text-on-surface">${t.total.toLocaleString(i18n.language, { maximumFractionDigits: 0 })}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-body-sm text-on-surface-variant text-center py-md">No data for this year</p>
+             <p className="text-body-sm text-on-surface-variant text-center py-md">{t('calendar.noYearData')}</p>
           )}
         </div>
       </div>
@@ -161,9 +159,9 @@ export default function FixedExpensesCalendar({ fixedExpenses, onMarkAsPaid, sel
       {selectedDay && selectedDay.expenses.length > 0 && (
         <div className="order-3 mt-4 bg-surface-container rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <p className="font-headline-sm text-on-surface">Day {selectedDay.day}</p>
+              <p className="font-headline-sm text-on-surface">{t('calendar.day')} {selectedDay.day}</p>
             <div className="flex items-center space-x-sm text-body-sm">
-              <span className="text-on-surface-variant">${selectedDay.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+              <span className="text-on-surface-variant">${selectedDay.totalAmount.toLocaleString(i18n.language, { minimumFractionDigits: 2 })}</span>
               <span className="text-on-surface-variant">•</span>
               <span className="text-on-surface-variant">{selectedDay.paidCount} paid</span>
               <span className="text-on-surface-variant">•</span>
@@ -197,13 +195,13 @@ export default function FixedExpensesCalendar({ fixedExpenses, onMarkAsPaid, sel
                 </div>
 
                 <div className="flex items-center space-x-sm">
-                  <span className="font-data-mono text-on-surface">${expense.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                   <span className="font-data-mono text-on-surface">${expense.amount.toLocaleString(i18n.language, { minimumFractionDigits: 2 })}</span>
                   {expense.status !== 'paid' && (
                     <button
                       onClick={() => onMarkAsPaid(expense.templateId, expense.id)}
                       className="px-3 py-1 bg-primary text-on-primary font-bold rounded-lg hover:opacity-90 transition-opacity text-body-sm"
                     >
-                      Pay
+                       {t('calendar.pay')}
                     </button>
                   )}
                 </div>
