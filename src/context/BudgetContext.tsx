@@ -2,7 +2,8 @@ import { createContext, Dispatch, useReducer, ReactNode, useMemo, useState, useC
 import { BudgetAction, budgetReducer, BudgetState, initialState } from "../reducers/budget-reducer";
 import { DraftExpense, Expense } from "../types";
 import { useAuth } from "../hooks/useAuth";
-import { budgetApi, expensesApi, userApi } from "../api";
+import { budgetApi, expensesApi, userApi } from "../api"
+import { toDateOnly } from "../helpers";
 
 type BudgetContextProps = {
   state: BudgetState,
@@ -70,6 +71,8 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
         comment: e.comment,
         status: (e.status as Expense['status']) || 'pending',
         partialAmount: e.partialAmount,
+        type: (e.type as Expense['type']) || 'expense',
+        kind: e.kind,
       }))
 
       dispatch({ type: 'get-expenses', payload: { expenses: serverExpenses } })
@@ -98,6 +101,8 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
         comment: e.comment,
         status: (e.status as Expense['status']) || 'pending',
         partialAmount: e.partialAmount,
+        type: (e.type as Expense['type']) || 'expense',
+        kind: e.kind,
       }))
 
       dispatch({ type: 'append-expenses', payload: { expenses: serverExpenses } })
@@ -134,12 +139,11 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
         name: expense.expenseName,
         amount: expense.amount,
         category: expense.category,
-        date: expense.date instanceof Date
-          ? expense.date.toISOString()
-          : new Date().toISOString(),
+        date: toDateOnly(expense.date as Date | string),
         comment: expense.comment,
         status: expense.status,
         partialAmount: expense.partialAmount,
+        type: expense.type ?? 'expense',
       })
     } catch (error) {
       console.log('Error al crear el gasto en el servidor, se creará localmente', error)
@@ -157,12 +161,11 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
         name: expense.expenseName,
         amount: expense.amount,
         category: expense.category,
-        date: expense.date instanceof Date
-          ? expense.date.toISOString()
-          : undefined,
+        date: toDateOnly(expense.date as Date | string),
         comment: expense.comment,
         status: expense.status,
         partialAmount: expense.partialAmount,
+        type: expense.type ?? 'expense',
       })
     } catch (error) {
       console.log('Error al actualizar el gasto en el servidor, se actualizará localmente', error)

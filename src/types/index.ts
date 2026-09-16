@@ -7,6 +7,8 @@ export type Expense = {
   comment?: string
   status?: 'pending' | 'paid' | 'partial'
   partialAmount?: number
+  type?: 'expense' | 'saving'
+  kind?: 'fixed' | 'variable'
 }
 
 export type DraftExpense = Omit<Expense, 'id'>
@@ -19,6 +21,7 @@ export type Category = {
   name: string
   icon: string
   color?: string
+  monthlyLimit?: number | null
 }
 
 export type PaymentRecord = {

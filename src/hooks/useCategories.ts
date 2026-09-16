@@ -9,6 +9,7 @@ interface CategoryItem {
   icon: string | null
   color?: string | null
   isDefault?: boolean
+  monthlyLimit?: number | null
 }
 
 export function useCategories() {

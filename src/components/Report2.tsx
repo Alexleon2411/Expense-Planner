@@ -2,8 +2,6 @@ import { useState, useEffect, useMemo } from 'react'
 import { statsApi, expensesApi } from '../api'
 import type { OverviewResponse, CategoryBreakdown, DailyData, MonthlyTrend, YearlyStats } from '../api/stats'
 import { useCategories } from '../hooks/useCategories'
-import { useFixedExpenses } from '../hooks/useFixedExpenses'
-import { isCurrentMonth, summarizePaidFixed } from '../helpers/fixedExpensesStats'
 import { formatCurrecy } from '../helpers'
 import CategoryIcon from './CategoryIcon'
 import DetailedBreakdownReport from './DetailedBreakdownReport'
@@ -31,7 +29,6 @@ export default function Report2() {
   const [loading, setLoading] = useState(true)
 
   const { categories } = useCategories()
-  const { fixedExpenses } = useFixedExpenses()
 
   const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate()
   const isCurrent = now.getFullYear() === selectedYear && now.getMonth() + 1 === selectedMonth
@@ -71,14 +68,7 @@ export default function Report2() {
       .finally(() => setLoading(false))
   }, [selectedMonth, selectedYear])
 
-  const paidFixed = useMemo(() => {
-    if (!isCurrentMonth(selectedMonth, selectedYear)) {
-      return { total: 0, count: 0, byCategory: new Map<string, { total: number; count: number }>(), byDay: new Map<number, { total: number; count: number }>() }
-    }
-    return summarizePaidFixed(fixedExpenses)
-  }, [fixedExpenses, selectedMonth, selectedYear])
-
-  const totalSpent = (overview?.totalSpent ?? 0) + paidFixed.total
+  const totalSpent = overview?.totalSpent ?? 0
   const budgeted = overview?.budgeted ?? 0
   const budgetPct = budgeted > 0 ? Math.round((totalSpent / budgeted) * 100) : 0
   const avgDaily = daysElapsed > 0 ? totalSpent / daysElapsed : 0
@@ -115,9 +105,6 @@ export default function Report2() {
   const weekDays = useMemo(() => {
     const byDay = new Map<number, number>()
     dailyData.forEach((d) => byDay.set(d.day, d.total))
-    paidFixed.byDay.forEach((v, day) => {
-      byDay.set(day, (byDay.get(day) ?? 0) + v.total)
-    })
 
     const anchorDate = new Date(selectedYear, selectedMonth - 1, isCurrent ? today : daysInMonth)
     const monday = new Date(anchorDate)
@@ -136,7 +123,7 @@ export default function Report2() {
         previous: 0,
       }
     })
-  }, [dailyData, paidFixed, isCurrent, today, daysInMonth, selectedYear, selectedMonth])
+  }, [dailyData, isCurrent, today, daysInMonth, selectedYear, selectedMonth])
 
   const maxDailyTotal = useMemo(() => {
     if (weekDays.length === 0) return 1
@@ -144,16 +131,8 @@ export default function Report2() {
   }, [weekDays])
 
   const mergedCategoryBreakdown = useMemo(() => {
-    const map = new Map<string, CategoryBreakdown>()
-    categoryBreakdown.forEach((c) => map.set(c.category, { ...c }))
-    paidFixed.byCategory.forEach((v, categoryId) => {
-      const cur = map.get(categoryId) ?? { category: categoryId, total: 0, count: 0 }
-      cur.total += v.total
-      cur.count += v.count
-      map.set(categoryId, cur)
-    })
-    return [...map.values()].filter((c) => c.total > 0)
-  }, [categoryBreakdown, paidFixed])
+    return categoryBreakdown.filter((c) => c.total > 0)
+  }, [categoryBreakdown])
 
   const sortedByValue = useMemo(() => {
     return [...mergedCategoryBreakdown].sort((a, b) => b.total - a.total)

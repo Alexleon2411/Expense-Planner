@@ -4,8 +4,6 @@ import { statsApi, expensesApi } from '../api'
 import type { OverviewResponse, CategoryBreakdown, DailyData, MonthlyTrend } from '../api/stats'
 import type { ExpenseResponse } from '../api/expenses'
 import CategoryPieChart from './CategoryPieChart'
-import { useFixedExpenses } from '../hooks/useFixedExpenses'
-import { isCurrentMonth, summarizePaidFixed } from '../helpers/fixedExpensesStats'
 import { formatCurrecy } from '../helpers'
 import type { FixedExpense } from '../types'
 import { useTranslation } from 'react-i18next'
@@ -16,7 +14,7 @@ interface Props {
   fixedExpenses?: FixedExpense[]
 }
 
-export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props = {}) {
+export default function Statistics(_props: Props = {}) {
   const { t, i18n } = useTranslation()
   const [period, setPeriod] = useState<Period>('monthly')
   const [year, setYear] = useState(new Date().getFullYear())
@@ -29,14 +27,6 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
   const [dailyData, setDailyData] = useState<DailyData[]>([])
   const [monthlyExpenses, setMonthlyExpenses] = useState<ExpenseResponse[]>([])
   const [loading, setLoading] = useState(true)
-
-  const fixedHook = useFixedExpenses()
-  const fixedExpenses = fixedExpensesProp ?? fixedHook.fixedExpenses
-
-  const paidFixed = useMemo(() => {
-    if (!isCurrentMonth(month, year)) return null
-    return summarizePaidFixed(fixedExpenses)
-  }, [fixedExpenses, month, year])
 
   const daysInMonth = new Date(year, month, 0).getDate()
   const selectedDay = Math.min(day, daysInMonth)
@@ -89,35 +79,14 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
   const dailyByDay = useMemo(() => {
     const map = new Map<number, DailyData>()
     dailyData.forEach(d => map.set(d.day, d))
-    if (paidFixed) {
-      paidFixed.byDay.forEach((v, day) => {
-        const cur = map.get(day) ?? { day, total: 0, count: 0, categories: {}, expenses: [] }
-        cur.total += v.total
-        cur.count += v.count
-        map.set(day, cur)
-      })
-    }
     return map
-  }, [dailyData, paidFixed])
+  }, [dailyData])
 
   const mergedCategoryData = useMemo(() => {
-    const map = new Map<string, { category: string; total: number; count: number }>()
-    categoryData.forEach(c => map.set(c.category, { ...c }))
-    if (paidFixed) {
-      paidFixed.byCategory.forEach((v, categoryId) => {
-        const cur = map.get(categoryId) ?? { category: categoryId, total: 0, count: 0 }
-        cur.total += v.total
-        cur.count += v.count
-        map.set(categoryId, cur)
-      })
-    }
-    return [...map.values()].filter(c => c.total > 0)
-  }, [categoryData, paidFixed])
+    return categoryData.filter(c => c.total > 0)
+  }, [categoryData])
 
-  const mergedTrends = useMemo(() => {
-    if (!paidFixed || paidFixed.total === 0) return trends
-    return trends.map(t => (t.month === month ? { ...t, total: t.total + paidFixed.total, count: t.count + paidFixed.count } : t))
-  }, [trends, paidFixed, month])
+  const mergedTrends = trends
 
   const monthCells = useMemo(() => {
     return Array.from({ length: daysInMonth }, (_, i) => {
@@ -166,9 +135,9 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
   }, [hourly])
 
   const dayHourTotals = [...hourly.values()]
-  const paidDayTotal = paidFixed?.byDay.get(selectedDay)?.total ?? 0
-  const totalDay = dayHourTotals.reduce((s, v) => s + v.total, 0) + paidDayTotal
-  const totalDayCount = dayHourTotals.reduce((s, v) => s + v.count, 0) + (paidFixed?.byDay.get(selectedDay)?.count ?? 0)
+  const paidDayTotal = 0
+  const totalDay = dayHourTotals.reduce((s, v) => s + v.total, 0)
+  const totalDayCount = dayHourTotals.reduce((s, v) => s + v.count, 0)
 
   const trendLineData = useMemo(() => {
     if (period === 'daily') {
@@ -198,8 +167,8 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
     trendLineData.some((d) => d.total > 0) ||
     (period === 'daily' && paidDayTotal > 0)
 
-  const overviewSpent = (overview?.totalSpent ?? 0) + (paidFixed?.total ?? 0)
-  const overviewRemaining = (overview?.remaining ?? 0) - (paidFixed?.total ?? 0)
+  const overviewSpent = overview?.totalSpent ?? 0
+  const overviewRemaining = overview?.remaining ?? 0
 
   const trendTitle = period === 'daily'
     ? t('statistics.titleDaily', { day: selectedDay, month: monthName(month) })
@@ -388,9 +357,6 @@ export default function Statistics({ fixedExpenses: fixedExpensesProp }: Props =
             <div className="bg-green-50 p-3 sm:p-4 rounded-lg text-center">
                <p className="text-sm text-gray-600">{t('statistics.spent')}</p>
               <p className="text-2xl font-black text-green-600">{formatCurrecy(overviewSpent)}</p>
-              {paidFixed && paidFixed.total > 0 && (
-                 <p className="text-xs text-gray-500 mt-1">{t('statistics.includesFixed', { amount: formatCurrecy(paidFixed.total) })}</p>
-              )}
             </div>
             <div className="bg-orange-50 p-3 sm:p-4 rounded-lg text-center">
                <p className="text-sm text-gray-600">{t('statistics.available')}</p>

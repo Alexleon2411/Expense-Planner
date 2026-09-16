@@ -12,11 +12,19 @@ export function isCurrentMonth(month: number, year: number): boolean {
   return now.getMonth() + 1 === month && now.getFullYear() === year
 }
 
-export function summarizePaidFixed(fixedExpenses: FixedExpense[]): PaidFixedSummary {
+function alreadyRecorded(fixed: FixedExpense, recorded: { templateId?: string; name: string }[]) {
+  return recorded.some((expense) => expense.templateId === fixed.templateId && expense.name === fixed.name)
+}
+
+export function summarizePaidFixed(
+  fixedExpenses: FixedExpense[],
+  recordedExpenses: { templateId?: string; name: string }[] = [],
+): PaidFixedSummary {
   const summary: PaidFixedSummary = { total: 0, count: 0, byCategory: new Map(), byDay: new Map() }
 
   for (const f of fixedExpenses) {
     if (f.status !== 'paid' && f.status !== 'partial') continue
+    if (alreadyRecorded(f, recordedExpenses)) continue
     const paid = f.status === 'partial' ? (f.partialAmount ?? f.amount) : f.amount
 
     summary.total += paid
