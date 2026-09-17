@@ -9,6 +9,8 @@ export interface ExpenseResponse {
   comment?: string;
   status?: string;
   partialAmount?: number;
+  type?: string;
+  kind?: string;
   userId: string;
   budgetId?: string;
   templateId?: string;
@@ -50,6 +52,7 @@ export async function createExpense(expense: {
   comment?: string;
   status?: string;
   partialAmount?: number;
+  type?: string;
 }) {
   const { data } = await api.post<ExpenseResponse>('/expenses', expense);
   return data;
@@ -63,6 +66,7 @@ export async function updateExpense(id: string, expense: {
   comment?: string;
   status?: string;
   partialAmount?: number;
+  type?: string;
 }) {
   const { data } = await api.put<ExpenseResponse>(`/expenses/${id}`, expense);
   return data;

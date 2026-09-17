@@ -6,4 +6,6 @@ export * as userApi from './user';
 export * as categoriesApi from './categories';
 export * as templatesApi from './templates';
 export * as profilesApi from './profiles';
+export * as reviewApi from './review';
+export * as plansApi from './plans';
 export { default as api } from './axios';

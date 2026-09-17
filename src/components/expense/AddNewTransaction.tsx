@@ -3,6 +3,7 @@ import { useBudget } from "../../hooks/useBudget"
 import { useCategories } from "../../hooks/useCategories"
 import { scanReceipt } from "../../services/receiptScanner"
 import { useTranslation } from 'react-i18next'
+import { parseInputDate, toDateOnly } from '../../helpers'
 
 interface AddNewTrasactionProps {
     isOpen: boolean;
@@ -29,7 +30,8 @@ export default function AddNewTrasaction({
     const [category, setCategory] = useState(initialCategory);
     const [merchant, setMerchant] = useState('');
     const [amount, setAmount] = useState(initialAmount || 0);
-    const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(() => toDateOnly(new Date()));
+    const [type, setType] = useState<'expense' | 'saving'>('expense');
     const [partialAmount, setPartialAmount] = useState(0);
     const [comment, setComment] = useState('');
     const [saving, setSaving] = useState(false);
@@ -55,7 +57,7 @@ export default function AddNewTrasaction({
         setMerchant('');
         setCategory(initialCategory);
         setAmount(initialAmount || 0);
-        setDate(new Date().toISOString().split('T')[0]);
+        setDate(toDateOnly(new Date()));
         setStatus(null);
         setPartialAmount(0);
         setComment('');
@@ -111,10 +113,11 @@ export default function AddNewTrasaction({
                 expenseName: merchant.trim(),
                 amount,
                 category,
-                date: new Date(date),
+                date: parseInputDate(date),
                 status: status || 'pending',
                 partialAmount: status === 'partial' ? partialAmount : undefined,
                 comment: comment.trim() || undefined,
+                type,
             });
             resetForm();
             onClose();
@@ -150,7 +153,7 @@ export default function AddNewTrasaction({
 
                     <div className="flex-1 space-y-lg overflow-y-auto hide-scrollbar p-sm">
 
-                        <div className="flex items-center gap-md">
+<div className="flex items-center gap-md">
                             <div className="w-16 h-16 rounded-lg bg-surface-container flex items-center justify-center">
                                 <span className="material-symbols-outlined text-[32px] text-primary" data-icon="receipt_long">receipt_long</span>
                             </div>
@@ -173,6 +176,31 @@ export default function AddNewTrasaction({
                                     ))}
                                 </select>
                             </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-sm">
+                            <button type="button"
+                                className={`px-lg py-sm rounded-full border text-label-caps font-label-caps transition-all flex items-center justify-center gap-xs ${
+                                    type === 'expense'
+                                        ? 'bg-primary text-white border-primary'
+                                        : 'border-outline-variant'
+                                }`}
+                                onClick={() => setType('expense')}
+                            >
+                                <span className="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
+                                {t('expense.typeExpense')}
+                            </button>
+                            <button type="button"
+                                className={`px-lg py-sm rounded-full border text-label-caps font-label-caps transition-all flex items-center justify-center gap-xs ${
+                                    type === 'saving'
+                                        ? 'bg-primary text-white border-primary'
+                                        : 'border-outline-variant'
+                                }`}
+                                onClick={() => setType('saving')}
+                            >
+                                <span className="material-symbols-outlined" data-icon="savings">savings</span>
+                                {t('expense.typeSaving')}
+                            </button>
                         </div>
 
                         <div className="grid grid-cols-2 gap-md p-lg bg-surface-container-low rounded-xl">

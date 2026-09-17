@@ -5,8 +5,7 @@ import type { OverviewResponse, CategoryBreakdown, DailyData } from '../api/stat
 import type { ExpenseResponse } from '../api/expenses'
 import { useCategories } from '../hooks/useCategories'
 import { useFixedExpenses } from '../hooks/useFixedExpenses'
-import { isCurrentMonth, summarizePaidFixed } from '../helpers/fixedExpensesStats'
-import type { PaidFixedSummary } from '../helpers/fixedExpensesStats'
+
 import { formatCurrecy } from '../helpers'
 import CategoryIcon from './CategoryIcon'
 import AllTransactions from './AllTransactions'
@@ -19,13 +18,6 @@ interface DetailedBreakdownReportProps {
   month: number
   year: number
 }
-
-const emptyPaidFixed = (): PaidFixedSummary => ({
-  total: 0,
-  count: 0,
-  byCategory: new Map(),
-  byDay: new Map(),
-})
 
 export default function DetailedBreakdownReport({ isOpen, onClose, month, year }: DetailedBreakdownReportProps) {
   const [overview, setOverview] = useState<OverviewResponse | null>(null)
@@ -60,66 +52,36 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
       .finally(() => setLoading(false))
   }, [isOpen, month, year])
 
-  const paidFixed = useMemo(() => {
-    return isCurrentMonth(month, year) ? summarizePaidFixed(fixedExpenses) : emptyPaidFixed()
-  }, [fixedExpenses, month, year])
-
   const getCategoryInfo = (categoryId: string) => categories.find((c) => c.id === categoryId)
 
-  const totalSpent = (overview?.totalSpent ?? 0) + paidFixed.total
-  const totalCount = (overview?.totalExpenses ?? 0) + paidFixed.count
+  const totalSpent = overview?.totalSpent ?? 0
+  const totalCount = overview?.totalExpenses ?? 0
   const budgeted = overview?.budgeted ?? 0
   const budgetPct = budgeted > 0 ? Math.round((totalSpent / budgeted) * 100) : 0
 
   const mergedCategories = useMemo(() => {
-    const map = new Map<string, CategoryBreakdown>()
-    categoryBreakdown.forEach((c) => map.set(c.category, { ...c }))
-    paidFixed.byCategory.forEach((v, categoryId) => {
-      const cur = map.get(categoryId) ?? { category: categoryId, total: 0, count: 0 }
-      cur.total += v.total
-      cur.count += v.count
-      map.set(categoryId, cur)
-    })
-    return [...map.values()]
+    return [...categoryBreakdown]
       .filter((c) => c.total > 0)
       .sort((a, b) => b.total - a.total)
-  }, [categoryBreakdown, paidFixed])
+  }, [categoryBreakdown])
 
   const maxCategoryTotal = mergedCategories.length > 0 ? mergedCategories[0].total : 1
 
   const dayRows = useMemo(() => {
-    const map = new Map<number, { total: number; count: number }>()
-    dailyData.forEach((d) => map.set(d.day, { total: d.total, count: d.count }))
-    paidFixed.byDay.forEach((v, day) => {
-      const cur = map.get(day) ?? { total: 0, count: 0 }
-      cur.total += v.total
-      cur.count += v.count
-      map.set(day, cur)
-    })
-    return [...map.entries()]
-      .map(([day, value]) => ({ day, ...value }))
+    return dailyData
+      .map((d) => ({ day: d.day, total: d.total, count: d.count }))
       .sort((a, b) => a.day - b.day)
-  }, [dailyData, paidFixed])
+  }, [dailyData])
 
   const expensesForDay = (day: number) => {
     const regular = dailyData.find((d) => d.day === day)?.expenses ?? []
-    const fixed = fixedExpenses.filter((f) => f.dueDay === day && (f.status === 'paid' || f.status === 'partial'))
-    return [
-      ...regular.map((e) => ({
-        key: `${e.name}-${e.amount}`,
-        name: e.name,
-        amount: e.amount,
-        category: e.category,
-        isFixed: false,
-      })),
-      ...fixed.map((f) => ({
-        key: f.id,
-        name: f.name,
-        amount: f.status === 'partial' ? (f.partialAmount ?? f.amount) : f.amount,
-        category: f.categoryId,
-        isFixed: true,
-      })),
-    ]
+    return regular.map((e) => ({
+      key: `${e.name}-${e.amount}`,
+      name: e.name,
+      amount: e.amount,
+      category: e.category,
+      isFixed: false,
+    }))
   }
 
   const transactions = useMemo(

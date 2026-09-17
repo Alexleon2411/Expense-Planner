@@ -5,6 +5,7 @@ export interface Category {
   name: string;
   icon: string | null;
   color: string | null;
+  monthlyLimit: number | null;
   userId: string;
   isDefault: boolean;
 }
@@ -14,12 +15,12 @@ export async function listCategories() {
   return data;
 }
 
-export async function createCategory(data: { name: string; icon?: string; color?: string }) {
+export async function createCategory(data: { name: string; icon?: string; color?: string; monthlyLimit?: number | null }) {
   const { data: res } = await api.post<Category>('/categories', data);
   return res;
 }
 
-export async function updateCategory(id: string, data: { name?: string; icon?: string; color?: string }) {
+export async function updateCategory(id: string, data: { name?: string; icon?: string; color?: string; monthlyLimit?: number | null }) {
   const { data: res } = await api.put<Category>(`/categories/${id}`, data);
   return res;
 }

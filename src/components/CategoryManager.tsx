@@ -9,6 +9,7 @@ interface Category {
   name: string
   icon: string | null
   color: string | null
+  monthlyLimit: number | null
   isDefault: boolean
 }
 
@@ -20,6 +21,7 @@ export default function CategoryManager() {
   const [name, setName] = useState('')
   const [color, setColor] = useState('#34506D')
   const [icon, setIcon] = useState('')
+  const [monthlyLimit, setMonthlyLimit] = useState('')
 
   useEffect(() => {
     categoriesApi.listCategories().then(setCategories).catch(() => {})
@@ -30,21 +32,24 @@ export default function CategoryManager() {
     setColor('#34506D')
     setIcon('')
     setEditingId(null)
+    setMonthlyLimit('')
     setShowForm(false)
   }
 
   const handleSave = async () => {
     if (!name.trim()) return
+    const parsedLimit = monthlyLimit.trim() === '' ? null : Number(monthlyLimit)
     try {
       if (editingId) {
         const updated = await categoriesApi.updateCategory(editingId, {
           name: name.trim(),
           color,
           icon: icon || undefined,
+          monthlyLimit: parsedLimit,
         })
         setCategories((prev) => prev.map((c) => (c.id === editingId ? updated : c)))
       } else {
-        const created = await categoriesApi.createCategory({ name: name.trim(), color, icon: icon || undefined })
+        const created = await categoriesApi.createCategory({ name: name.trim(), color, icon: icon || undefined, monthlyLimit: parsedLimit })
         setCategories((prev) => [...prev, created])
       }
       resetForm()
@@ -56,6 +61,7 @@ export default function CategoryManager() {
     setName(cat.name)
     setColor(cat.color || '#34506D')
     setIcon(cat.icon || '')
+    setMonthlyLimit(cat.monthlyLimit != null ? String(cat.monthlyLimit) : '')
     setShowForm(true)
   }
 
@@ -110,6 +116,17 @@ export default function CategoryManager() {
             </div>
           </div>
           <IconPicker value={icon} onChange={setIcon} />
+          <div>
+            <label className="text-sm">{t('categories.monthlyLimit')}</label>
+            <input
+              type="number"
+              min={0}
+              className="w-full bg-white p-2 border rounded"
+              value={monthlyLimit}
+              onChange={(e) => setMonthlyLimit(e.target.value)}
+              placeholder={t('categories.monthlyLimitPlaceholder')}
+            />
+          </div>
           <div className="flex gap-2">
             <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700">
               {editingId ? t('common.save') : t('categories.create')}
@@ -132,6 +149,9 @@ export default function CategoryManager() {
             >
               <CategoryIcon icon={cat.icon} color={cat.color} name={cat.name} size="lg" />
               <span className={`text-sm text-center ${cat.isDefault ? 'font-semibold' : ''}`}>{cat.name}</span>
+              {cat.monthlyLimit != null && (
+                <span className="text-[11px] text-gray-500">{t('categories.monthlyLimit')}: ${cat.monthlyLimit}</span>
+              )}
               <div className="flex gap-1 mt-1">
                 <button
                   onClick={() => startEdit(cat)}

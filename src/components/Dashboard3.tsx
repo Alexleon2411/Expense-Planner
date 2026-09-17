@@ -12,6 +12,8 @@ import CategoryManager from './CategoryManager'
 import Statistics from './Statistics'
 import PaymentStatusBadge from './PaymentStatusBadge'
 import CategoryIcon from './CategoryIcon'
+import MonthReview from './MonthReview'
+import SavingsPlan from './SavingsPlan'
 import { useTranslation } from 'react-i18next'
 import { formatDate } from '../helpers'
 
@@ -28,7 +30,7 @@ export default function Dashboard3() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  const { state, totalExpense, reminderBudget, getAllExpenses } = useBudget()
+  const { state, totalExpense, getAllExpenses } = useBudget()
   const { categories } = useCategories()
   const { fixedExpenses } = useFixedExpenses()
   const { t, i18n } = useTranslation()
@@ -58,16 +60,13 @@ export default function Dashboard3() {
       .finally(() => setLoading(false))
   }, [selectedMonth, selectedYear])
 
-  const totalSpent = overview?.totalSpent ?? 0
+  const totalSpent = overview?.totalSpent ?? totalExpense
   const budgeted = overview?.budgeted ?? 0
-  const savings = budgeted - totalSpent
 
   const fixedTotal = fixedExpenses.reduce((s, f) => s + f.amount, 0)
-  const regularSpent = overview ? overview.totalSpent : totalExpense
-  const totalSpentAll = regularSpent + fixedTotal
   const totalBudget = budgeted > 0 ? budgeted : state.budget
-  const available = totalBudget - totalSpentAll
-  const usagePct = totalBudget > 0 ? (totalSpentAll / totalBudget) * 100 : 0
+  const available = totalBudget - totalSpent
+  const usagePct = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0
   const getCategoryInfo = (categoryId: string) => {
     if (!categoryId) return undefined
     return (
@@ -147,18 +146,18 @@ export default function Dashboard3() {
     const elapsedDay = Math.min(isCurrent ? now.getDate() : daysInMonth, daysInMonth)
     const elapsedPct = elapsedDay / daysInMonth
 
-    if (totalSpentAll > totalBudget) {
+    if (totalSpent > totalBudget) {
       items.push({
         icon: 'warning',
         title: t('dashboard.overBudget'),
-        detail: t('dashboard.paidOf', { paid: formatCurrecy(totalSpentAll), total: formatCurrecy(totalBudget) }),
+        detail: t('dashboard.paidOf', { paid: formatCurrecy(totalSpent), total: formatCurrecy(totalBudget) }),
         tone: 'error',
       })
     } else if (fixedTotal < totalBudget) {
       const variableBudget = totalBudget - fixedTotal
-      const variableUsagePct = (regularSpent / variableBudget) * 100
+      const variableUsagePct = (totalSpent / variableBudget) * 100
       if (variableUsagePct > elapsedPct * 100 + 15) {
-        const projected = (regularSpent / elapsedDay) * daysInMonth
+        const projected = (totalSpent / elapsedDay) * daysInMonth
         items.push({
           icon: 'speed',
           title: t('reports.velocity'),
@@ -193,7 +192,7 @@ export default function Dashboard3() {
     }
 
     return items
-  }, [totalBudget, totalSpentAll, regularSpent, usagePct, sortedCategories, fixedTotal, selectedMonth, selectedYear])
+  }, [totalBudget, totalSpent, usagePct, sortedCategories, fixedTotal, selectedMonth, selectedYear])
 
   const distribution = useMemo(() => {
     const top = sortedCategories.slice(0, 5)
@@ -337,7 +336,7 @@ export default function Dashboard3() {
                   </div>
                   <div className="flex justify-between items-baseline">
                     <span className="text-body-sm text-on-surface-variant">{t('dashboard.spent')}</span>
-                    <span className="text-headline-sm font-data-mono font-bold text-primary">{formatCurrecy(totalSpentAll)}</span>
+                    <span className="text-headline-sm font-data-mono font-bold text-primary">{formatCurrecy(totalSpent)}</span>
                   </div>
                   <div className="flex justify-between items-baseline">
                     <span className="text-body-sm text-on-surface-variant">{t('dashboard.available')}</span>
@@ -643,18 +642,11 @@ export default function Dashboard3() {
                   </div>
                 </div>
                 <div className="col-span-12 md:col-span-4 bento-card">
-                  <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('dashboard.monthlySavings')}</p>
-                  <div className="flex items-center gap-md mt-sm">
-                    <div className="w-12 h-12 rounded-xl bg-secondary-container flex items-center justify-center">
-                      <span className="material-symbols-outlined text-on-secondary-container">savings</span>
-                    </div>
-                    <div>
-                      <h4 className="text-headline-md font-headline-md">{formatCurrecy(savings)}</h4>
-                      <p className="text-body-sm text-on-surface-variant">
-                        {savings >= 0 ? t('dashboard.underBudget', { amount: formatCurrecy(reminderBudget) }) : t('dashboard.overBudget')}
-                      </p>
-                    </div>
-                  </div>
+                  <SavingsPlan month={selectedMonth} year={selectedYear} />
+                </div>
+
+                <div className="col-span-12">
+                  <MonthReview month={selectedMonth} year={selectedYear} />
                 </div>
 
                 <div className="col-span-12 md:col-span-5 bento-card flex flex-col">

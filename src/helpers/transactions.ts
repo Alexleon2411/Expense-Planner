@@ -30,6 +30,7 @@ export function buildTransactions(
   fixedExpenses.forEach((f) => {
     if (f.status !== 'paid' && f.status !== 'partial') return
     if (!f.dueDay) return
+    if (expenses.some((expense) => expense.templateId === f.templateId && expense.name === f.name)) return
     const paid = f.status === 'partial' ? (f.partialAmount ?? f.amount) : f.amount
     const date = `${year}-${String(month).padStart(2, '0')}-${String(f.dueDay).padStart(2, '0')}`
     rows.push({

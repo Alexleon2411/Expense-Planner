@@ -3,6 +3,7 @@ import api from './axios';
 export interface OverviewResponse {
   totalSpent: number;
   totalExpenses: number;
+  totalSaved?: number;
   budgeted: number;
   remaining: number;
   percentage: number;

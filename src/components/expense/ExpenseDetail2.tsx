@@ -6,6 +6,7 @@ import { scanReceipt } from '../../services/receiptScanner';
 import CategoryIcon from '../CategoryIcon';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n/config';
+import { parseInputDate, toDateOnly } from '../../helpers';
 
 export interface TransactionDetail {
     merchant: string;
@@ -32,9 +33,7 @@ const statusClass = (status: string) => {
 function toInputDate(date: Expense['date']): string {
     if (!date) return '';
     if (Array.isArray(date)) return '';
-    const d = date instanceof Date ? date : new Date(date as string);
-    if (isNaN(d.getTime())) return '';
-    return d.toISOString().split('T')[0];
+    return toDateOnly(date as Date | string);
 }
 
 function formatDisplayDate(date: Expense['date']): string {
@@ -136,7 +135,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                 expenseName: merchant.trim(),
                 category,
                 amount,
-                date: new Date(date),
+                date: parseInputDate(date),
                 status,
                 partialAmount: status === 'partial' ? parseFloat(partialAmount) || 0 : undefined,
                 comment: comment.trim() || undefined,
