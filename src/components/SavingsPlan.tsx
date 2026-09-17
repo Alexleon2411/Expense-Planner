@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { plansApi } from '../api'
+import type { SavingPlanResponse, SavingProgressResponse } from '../api/plans'
 import { formatCurrecy } from '../helpers'
 
 type Props = {
@@ -10,30 +11,53 @@ type Props = {
 
 export default function SavingsPlan({ month, year }: Props) {
   const { t } = useTranslation()
-  const [progress, setProgress] = useState<{ plan: number | null; saved: number; remaining: number; percentage: number } | null>(null)
+  const [plans, setPlans] = useState<SavingPlanResponse[]>([])
+  const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>()
+  const [progress, setProgress] = useState<SavingProgressResponse | null>(null)
   const [editing, setEditing] = useState(false)
   const [input, setInput] = useState('')
+  const [nameInput, setNameInput] = useState('')
   const [saving, setSaving] = useState(false)
 
-  const load = () => {
-    plansApi.getProgress(month, year)
-      .then(setProgress)
-      .catch(() => {})
+  const load = async (preferredPlanId?: string) => {
+    try {
+      const response = await plansApi.getPlan(month, year)
+      const nextPlans = response == null ? [] : Array.isArray(response) ? response : [response]
+      setPlans(nextPlans)
+      const nextId = preferredPlanId && nextPlans.some(plan => plan.id === preferredPlanId)
+        ? preferredPlanId
+        : selectedPlanId && nextPlans.some(plan => plan.id === selectedPlanId)
+          ? selectedPlanId
+          : nextPlans[0]?.id
+      setSelectedPlanId(nextId)
+      setProgress(nextId ? await plansApi.getProgress(month, year, nextId) : null)
+    } catch {
+      setPlans([])
+      setProgress(null)
+    }
   }
 
   useEffect(() => {
-    load()
-  }, [month, year])
+    void load()
+  }, [month, year]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!selectedPlanId) return
+    plansApi.getProgress(month, year, selectedPlanId).then(setProgress).catch(() => setProgress(null))
+  }, [month, year, selectedPlanId])
 
   const handleSave = async () => {
     const val = parseFloat(input)
-    if (isNaN(val) || val <= 0) return
+    if (isNaN(val) || val <= 0 || !nameInput.trim()) return
     setSaving(true)
     try {
-      await plansApi.setPlan(val, month, year)
+      const savedPlan = selectedPlanId
+        ? await plansApi.updatePlan(selectedPlanId, val, month, year, nameInput.trim())
+        : await plansApi.createPlan(val, month, year, nameInput.trim())
       setEditing(false)
-      load()
+      await load(savedPlan.id)
     } catch {
+      setEditing(true)
     } finally {
       setSaving(false)
     }
@@ -43,24 +67,52 @@ export default function SavingsPlan({ month, year }: Props) {
     if (progress?.plan != null && !window.confirm(t('dashboard.savingsClear'))) return
     setSaving(true)
     try {
-      await plansApi.deletePlan(month, year)
-      load()
+      await plansApi.deletePlan(month, year, selectedPlanId)
+      await load()
     } catch {
+      setProgress(null)
     } finally {
       setSaving(false)
     }
   }
 
   const pct = progress?.percentage ?? 0
+  const selectedPlan = plans.find(plan => plan.id === selectedPlanId)
 
   return (
     <div className="h-full flex flex-col">
       <div className="flex justify-between items-start mb-sm">
-        <p className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.savingsPlan')}</p>
+        <div>
+          <p className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.savingsPlans', 'Planes de ahorro')}</p>
+          <p className="text-xs text-on-surface-variant mt-1">{plans.length > 0 ? t('dashboard.savingsPlanCount', { count: plans.length, defaultValue: '{{count}} planes activos' }) : t('dashboard.savingsPlansEmpty', 'Crea planes para separar tus objetivos')}</p>
+        </div>
         <span className={`material-symbols-outlined text-sm text-on-surface-variant`}>
           {progress?.plan != null ? 'savings' : 'trending_up'}
         </span>
       </div>
+
+      <button
+        type="button"
+        onClick={() => { setSelectedPlanId(undefined); setProgress(null); setInput(''); setNameInput(''); setEditing(true) }}
+        className="self-start mb-md text-xs font-semibold text-primary hover:underline"
+      >
+        + {t('dashboard.savingsAdd', 'Añadir otro plan')}
+      </button>
+
+      {plans.length > 0 && (
+        <div className="flex gap-xs overflow-x-auto pb-sm mb-md">
+          {plans.map(plan => (
+            <button
+              key={plan.id}
+              type="button"
+              onClick={() => { setSelectedPlanId(plan.id); setEditing(false) }}
+              className={`shrink-0 px-sm py-xs rounded-full text-xs font-semibold border transition-colors ${selectedPlanId === plan.id ? 'bg-primary text-white border-primary' : 'bg-surface-container-high text-on-surface border-outline-variant'}`}
+            >
+              {plan.name || t('dashboard.savingsDefaultName')}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-md mb-md">
         <div>
@@ -90,15 +142,22 @@ export default function SavingsPlan({ month, year }: Props) {
 
       {editing ? (
         <div className="flex gap-sm items-center mt-auto">
-          <input
-            type="number"
+            <input
+              type="text"
+              className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest focus:outline-offset-4 form-input transition-all"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder={t('dashboard.savingsNamePlaceholder', 'Ej. Inversiones, regalos o trabajo extra')}
+              autoFocus
+            />
+            <input
+              type="number"
             min={0}
             className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest focus:outline-offset-4 form-input transition-all"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t('dashboard.savingsGoalPlaceholder')}
-            autoFocus
-          />
+            />
           <button
             onClick={handleSave}
             disabled={saving}
@@ -110,10 +169,10 @@ export default function SavingsPlan({ month, year }: Props) {
       ) : (
         <div className="flex gap-sm mt-auto">
           <button
-            onClick={() => { setEditing(true); setInput(progress?.plan != null ? String(progress.plan) : '') }}
+            onClick={() => { setEditing(true); setInput(selectedPlan ? String(selectedPlan.amount) : ''); setNameInput(selectedPlan?.name || '') }}
             className="flex-1 px-md py-sm rounded-lg bg-surface-container-high text-on-surface text-label-caps font-label-caps hover:opacity-90"
           >
-            {progress?.plan != null ? t('dashboard.savingsEdit') : t('dashboard.savingsDefine')}
+            {selectedPlan ? t('dashboard.savingsEdit', 'Editar plan') : t('dashboard.savingsCreate', 'Crear plan')}
           </button>
           {progress?.plan != null && (
             <button
