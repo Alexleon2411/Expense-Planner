@@ -12,6 +12,7 @@ interface TableRecentTransactionsProps {
     hasMore?: boolean;
     loadingMore?: boolean;
     onLoadMore?: () => void;
+    onDeleted?: (id: string) => void;
 }
 
 interface Row {
@@ -51,7 +52,7 @@ function formatAmount(amount: number): string {
 
 type EditStatus = 'paid' | 'pending' | 'partial';
 
-export default function TableRecentTransactions({ expenses, onRowClick, hasMore, loadingMore, onLoadMore }: TableRecentTransactionsProps) {
+export default function TableRecentTransactions({ expenses, onRowClick, hasMore, loadingMore, onLoadMore, onDeleted }: TableRecentTransactionsProps) {
   const { categories } = useCategories();
   const { editExpense, updateExpensePartialAmount, removeExpense } = useBudget();
   const { t } = useTranslation()
@@ -127,6 +128,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
     if (!window.confirm(t('expense.confirmDelete'))) return;
     try {
       await removeExpense(expense.id);
+      onDeleted?.(expense.id);
     } catch (error) {
       console.error('Error al eliminar el gasto', error);
     }

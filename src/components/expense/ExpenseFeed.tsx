@@ -4,7 +4,8 @@ import Filter from './FilterSection';
 import type { DateRange, FilterStatus } from './FilterSection';
 import TableRecentTransactions from "./TableRecentTrasactions"
 import AddNewTrasaction from './AddNewTransaction';
-import { useBudget } from "../../hooks/useBudget"
+import { expensesApi } from '../../api'
+import type { ExpenseResponse } from '../../api/expenses'
 import { Expense } from '../../types';
 import { useTranslation } from 'react-i18next';
 
@@ -53,6 +54,24 @@ function parseExpenseDate(date: Expense['date']): Date | null {
   return isNaN(d.getTime()) ? null : d;
 }
 
+const PAGE_SIZE = 200
+
+function mapExpense(expense: ExpenseResponse): Expense | null {
+  if (expense.kind === 'fixed' || expense.templateId) return null
+  return {
+    id: expense.id,
+    expenseName: expense.name,
+    amount: expense.amount,
+    category: expense.category,
+    date: expense.date,
+    comment: expense.comment,
+    status: (expense.status as Expense['status']) || 'pending',
+    partialAmount: expense.partialAmount,
+    type: (expense.type as Expense['type']) || 'expense',
+    kind: expense.kind === 'fixed' ? 'fixed' : 'variable',
+  }
+}
+
 function filterExpenses(expenses: Expense[], category: string, status: FilterStatus, dateRange: DateRange): Expense[] {
   return expenses.filter((expense) => {
     if (category && expense.category !== category) return false;
@@ -76,51 +95,61 @@ function filterExpenses(expenses: Expense[], category: string, status: FilterSta
 const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [partialData, setPartialData] = useState<{ category: string; amount: number } | null>(null);
-  const { state, getAllExpenses, loadMoreExpenses } = useBudget();
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loadingList, setLoadingList] = useState(false);
   const { t } = useTranslation()
-
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const ITEMS_PER_PAGE = 6;
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setPage(1);
-      const limit = searchTerm.trim() ? 1000 : ITEMS_PER_PAGE;
-      getAllExpenses(1, limit).then((result) => {
-        if (result) setTotalPages(searchTerm.trim() ? 1 : result.totalPages);
-      });
-    }, searchTerm.trim() ? 250 : 0);
-
-    return () => window.clearTimeout(timer);
-  }, [getAllExpenses, searchTerm]);
-
-  const handleLoadMore = async () => {
-    const nextPage = page + 1;
-    setLoadingMore(true);
-    const result = await loadMoreExpenses(nextPage, ITEMS_PER_PAGE);
-    if (result) {
-      setTotalPages(result.totalPages);
-      setPage(nextPage);
-    }
-    setLoadingMore(false);
-  };
 
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<FilterStatus>('all');
   const [selectedDateRange, setSelectedDateRange] = useState<DateRange>('all');
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false
+    const now = new Date()
+    const params: { month?: number; year?: number; status?: string; category?: string; page: number; limit: number } = {
+      page: 1,
+      limit: PAGE_SIZE,
+    }
+    if (selectedDateRange === 'currentMonth') {
+      params.month = now.getMonth() + 1
+      params.year = now.getFullYear()
+    }
+    if (selectedStatus !== 'all') params.status = selectedStatus
+    if (selectedCategory) params.category = selectedCategory
+
+    const load = async () => {
+      setLoadingList(true)
+      try {
+        const first = await expensesApi.listExpenses(params)
+        const pages = [first.expenses]
+        for (let page = 2; page <= first.totalPages; page++) {
+          const next = await expensesApi.listExpenses({ ...params, page })
+          pages.push(next.expenses)
+        }
+        if (cancelled) return
+        setExpenses(pages.flat().map(mapExpense).filter((expense): expense is Expense => expense !== null))
+      } catch (error) {
+        console.error('Error al cargar los gastos', error)
+      } finally {
+        if (!cancelled) setLoadingList(false)
+      }
+    }
+
+    load()
+    return () => { cancelled = true }
+  }, [selectedCategory, selectedStatus, selectedDateRange, reloadKey]);
 
   const filteredExpenses = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLocaleLowerCase();
-    return filterExpenses(state.expenses, selectedCategory, selectedStatus, selectedDateRange)
+    return filterExpenses(expenses, selectedCategory, selectedStatus, selectedDateRange)
       .filter((expense) => {
         if (!normalizedSearch) return true;
         return [expense.expenseName, expense.category, expense.comment]
           .filter(Boolean)
           .some((value) => String(value).toLocaleLowerCase().includes(normalizedSearch));
       });
-  }, [state.expenses, selectedCategory, selectedStatus, selectedDateRange, searchTerm]);
+  }, [expenses, selectedCategory, selectedStatus, selectedDateRange, searchTerm]);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
@@ -131,10 +160,11 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
   };
 
   const handleExpenseCreated = () => {
-    setPage(1);
-    getAllExpenses(1, ITEMS_PER_PAGE).then((result) => {
-      if (result) setTotalPages(result.totalPages);
-    });
+    setReloadKey((key) => key + 1);
+  };
+
+  const handleDeleted = (id: string) => {
+    setExpenses((current) => current.filter((expense) => expense.id !== id));
   };
 
   const handleRowClick = (expense: Expense) => {
@@ -168,12 +198,14 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
             onStatusChange={setSelectedStatus}
             onDateRangeChange={setSelectedDateRange}
           />
+          {loadingList && filteredExpenses.length === 0 && (
+            <p className="text-body-sm text-on-surface-variant">{t('common.loading')}</p>
+          )}
           <TableRecentTransactions
             expenses={filteredExpenses}
             onRowClick={handleRowClick}
-            hasMore={page < totalPages}
-            loadingMore={loadingMore}
-            onLoadMore={handleLoadMore}
+            loadingMore={loadingList}
+            onDeleted={handleDeleted}
           />
         </div>
       </main>
