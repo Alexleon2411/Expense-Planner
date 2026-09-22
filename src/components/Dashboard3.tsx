@@ -1,9 +1,11 @@
 import { Fragment, useState, useEffect, useMemo } from 'react'
-import { statsApi } from '../api'
-import type { OverviewResponse, CategoryBreakdown, MonthlyTrend } from '../api/stats'
+import { statsApi, expensesApi } from '../api'
+import type { OverviewResponse, MonthlyTrend } from '../api/stats'
+import type { ExpenseResponse } from '../api/expenses'
 import { useBudget } from '../hooks/useBudget'
 import { useCategories } from '../hooks/useCategories'
 import { useFixedExpenses } from '../hooks/useFixedExpenses'
+import { isCurrentMonth, summarizePaidFixed } from '../helpers/fixedExpensesStats'
 import { formatCurrecy } from '../helpers'
 import SalarySection from './SalarySection'
 import ExpenseTemplates from './ExpenseTemplates'
@@ -30,40 +32,76 @@ export default function Dashboard3() {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  const { state, totalExpense, getAllExpenses } = useBudget()
+  const { state, getAllExpenses } = useBudget()
   const { categories } = useCategories()
   const { fixedExpenses } = useFixedExpenses()
   const { t, i18n } = useTranslation()
   const monthName = (month: number, width: 'short' | 'long' = 'long') => new Intl.DateTimeFormat(i18n.language, { month: width }).format(new Date(selectedYear, month - 1, 1))
 
   const [overview, setOverview] = useState<OverviewResponse | null>(null)
-  const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown[]>([])
   const [monthlyTrend, setMonthlyTrend] = useState<MonthlyTrend[]>([])
   const [prevYearTrend, setPrevYearTrend] = useState<MonthlyTrend[]>([])
+  const [monthlyExpenses, setMonthlyExpenses] = useState<ExpenseResponse[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
     Promise.all([
       statsApi.getOverview(selectedMonth, selectedYear),
-      statsApi.getCategoryBreakdown(selectedMonth, selectedYear),
       statsApi.getMonthlyTrend(selectedYear),
       statsApi.getMonthlyTrend(selectedYear - 1),
+      expensesApi.listExpenses({ month: selectedMonth, year: selectedYear, page: 1, limit: 1000 }),
     ])
-      .then(([ov, cat, cur, prev]) => {
+      .then(([ov, cur, prev, expResp]) => {
         setOverview(ov)
-        setCategoryBreakdown(cat)
         setMonthlyTrend(cur)
         setPrevYearTrend(prev)
+        setMonthlyExpenses(expResp.expenses)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [selectedMonth, selectedYear])
 
-  const totalSpent = overview?.totalSpent ?? totalExpense
+  const monthlyExpensesTotal = useMemo(() => {
+    return monthlyExpenses.reduce((sum, e) => {
+      const paid = e.status === 'partial' ? (e.partialAmount ?? e.amount) : e.amount
+      return sum + paid
+    }, 0)
+  }, [monthlyExpenses])
+
+  const paidFixedSummary = useMemo(() => {
+    if (!isCurrentMonth(selectedMonth, selectedYear)) return null
+    return summarizePaidFixed(fixedExpenses, monthlyExpenses)
+  }, [fixedExpenses, monthlyExpenses, selectedMonth, selectedYear])
+
+  const paidFixedNotRecorded = paidFixedSummary?.total ?? 0
+
+  const totalSpent = monthlyExpensesTotal + paidFixedNotRecorded
   const budgeted = overview?.budgeted ?? 0
 
-  const fixedTotal = fixedExpenses.reduce((s, f) => s + f.amount, 0)
+  const mergedCategoryBreakdown = useMemo(() => {
+    const map = new Map<string, { category: string; total: number; count: number }>()
+    for (const e of monthlyExpenses) {
+      const paid = e.status === 'partial' ? (e.partialAmount ?? e.amount) : e.amount
+      const cur = map.get(e.category) ?? { category: e.category, total: 0, count: 0 }
+      cur.total += paid
+      cur.count += 1
+      map.set(e.category, cur)
+    }
+    if (paidFixedSummary) {
+      paidFixedSummary.byCategory.forEach((v, categoryId) => {
+        const cur = map.get(categoryId) ?? { category: categoryId, total: 0, count: 0 }
+        cur.total += v.total
+        cur.count += v.count
+        map.set(categoryId, cur)
+      })
+    }
+    return [...map.values()].filter(c => c.total > 0)
+  }, [monthlyExpenses, paidFixedSummary])
+
+  const fixedTotal = fixedExpenses
+    .filter((f) => f.status === 'paid' || f.status === 'partial')
+    .reduce((s, f) => s + (f.status === 'partial' ? (f.partialAmount ?? f.amount) : f.amount), 0)
   const totalBudget = budgeted > 0 ? budgeted : state.budget
   const available = totalBudget - totalSpent
   const usagePct = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0
@@ -113,8 +151,9 @@ export default function Dashboard3() {
   const currentTrendByMonth = useMemo(() => {
     const map = new Map<number, number>()
     monthlyTrend.forEach(t => map.set(t.month, t.total))
+    map.set(selectedMonth, totalSpent)
     return map
-  }, [monthlyTrend])
+  }, [monthlyTrend, selectedMonth, totalSpent])
 
   const prevTrendByMonth = useMemo(() => {
     const map = new Map<number, number>()
@@ -130,8 +169,8 @@ export default function Dashboard3() {
   }, [currentTrendByMonth, selectedMonth, totalSpent])
 
   const sortedCategories = useMemo(() => {
-    return [...categoryBreakdown].sort((a, b) => b.total - a.total)
-  }, [categoryBreakdown])
+    return [...mergedCategoryBreakdown].sort((a, b) => b.total - a.total)
+  }, [mergedCategoryBreakdown])
 
   const highestCategory = sortedCategories.length > 0 ? sortedCategories[0] : null
   const highestPct = highestCategory && totalSpent > 0 ? (highestCategory.total / totalSpent) * 100 : 0

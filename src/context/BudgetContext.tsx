@@ -62,18 +62,20 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
       const resp = await expensesApi.listExpenses({ month, year, page, limit })
       const rawExpenses = Array.isArray(resp) ? resp : (resp as any).expenses || (resp as any).data || []
       const totalPages = (resp as any).totalPages ?? 1
-      const serverExpenses: Expense[] = rawExpenses.map((e: any) => ({
-        id: e.id,
-        expenseName: e.name,
-        amount: e.amount,
-        category: e.category,
-        date: e.date,
-        comment: e.comment,
-        status: (e.status as Expense['status']) || 'pending',
-        partialAmount: e.partialAmount,
-        type: (e.type as Expense['type']) || 'expense',
-        kind: e.kind,
-      }))
+      const serverExpenses: Expense[] = rawExpenses
+        .filter((e: any) => !e.templateId)
+        .map((e: any) => ({
+          id: e.id,
+          expenseName: e.name,
+          amount: e.amount,
+          category: e.category,
+          date: e.date,
+          comment: e.comment,
+          status: (e.status as Expense['status']) || 'pending',
+          partialAmount: e.partialAmount,
+          type: (e.type as Expense['type']) || 'expense',
+          kind: e.kind,
+        }))
 
       dispatch({ type: 'get-expenses', payload: { expenses: serverExpenses } })
       return { expenses: serverExpenses, totalPages }
@@ -92,18 +94,20 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
       const resp = await expensesApi.listExpenses({ month, year, page, limit })
       const rawExpenses = Array.isArray(resp) ? resp : (resp as any).expenses || (resp as any).data || []
       const totalPages = (resp as any).totalPages ?? 1
-      const serverExpenses: Expense[] = rawExpenses.map((e: any) => ({
-        id: e.id,
-        expenseName: e.name,
-        amount: e.amount,
-        category: e.category,
-        date: e.date,
-        comment: e.comment,
-        status: (e.status as Expense['status']) || 'pending',
-        partialAmount: e.partialAmount,
-        type: (e.type as Expense['type']) || 'expense',
-        kind: e.kind,
-      }))
+      const serverExpenses: Expense[] = rawExpenses
+        .filter((e: any) => !e.templateId)
+        .map((e: any) => ({
+          id: e.id,
+          expenseName: e.name,
+          amount: e.amount,
+          category: e.category,
+          date: e.date,
+          comment: e.comment,
+          status: (e.status as Expense['status']) || 'pending',
+          partialAmount: e.partialAmount,
+          type: (e.type as Expense['type']) || 'expense',
+          kind: e.kind,
+        }))
 
       dispatch({ type: 'append-expenses', payload: { expenses: serverExpenses } })
       return { expenses: serverExpenses, totalPages }
