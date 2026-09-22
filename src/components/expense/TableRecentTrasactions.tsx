@@ -53,7 +53,7 @@ type EditStatus = 'paid' | 'pending' | 'partial';
 
 export default function TableRecentTransactions({ expenses, onRowClick, hasMore, loadingMore, onLoadMore }: TableRecentTransactionsProps) {
   const { categories } = useCategories();
-  const { editExpense, updateExpensePartialAmount } = useBudget();
+  const { editExpense, updateExpensePartialAmount, removeExpense } = useBudget();
   const { t } = useTranslation()
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -119,6 +119,16 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
       console.error('Error al actualizar el estado', error);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async (expense: Expense, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm(t('expense.confirmDelete'))) return;
+    try {
+      await removeExpense(expense.id);
+    } catch (error) {
+      console.error('Error al eliminar el gasto', error);
     }
   };
 
@@ -222,7 +232,15 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                     )}
                   </td>
                   <td className="px-lg py-md text-right">
-                    <span className="material-symbols-outlined text-outline group-hover:text-primary transition-colors" data-icon="chevron_right">chevron_right</span>
+                    <button
+                      type="button"
+                      onClick={(e) => expense && handleDelete(expense, e)}
+                      title={t('expense.delete')}
+                      aria-label={t('expense.delete')}
+                      className="p-xs rounded-full text-error hover:bg-error/10 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
                   </td>
                 </tr>
               );
@@ -295,7 +313,18 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                 ) : (
                   <div className="flex items-center justify-between gap-sm">
                     <button className={`rounded-full text-label-caps font-label-caps uppercase ${row.statusClassName}`} onClick={(e) => startEditing(row, e)} type="button">{row.statusLabel}</button>
-                     <span className="text-body-xs text-on-surface-variant">{t('expense.details')}</span>
+                    <div className="flex items-center gap-xs">
+                      <span className="text-body-xs text-on-surface-variant">{t('expense.details')}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(expense, e)}
+                        title={t('expense.delete')}
+                        aria-label={t('expense.delete')}
+                        className="p-xs rounded-full text-error hover:bg-error/10 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
