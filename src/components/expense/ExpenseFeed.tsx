@@ -63,7 +63,7 @@ function mapExpense(expense: ExpenseResponse): Expense | null {
     expenseName: expense.name,
     amount: expense.amount,
     category: expense.category,
-    date: expense.date,
+    date: new Date(expense.date),
     comment: expense.comment,
     status: (expense.status as Expense['status']) || 'pending',
     partialAmount: expense.partialAmount,
