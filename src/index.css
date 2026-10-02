@@ -4,8 +4,149 @@
 @tailwind utilities;
  
 @layer base {
+  /*
+   * Design tokens as raw RGB channels so Tailwind alpha modifiers
+   * (bg-error/10, border-outline-variant/30) keep working in both themes.
+   * Every token is defined in both scopes: switching .dark on <html>
+   * re-resolves all ~1090 token usages at once. No per-utility overrides.
+   */
+  :root {
+    --c-primary: 11 28 48;
+    --c-on-primary: 255 255 255;
+    --c-primary-container: 19 27 46;
+    --c-on-primary-container: 214 221 240;
+    --c-primary-fixed: 218 226 253;
+    --c-primary-fixed-dim: 190 198 224;
+    --c-on-primary-fixed: 19 27 46;
+    --c-on-primary-fixed-variant: 63 70 92;
+    --c-inverse-primary: 190 198 224;
+
+    --c-secondary: 0 108 73;
+    --c-on-secondary: 255 255 255;
+    --c-secondary-container: 108 248 187;
+    --c-on-secondary-container: 0 77 51;
+    --c-secondary-fixed: 111 251 190;
+    --c-secondary-fixed-dim: 78 222 163;
+    --c-on-secondary-fixed: 0 33 19;
+    --c-on-secondary-fixed-variant: 0 82 54;
+
+    --c-tertiary: 146 0 42;
+    --c-on-tertiary: 255 255 255;
+    --c-tertiary-container: 64 0 13;
+    /* Light foreground: tertiary-container is a dark maroon in both themes. */
+    --c-on-tertiary-container: 255 190 195;
+    --c-tertiary-fixed: 255 218 219;
+    --c-tertiary-fixed-dim: 255 178 183;
+    --c-on-tertiary-fixed: 64 0 13;
+    --c-on-tertiary-fixed-variant: 146 0 42;
+
+    --c-error: 186 26 26;
+    --c-on-error: 255 255 255;
+    --c-error-container: 255 218 214;
+    --c-on-error-container: 147 0 10;
+
+    --c-background: 248 249 255;
+    --c-on-background: 11 28 48;
+    --c-surface: 248 249 255;
+    --c-on-surface: 11 28 48;
+    --c-surface-variant: 211 228 254;
+    --c-on-surface-variant: 69 70 77;
+    --c-surface-bright: 248 249 255;
+    --c-surface-dim: 203 219 245;
+    --c-surface-tint: 86 94 116;
+    --c-surface-container-lowest: 255 255 255;
+    --c-surface-container-low: 239 244 255;
+    --c-surface-container: 229 238 255;
+    --c-surface-container-high: 220 233 255;
+    --c-surface-container-highest: 211 228 254;
+    --c-inverse-surface: 33 49 69;
+    --c-inverse-on-surface: 234 241 255;
+
+    /* Darkened from #76777d (4.25:1) to clear 4.5:1 as text. */
+    --c-outline: 99 100 106;
+    --c-outline-variant: 198 198 205;
+
+    --card-bg: 255 255 255;
+    --card-shadow: 15 23 42;
+    --card-shadow-opacity: 0.05;
+    --card-shadow-opacity-hover: 0.08;
+    color-scheme: light;
+  }
+
+  .dark {
+    /* Roles invert: primary becomes a light tint readable on dark surfaces.
+       on-primary therefore becomes dark — it sits ON primary, not on the page. */
+    --c-primary: 190 198 224;
+    --c-on-primary: 19 27 46;
+    --c-primary-container: 63 70 92;
+    --c-on-primary-container: 218 226 253;
+    --c-primary-fixed: 63 70 92;
+    --c-primary-fixed-dim: 86 94 116;
+    --c-on-primary-fixed: 218 226 253;
+    --c-on-primary-fixed-variant: 190 198 224;
+    --c-inverse-primary: 63 70 92;
+
+    --c-secondary: 78 222 163;
+    --c-on-secondary: 0 56 36;
+    --c-secondary-container: 0 82 54;
+    --c-on-secondary-container: 111 251 190;
+    --c-secondary-fixed: 0 82 54;
+    --c-secondary-fixed-dim: 0 108 73;
+    --c-on-secondary-fixed: 111 251 190;
+    --c-on-secondary-fixed-variant: 78 222 163;
+
+    --c-tertiary: 255 178 183;
+    --c-on-tertiary: 93 0 24;
+    --c-tertiary-container: 123 0 33;
+    --c-on-tertiary-container: 255 178 183;
+    --c-tertiary-fixed: 123 0 33;
+    --c-tertiary-fixed-dim: 146 0 42;
+    --c-on-tertiary-fixed: 255 218 219;
+    --c-on-tertiary-fixed-variant: 255 178 183;
+
+    --c-error: 255 180 171;
+    --c-on-error: 105 0 5;
+    --c-error-container: 147 0 10;
+    --c-on-error-container: 255 218 214;
+
+    --c-background: 15 23 32;
+    --c-on-background: 226 229 237;
+    --c-surface: 15 23 32;
+    --c-on-surface: 226 229 237;
+    --c-surface-variant: 30 42 58;
+    --c-on-surface-variant: 185 190 201;
+    --c-surface-bright: 42 56 74;
+    --c-surface-dim: 11 18 26;
+    --c-surface-tint: 190 198 224;
+    --c-surface-container-lowest: 10 16 24;
+    --c-surface-container-low: 21 31 45;
+    --c-surface-container: 26 37 52;
+    --c-surface-container-high: 33 46 63;
+    --c-surface-container-highest: 42 58 77;
+    --c-inverse-surface: 226 229 237;
+    --c-inverse-on-surface: 20 29 41;
+
+    /* Lifted well above the 4.5:1 floor against dark surfaces. */
+    --c-outline: 150 156 167;
+    --c-outline-variant: 61 68 80;
+
+    --card-bg: 26 37 52;
+    --card-shadow: 0 0 0;
+    --card-shadow-opacity: 0.32;
+    --card-shadow-opacity-hover: 0.45;
+    color-scheme: dark;
+  }
+
   body {
     font-family: 'Inter', sans-serif;
+    @apply bg-background text-on-background;
+  }
+
+  /* Native widgets (scrollbars, date pickers, autofill) follow color-scheme. */
+  input,
+  select,
+  textarea {
+    color-scheme: inherit;
   }
 }
  
@@ -37,18 +178,18 @@
 }
  
 .bento-card {
-    background-color: #ffffff;
+    background-color: rgb(var(--card-bg));
+    color: rgb(var(--c-on-surface));
     border-radius: 12px;
     padding: 24px;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 12px rgb(var(--card-shadow) / var(--card-shadow-opacity));
 }
 .bento-card:hover {
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 24px rgb(var(--card-shadow) / var(--card-shadow-opacity-hover));
 }
  
 .form-input:focus {
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #0b1c30;
+  box-shadow: 0 0 0 2px rgb(var(--c-surface)), 0 0 0 4px rgb(var(--c-primary));
 }
  
 .shimmer-bg {
@@ -173,21 +314,45 @@
   width: 100% !important;
   border: none !important;
   font-family: 'Inter', sans-serif !important;
+  background: transparent !important;
+  color: rgb(var(--c-on-surface));
 }
 .fixed-expenses-calendar .react-calendar__navigation {
   margin-bottom: 0.5rem;
+}
+.fixed-expenses-calendar .react-calendar__navigation button {
+  color: rgb(var(--c-on-surface));
+  background: none;
+}
+.fixed-expenses-calendar .react-calendar__navigation button:enabled:hover,
+.fixed-expenses-calendar .react-calendar__navigation button:enabled:focus {
+  background-color: rgb(var(--c-primary) / 0.1);
+}
+.fixed-expenses-calendar .react-calendar__navigation button:disabled {
+  background: none;
+  opacity: 0.4;
 }
 .fixed-expenses-calendar .react-calendar__tile {
   padding: 0.5rem 0.25rem;
   border-radius: 8px;
   font-size: 0.875rem;
   line-height: 1.2;
+  color: rgb(var(--c-on-surface));
+  background: none;
 }
-.fixed-expenses-calendar .react-calendar__tile:hover {
-  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.1);
+.fixed-expenses-calendar .react-calendar__month-view__days__day--neighboringMonth {
+  color: rgb(var(--c-on-surface-variant) / 0.55);
+}
+.fixed-expenses-calendar .react-calendar__tile:enabled:hover,
+.fixed-expenses-calendar .react-calendar__tile:enabled:focus {
+  background-color: rgb(var(--c-primary) / 0.12);
+}
+.fixed-expenses-calendar .react-calendar__tile--now {
+  background-color: rgb(var(--c-secondary) / 0.18);
 }
 .fixed-expenses-calendar .react-calendar__tile--active {
-  background-color: rgba(var(--color-primary-rgb, 59, 130, 246), 0.2) !important;
+  background-color: rgb(var(--c-primary) / 0.22) !important;
+  color: rgb(var(--c-on-surface)) !important;
 }
 .fixed-expenses-calendar .react-calendar__month-view__days {
   gap: 2px;
@@ -196,6 +361,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  color: #6b7280;
+  color: rgb(var(--c-on-surface-variant));
   margin-bottom: 0.25rem;
 }

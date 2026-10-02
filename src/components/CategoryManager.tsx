@@ -74,7 +74,7 @@ export default function CategoryManager() {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6">
+    <div className="bg-surface-container-lowest shadow-lg rounded-lg p-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold">{t('categories.title')}</h3>
         <button
@@ -86,11 +86,11 @@ export default function CategoryManager() {
       </div>
 
       {showForm && (
-        <div className="bg-slate-50 p-4 rounded-lg mb-4 space-y-3">
+        <div className="bg-surface-container-low p-4 rounded-lg mb-4 space-y-3">
           <div>
             <label className="text-sm">{editingId ? t('categories.edit') : t('categories.name')}</label>
             <input
-              className="w-full bg-white p-2 border rounded"
+              className="w-full bg-surface-container-lowest p-2 border rounded"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('categories.placeholder')}
@@ -103,7 +103,7 @@ export default function CategoryManager() {
                 <button
                   key={c}
                   onClick={() => setColor(c)}
-                  className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-gray-800' : 'border-transparent'}`}
+                  className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-outline' : 'border-transparent'}`}
                   style={{ backgroundColor: c }}
                 />
               ))} */}
@@ -121,7 +121,7 @@ export default function CategoryManager() {
             <input
               type="number"
               min={0}
-              className="w-full bg-white p-2 border rounded"
+              className="w-full bg-surface-container-lowest p-2 border rounded"
               value={monthlyLimit}
               onChange={(e) => setMonthlyLimit(e.target.value)}
               placeholder={t('categories.monthlyLimitPlaceholder')}
@@ -131,7 +131,7 @@ export default function CategoryManager() {
             <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700">
               {editingId ? t('common.save') : t('categories.create')}
             </button>
-            <button onClick={resetForm} className="bg-gray-300 px-4 py-2 rounded-lg font-bold">
+            <button onClick={resetForm} className="bg-surface-container-highest px-4 py-2 rounded-lg font-bold">
               {t('common.cancel')}
             </button>
           </div>
@@ -139,24 +139,24 @@ export default function CategoryManager() {
       )}
 
       {categories.length === 0 ? (
-        <p className="text-gray-500 text-center py-4">{t('categories.empty')}</p>
+        <p className="text-on-surface-variant text-center py-4">{t('categories.empty')}</p>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="bg-slate-50 rounded-lg p-4 flex flex-col items-center gap-2 border border-transparent hover:border-gray-300"
+              className="bg-surface-container-low rounded-lg p-4 flex flex-col items-center gap-2 border border-transparent hover:border-outline-variant"
             >
               <CategoryIcon icon={cat.icon} color={cat.color} name={cat.name} size="lg" />
               <span className={`text-sm text-center ${cat.isDefault ? 'font-semibold' : ''}`}>{cat.name}</span>
               {cat.monthlyLimit != null && (
-                <span className="text-[11px] text-gray-500">{t('categories.monthlyLimit')}: ${cat.monthlyLimit}</span>
+                <span className="text-[11px] text-on-surface-variant">{t('categories.monthlyLimit')}: ${cat.monthlyLimit}</span>
               )}
               <div className="flex gap-1 mt-1">
                 <button
                   onClick={() => startEdit(cat)}
                   title={t('categories.editAction')}
-                  className="p-1.5 rounded text-gray-600 hover:bg-gray-200"
+                  className="p-1.5 rounded text-on-surface-variant hover:bg-surface-container-high"
                 >
                   <span className="material-symbols-outlined text-[18px]">edit</span>
                 </button>

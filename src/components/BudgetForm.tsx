@@ -26,7 +26,7 @@ export default function BudgetForm() {
       <div className="flex flex-col space-y-5">
         <label htmlFor="budget" className="text-4xl text-blue-600 font-bold text-center">{t('budget.define')}</label>
         <NumericFormat
-          className="w-full bg-white border border-gray-200 p-2 "
+          className="w-full bg-surface-container-lowest border border-outline-variant p-2 "
           placeholder={t('budget.placeholder')}
           name="budget"
           id="budget"

@@ -176,7 +176,7 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
     <section>
       <main className="min-h-screen">
         <div className="p-lg space-y-lg">
-            <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+            <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary-container">
                 <div className="relative z-10">
                     <h2 className="text-headline-lg font-headline-lg mb-xs">{t('expense.title')}</h2>
                     <p className="text-body-md opacity-80 max-w-2xl mx-auto">{t('expense.description')}</p>

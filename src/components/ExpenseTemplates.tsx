@@ -146,9 +146,9 @@ export default function ExpenseTemplates() {
       </div>
 
       {showNewGroup && (
-        <div className="bg-slate-50 p-4 rounded-lg flex gap-3">
+        <div className="bg-surface-container-low p-4 rounded-lg flex gap-3">
           <input
-            className="flex-1 bg-white p-2 border rounded"
+            className="flex-1 bg-surface-container-lowest p-2 border rounded"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
             placeholder={t('templates.groupPlaceholder')}
@@ -160,19 +160,19 @@ export default function ExpenseTemplates() {
       )}
 
       {groups.length === 0 ? (
-        <p className="text-gray-500 text-center py-4">{t('templates.empty')}</p>
+        <p className="text-on-surface-variant text-center py-4">{t('templates.empty')}</p>
       ) : (
         groups.map((group) => (
-          <div key={group.id} className="bg-white shadow rounded-lg overflow-hidden">
+          <div key={group.id} className="bg-surface-container-lowest shadow rounded-lg overflow-hidden">
             <div
-              className="flex items-center justify-between bg-slate-100 p-4 cursor-pointer"
+              className="flex items-center justify-between bg-surface-container-low p-4 cursor-pointer"
               onClick={() => setExpandedGroup(expandedGroup === group.id ? null : group.id)}
             >
               <div className="flex-1">
                 {editingGroup === group.id ? (
                   <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
                     <input
-                      className="flex-1 bg-white p-2 border rounded text-sm"
+                      className="flex-1 bg-surface-container-lowest p-2 border rounded text-sm"
                       value={groupNameEdit}
                       onChange={(e) => setGroupNameEdit(e.target.value)}
                        placeholder={t('templates.groupName')}
@@ -186,7 +186,7 @@ export default function ExpenseTemplates() {
                     </button>
                     <button
                       onClick={() => setEditingGroup(null)}
-                      className="bg-gray-300 px-3 py-1 rounded text-sm"
+                      className="bg-surface-container-highest px-3 py-1 rounded text-sm"
                     >
                        {t('templates.cancel')}
                     </button>
@@ -194,7 +194,7 @@ export default function ExpenseTemplates() {
                 ) : (
                   <>
                     <h4 className="font-bold text-lg">{group.name}</h4>
-                     <p className="text-sm text-gray-500">{t('templates.fixedCount', { count: group.items.length })}</p>
+                     <p className="text-sm text-on-surface-variant">{t('templates.fixedCount', { count: group.items.length })}</p>
                   </>
                 )}
               </div>
@@ -202,7 +202,7 @@ export default function ExpenseTemplates() {
                 <button
                   onClick={() => { setEditingGroup(group.id); setGroupNameEdit(group.name) }}
                    title={t('templates.edit')}
-                  className="p-2 rounded text-gray-600 hover:bg-gray-200"
+                  className="p-2 rounded text-on-surface-variant hover:bg-surface-container-high"
                 >
                   <span className="material-symbols-outlined text-[20px]">edit</span>
                 </button>
@@ -219,17 +219,17 @@ export default function ExpenseTemplates() {
             {expandedGroup === group.id && (
               <div className="p-4 space-y-3">
                 {group.items.map((item) => (
-                  <div key={item.id} className="bg-slate-50 p-3 rounded-lg space-y-2">
+                  <div key={item.id} className="bg-surface-container-low p-3 rounded-lg space-y-2">
                     {editingItem === item.id ? (
                       <div className="space-y-2">
                         <div className="flex gap-2 items-center">
                           <span className="font-semibold">{item.name}</span>
                            <span className="text-lg font-black text-blue-600">{formatCurrecy(item.amount)}</span>
-                          <span className="text-xs bg-slate-200 px-2 py-0.5 rounded">{item.category.name}</span>
+                          <span className="text-xs bg-surface-container-high px-2 py-0.5 rounded">{item.category.name}</span>
                         </div>
                         <div className="flex gap-2 items-center flex-wrap">
                           <select
-                            className="bg-white p-1 text-sm border rounded"
+                            className="bg-surface-container-lowest p-1 text-sm border rounded"
                             value={editStatus || item.status}
                             onChange={(e) => setEditStatus(e.target.value)}
                           >
@@ -239,14 +239,14 @@ export default function ExpenseTemplates() {
                           </select>
                           {(editStatus || item.status) === 'partial' && (
                             <NumericFormat
-                              className="bg-white p-1 text-sm border rounded w-24"
+                              className="bg-surface-container-lowest p-1 text-sm border rounded w-24"
                               value={editPartial !== undefined ? editPartial : item.partialAmount || ''}
                               onChange={(e) => setEditPartial(e.target.value)}
                                placeholder={t('templates.amount')}
                             />
                           )}
                           <input
-                            className="bg-white p-1 text-sm border rounded flex-1"
+                            className="bg-surface-container-lowest p-1 text-sm border rounded flex-1"
                             value={editComment !== undefined ? editComment : item.comment || ''}
                             onChange={(e) => setEditComment(e.target.value)}
                              placeholder={t('templates.comment')}
@@ -259,7 +259,7 @@ export default function ExpenseTemplates() {
                           </button>
                           <button
                             onClick={() => setEditingItem(null)}
-                            className="bg-gray-300 px-2 py-1 rounded text-xs"
+                            className="bg-surface-container-highest px-2 py-1 rounded text-xs"
                           >
                              {t('templates.cancel')}
                           </button>
@@ -270,12 +270,12 @@ export default function ExpenseTemplates() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-semibold">{item.name}</p>
-                            <span className="text-xs bg-slate-200 px-2 py-0.5 rounded">{item.category.name}</span>
+                            <span className="text-xs bg-surface-container-high px-2 py-0.5 rounded">{item.category.name}</span>
                             <PaymentStatusBadge status={item.status as 'pending' | 'paid' | 'partial'} partialAmount={item.partialAmount ?? undefined} expense={item as any} />
-                           {item.dayOfMonth && <span className="text-xs text-gray-500">{t('fixedExpenses.due', { day: item.dayOfMonth })}</span>}
+                           {item.dayOfMonth && <span className="text-xs text-on-surface-variant">{t('fixedExpenses.due', { day: item.dayOfMonth })}</span>}
                           </div>
                            <p className="text-lg font-black text-blue-600">{formatCurrecy(item.amount)}</p>
-                          {item.comment && <p className="text-xs text-gray-500 italic">{item.comment}</p>}
+                          {item.comment && <p className="text-xs text-on-surface-variant italic">{item.comment}</p>}
                         </div>
                         <div className="flex gap-2 items-center">
                           <button
@@ -298,19 +298,19 @@ export default function ExpenseTemplates() {
                   <div className="bg-blue-50 p-3 rounded-lg space-y-2">
                     <div className="grid grid-cols-2 gap-2">
                       <input
-                        className="bg-white p-2 border rounded text-sm"
+                        className="bg-surface-container-lowest p-2 border rounded text-sm"
                         value={itemName}
                         onChange={(e) => setItemName(e.target.value)}
                          placeholder={t('templates.addName')}
                       />
                       <NumericFormat
-                        className="bg-white p-2 border rounded text-sm"
+                        className="bg-surface-container-lowest p-2 border rounded text-sm"
                         value={itemAmount}
                         onChange={(e) => setItemAmount(e.target.value)}
                          placeholder={t('templates.addAmount')}
                       />
                       <select
-                        className="bg-white p-2 border rounded text-sm"
+                        className="bg-surface-container-lowest p-2 border rounded text-sm"
                         value={itemCategory}
                         onChange={(e) => setItemCategory(e.target.value)}
                       >
@@ -318,7 +318,7 @@ export default function ExpenseTemplates() {
                         {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                       <input
-                        className="bg-white p-2 border rounded text-sm"
+                        className="bg-surface-container-lowest p-2 border rounded text-sm"
                         type="number"
                         min="1"
                         max="31"
@@ -329,7 +329,7 @@ export default function ExpenseTemplates() {
                     </div>
                     <div className="flex gap-2">
                       <button onClick={() => handleAddItem(group.id)} className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold">{t('templates.add')}</button>
-                      <button onClick={resetItemForm} className="bg-gray-300 px-3 py-1 rounded text-sm">{t('templates.cancel')}</button>
+                      <button onClick={resetItemForm} className="bg-surface-container-highest px-3 py-1 rounded text-sm">{t('templates.cancel')}</button>
                     </div>
                   </div>
                 ) : (

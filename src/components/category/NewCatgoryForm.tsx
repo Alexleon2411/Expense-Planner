@@ -33,11 +33,11 @@ const handleCreate = async () => {
   
 
     return (
-        <div className="bg-slate-50 p-4 rounded-lg mb-4 space-y-3">
+        <div className="bg-surface-container-low p-4 rounded-lg mb-4 space-y-3">
             <div>
                 <label className="text-sm">{t('categories.name')}</label>
                 <input
-                className="w-full bg-white p-2 border rounded"
+                className="w-full bg-surface-container-lowest p-2 border rounded"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t('categories.placeholder')}
@@ -51,7 +51,7 @@ const handleCreate = async () => {
                     key={c}
                     onClick={() => setColor(c)}
                     aria-label={t('categories.selectColor', { color: c })}
-                    className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-gray-800' : 'border-transparent'}`}
+                    className={`w-8 h-8 rounded-full border-2 ${color === c ? 'border-outline' : 'border-transparent'}`}
                     style={{ backgroundColor: c }}
                     />
                 ))}

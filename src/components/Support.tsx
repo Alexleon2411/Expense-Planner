@@ -58,15 +58,15 @@ function Support() {
   return (
     <main className="min-h-screen pb-xl">
       <section className="p-sm sm:p-lg space-y-lg">
-        <div className="relative overflow-hidden rounded-2xl bg-primary-container px-lg py-xl text-on-primary">
+        <div className="relative overflow-hidden rounded-2xl bg-primary-container px-lg py-xl text-on-primary-container">
           <div className="relative z-10 max-w-3xl">
-            <div className="mb-sm flex items-center gap-sm text-secondary-fixed">
+            <div className="mb-sm flex items-center gap-sm text-secondary">
               <span className="material-symbols-outlined">menu_book</span>
               <span className="text-label-caps font-label-caps uppercase tracking-widest">{t('support.center')}</span>
             </div>
             <h1 className="text-headline-lg font-headline-lg">{t('support.title')}</h1>
             <p className="mt-sm max-w-2xl text-body-md opacity-80">{t('support.intro')}</p>
-            <label className="mt-lg flex items-center gap-sm rounded-xl bg-white p-sm text-on-surface shadow-lg">
+            <label className="mt-lg flex items-center gap-sm rounded-xl bg-surface-container-lowest p-sm text-on-surface shadow-lg">
               <span className="material-symbols-outlined text-on-surface-variant">search</span>
               <input
                 className="min-w-0 flex-1 bg-transparent text-body-md outline-none placeholder:text-on-surface-variant"

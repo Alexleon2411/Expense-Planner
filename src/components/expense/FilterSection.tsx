@@ -25,9 +25,9 @@ export default function Filter({
   const { t } = useTranslation()
 
   const statusButtonClass = (btnStatus: FilterStatus) => {
-    return `px-md py-xs rounded-full border text-primary text-body-sm transition-all ${
+    return `px-md py-xs rounded-full border text-on-surface-variant text-body-sm transition-all ${
       status === btnStatus
-        ? 'bg-primary text-white border-primary'
+        ? 'bg-primary text-on-primary border-primary'
         : 'border-outline-variant '
     }`;
   }

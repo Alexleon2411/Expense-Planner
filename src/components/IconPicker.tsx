@@ -36,15 +36,15 @@ export default function IconPicker({ value, onChange }: Props) {
 
   return (
     <div className="space-y-2">
-       <label className="text-sm font-medium text-gray-700">{t('categories.icon')}</label>
+       <label className="text-sm font-medium text-on-surface">{t('categories.icon')}</label>
       <input
-        className="w-full bg-white p-2 border rounded text-sm"
+        className="w-full bg-surface-container-lowest p-2 border rounded text-sm"
          placeholder={t('categories.iconPlaceholder')}
          aria-label={t('categories.iconPlaceholder')}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
-      <div className="grid grid-cols-6 gap-1 max-h-40 overflow-y-auto p-1 border rounded bg-white">
+      <div className="grid grid-cols-6 gap-1 max-h-40 overflow-y-auto p-1 border rounded bg-surface-container-lowest">
         {filtered.map((icon) => (
           <button
             key={icon.name}
@@ -54,20 +54,20 @@ export default function IconPicker({ value, onChange }: Props) {
             className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
               value === icon.name
                 ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-400'
-                : 'hover:bg-gray-100 text-gray-600'
+                : 'hover:bg-surface-container-low text-on-surface-variant'
             }`}
           >
             <span className="material-symbols-outlined text-[20px]">{icon.name}</span>
           </button>
         ))}
         {filtered.length === 0 && (
-           <p className="col-span-6 text-center text-sm text-gray-400 py-4">{t('categories.noIconResults')}</p>
+           <p className="col-span-6 text-center text-sm text-outline py-4">{t('categories.noIconResults')}</p>
         )}
       </div>
       {value && (
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-on-surface-variant">
           <span className="material-symbols-outlined text-[18px]">{value}</span>
-           {t('categories.selectedIcon')}: <span className="font-medium text-gray-700">{value}</span>
+           {t('categories.selectedIcon')}: <span className="font-medium text-on-surface">{value}</span>
         </div>
       )}
     </div>

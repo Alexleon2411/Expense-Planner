@@ -70,7 +70,7 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md">
+    <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/70 shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md">
 
       {/* HEADER — always visible, click to expand */}
       <div
@@ -86,7 +86,7 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
               {t(currentStatus.key)}
             </span>
             {expense.status === 'partial' && expense.partialAmount ? (
-              <span className="text-xs text-slate-400 font-medium">
+              <span className="text-xs text-outline font-medium">
                 ({t('expense.paidAmount', { amount: expense.partialAmount })})
               </span>
             ) : null}
@@ -108,25 +108,25 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-outline">
               {categoryInfo?.name || expense.category}
             </p>
-            <p className="text-base font-bold text-slate-800 truncate leading-tight mt-0.5">
+            <p className="text-base font-bold text-on-surface truncate leading-tight mt-0.5">
               {expense.expenseName}
             </p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-outline mt-1">
               {formatDate(expense.date!.toString())}
             </p>
           </div>
           <div className="shrink-0 flex flex-col items-center gap-2">
             {/* <FontAwesomeIcon
               icon={faChevronDown}
-              className={`text-slate-300 text-sm transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+              className={`text-outline text-sm transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
             /> */}
             
             <button
               onClick={(e) => { e.stopPropagation(); handleDeleteExpense(expense.id) }}
-              className="text-slate-300 hover:text-red-500 transition-colors text-xs"
+              className="text-outline hover:text-red-500 transition-colors text-xs"
                title={t('expense.delete')}
             >
               <FontAwesomeIcon icon={faTrash} />
@@ -137,14 +137,14 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
 
       {/* EXPANDED SECTION — dropdown content */}
       {expanded && (
-        <div className="border-t border-slate-100/80 px-5 py-4 space-y-4 bg-gradient-to-b from-slate-50/50 to-white animate-fadeIn">
+        <div className="border-t border-outline-variant/80 px-5 py-4 space-y-4 bg-gradient-to-b from-surface-container-low/50 to-white animate-fadeIn">
 
           {/* Status editing */}
           <div onClick={(e) => e.stopPropagation()} className="space-y-2">
             {editingStatus ? (
               <div className="flex gap-2 items-center flex-wrap">
                 <select
-                  className="bg-white border border-slate-200 p-2 text-sm rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
+                  className="bg-surface-container-lowest border border-outline-variant p-2 text-sm rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                   value={status}
                   onChange={(e) => {
                     const newStatus = e.target.value as 'pending' | 'paid' | 'partial'
@@ -161,7 +161,7 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
                 <button onClick={handleSaveStatus} className="text-xs font-semibold bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-colors">
                    {t('common.save')}
                 </button>
-                <button onClick={() => setEditingStatus(false)} className="text-xs font-semibold bg-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-300 transition-colors">
+                <button onClick={() => setEditingStatus(false)} className="text-xs font-semibold bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-xl hover:bg-surface-container-highest transition-colors">
                    {t('common.cancel')}
                 </button>
               </div>
@@ -184,13 +184,13 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
 
           {/* Personal note */}
           {/* <div onClick={(e) => e.stopPropagation()} className="space-y-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wider text-outline">
               Nota personal
             </p>
             {editingComment ? (
               <div className="flex gap-2 items-start">
                 <textarea
-                  className="flex-1 bg-white border border-slate-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none resize-none"
+                  className="flex-1 bg-surface-container-lowest border border-outline-variant p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none resize-none"
                   rows={2}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
@@ -200,7 +200,7 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
                   <button onClick={handleSaveComment} className="text-xs font-semibold bg-blue-600 text-white px-3 py-2 rounded-xl hover:bg-blue-700 transition-colors">
                     Guardar
                   </button>
-                  <button onClick={() => setEditingComment(false)} className="text-xs font-semibold bg-slate-200 text-slate-600 px-3 py-2 rounded-xl hover:bg-slate-300 transition-colors">
+                  <button onClick={() => setEditingComment(false)} className="text-xs font-semibold bg-surface-container-high text-on-surface-variant px-3 py-2 rounded-xl hover:bg-surface-container-highest transition-colors">
                     Cancelar
                   </button>
                 </div>
@@ -211,11 +211,11 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
                 className="w-full text-left"
               >
                 {expense.comment ? (
-                  <p className="text-sm text-slate-600 bg-white border border-slate-200 rounded-xl p-3 leading-relaxed">
+                  <p className="text-sm text-on-surface-variant bg-surface-container-lowest border border-outline-variant rounded-xl p-3 leading-relaxed">
                     {expense.comment}
                   </p>
                 ) : (
-                  <p className="text-sm text-slate-400 italic bg-white border border-slate-200 rounded-xl p-3">
+                  <p className="text-sm text-outline italic bg-surface-container-lowest border border-outline-variant rounded-xl p-3">
                     Sin nota personal. Haz clic para agregar...
                   </p>
                 )}
@@ -225,7 +225,7 @@ export default function ExpenseDetail({ expense }: ExpenseDetailProps) {
 
           {/* Comment thread */}
           <div onClick={(e) => e.stopPropagation()}>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-outline mb-2">
               {t('expense.commentsHistory')}
             </p>
             <ExpenseComments

@@ -74,7 +74,7 @@ export default function LoginForm() {
           {/* Logo & Name */}
           <div className="mb-5">
             <span className="font-headline-lg flex items-center gap-2">
-              <span className="material-symbols-outlined  text-secondary-fixed text-4xl">account_balance_wallet</span>
+              <span className="material-symbols-outlined  text-secondary text-4xl">account_balance_wallet</span>
               <span className='text-cyan-50'>AccounterFlow</span>
             </span>
           </div>
@@ -83,17 +83,17 @@ export default function LoginForm() {
             <h1 className="mb-5  text-white">
               {t('loginPage.headline')} <span className="text-emerald-400">{t('loginPage.headlineAccent')}</span> {t('loginPage.headlineSuffix')}
             </h1>
-            <p className="text-slate-500 font-sans opacity-75">
+            <p className="text-white/75 font-sans">
               {t('loginPage.description')}
             </p>
           </div>
           {/* centered squared's */}
           <div className="my-5 grid grid-flow-col gap-4">
-            <div className="bg-white/10 backdrop-blur-md p-5 rounded-lg border border-white/10 btn-highlight-glow">
+            <div className="bg-surface-container-lowest/10 backdrop-blur-md p-5 rounded-lg border border-white/10 btn-highlight-glow">
               <p className="font-body-sm text-white/60 mb-2 uppercase tracking-wider text-sm font-semibold">{t('loginPage.monthlyGrowth')}</p>
-              <p className="font-data-mono text-headline-md text-secondary-fixed">+14.2%</p>
+              <p className="font-data-mono text-headline-md text-secondary">+14.2%</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-md p-5  rounded-xl border border-white/10 btn-highlight-glow">
+            <div className="bg-surface-container-lowest/10 backdrop-blur-md p-5  rounded-xl border border-white/10 btn-highlight-glow">
               <p className="font-body-sm text-white/60 mb-2 uppercase  tracking-wider text-sm font-semibold">{t('loginPage.activeAccounts')}</p>
               <p className="font-data-mono text-headline-md text-white">2,841</p>
             </div>
@@ -118,8 +118,8 @@ export default function LoginForm() {
             <button
               className={` pb-2 font-label-caps transition-all ${
                 activeTab === 'login'
-                  ? 'text-slate-950 border-b-2 border-slate-950'
-                  : 'text-slate-500 hover:text-primary'
+                  ? 'text-on-surface border-b-2 border-outline'
+                  : 'text-on-surface-variant hover:text-primary'
               }`}
               onClick={() => setActiveTab('login')}
             >
@@ -128,8 +128,8 @@ export default function LoginForm() {
             <button
               className={`pb-2 font-label-caps transition-all ${
                 activeTab === 'register'
-                  ? 'text-primary border-b-2 border-slate-950'
-                  : 'text-slate-500 hover:text-primary'
+                  ? 'text-primary border-b-2 border-outline'
+                  : 'text-on-surface-variant hover:text-primary'
               }`}
               onClick={() => setActiveTab('register')}
             >
@@ -141,8 +141,8 @@ export default function LoginForm() {
           {activeTab === 'login' && (
             <div>
               <header className="my-5">
-                <h2 className="font-headline-md text-slate-600 mb-xs">{t('auth.welcome')}</h2>
-                <p className="font-body-sm text-slate-600 ">{t('auth.credentials')}</p>
+                <h2 className="font-headline-md text-on-surface-variant mb-xs">{t('auth.welcome')}</h2>
+                <p className="font-body-sm text-on-surface-variant ">{t('auth.credentials')}</p>
               </header>
 
               {loginError && (
@@ -158,7 +158,7 @@ export default function LoginForm() {
                     id="email"
                     type="email"
                      placeholder={t('auth.email')}
-                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
@@ -171,7 +171,7 @@ export default function LoginForm() {
                     id="password"
                     type="password"
                      placeholder={t('auth.password')}
-                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
@@ -179,13 +179,13 @@ export default function LoginForm() {
                 </div >
 
                 <div className='flex items-center gap-1 my-4'>
-                  <input type="checkbox" className='w-4 h-4 rounded border-outline-variant text-slate-900 focus:ring-black' id='remember'/> 
+                  <input type="checkbox" className='w-4 h-4 rounded border-outline-variant text-on-surface focus:ring-primary' id='remember'/> 
                    <label htmlFor="remember">{t('auth.staySignedIn')}</label></div>
 
                 <button
                   type="submit"
                   disabled={loginSubmitting}
-                  className="w-full bg-slate-900 text-slate-100 py-2 rounded-lg font-800  hover:bg-on-surface transition-colors shadow-md active:scale-[0.98] disabled:opacity-50"
+                  className="w-full bg-inverse-surface text-inverse-on-surface py-2 rounded-lg font-800  hover:bg-on-surface transition-colors shadow-md active:scale-[0.98] disabled:opacity-50"
                 >
                    {loginSubmitting ? t('auth.signingIn') : t('auth.signIn')}
                 </button>
@@ -215,7 +215,7 @@ export default function LoginForm() {
                       id="fname"
                       type="text"
                        placeholder={t('auth.firstName')}
-                      className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                      className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       required
@@ -227,7 +227,7 @@ export default function LoginForm() {
                       id="lname"
                       type="text"
                        placeholder={t('auth.lastName')}
-                      className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                      className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       required
@@ -241,7 +241,7 @@ export default function LoginForm() {
                     id="reg-email"
                     type="email"
                      placeholder={t('auth.email')}
-                    className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                    className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     required
@@ -254,7 +254,7 @@ export default function LoginForm() {
                     id="reg-password"
                     type="password"
                      placeholder={t('auth.minPassword')}
-                    className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                    className="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     required
@@ -271,7 +271,7 @@ export default function LoginForm() {
                 <button
                   type="submit"
                   disabled={regSubmitting}
-                  className="w-full bg-slate-900 text-slate-100 py-2 rounded-lg text-base font-800 hover:bg-on-surface transition-colors shadow-md active:scale-[0.98] disabled:opacity-50"
+                  className="w-full bg-inverse-surface text-inverse-on-surface py-2 rounded-lg text-base font-800 hover:bg-on-surface transition-colors shadow-md active:scale-[0.98] disabled:opacity-50"
                 >
                    {regSubmitting ? t('auth.creatingAccount') : t('auth.createAccount')}
                 </button>
@@ -285,7 +285,7 @@ export default function LoginForm() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-outline-variant"></div>
               </div>
-              <span className="relative px-8 bg-white font-label-caps text-slate-950 text-sm">
+              <span className="relative px-8 bg-surface-container-lowest font-label-caps text-on-surface text-sm">
                  {t('loginPage.continueWith')}
               </span>
             </div>
@@ -293,7 +293,7 @@ export default function LoginForm() {
             <div className="grid gap-4">
               <button
                 type="button"
-                className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg border border-outline-variant bg-white hover:bg-surface-container transition-colors shadow-sm active:scale-[0.98]"
+                className="flex items-center justify-center gap-1 px-2 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container transition-colors shadow-sm active:scale-[0.98]"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -305,7 +305,7 @@ export default function LoginForm() {
               </button>
               {/* <button
                 type="button"
-                className="flex items-center justify-center gap-1 px-2 py-3 rounded-lg border border-outline-variant bg-white hover:bg-surface-container transition-colors shadow-sm active:scale-[0.98]"
+                className="flex items-center justify-center gap-1 px-2 py-3 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container transition-colors shadow-sm active:scale-[0.98]"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4-6.7-6.81-1.98-15.65 4.34-15.65 1.44.02 2.37.5 3.19.49.82-.01 2.25-.6 3.73.1 1.27.59 2.23 1.61 2.74 3.05-2.93 1.25-2.45 5.31.54 6.54-.6 1.55-1.41 3.07-2.16 4.07-.63.84-1.28 1.67-2.03 1.66-.75-.01-1-.47-2.03-.46zM12.03 7.25c-.02-2.23 1.83-4.11 4.05-4.14.26 2.45-2.15 4.41-4.05 4.14z" />

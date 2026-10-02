@@ -59,19 +59,19 @@ export default function PartialPaymentModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                <Dialog.Title className="text-lg font-bold text-slate-800 mb-4">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-surface-container-lowest p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Title className="text-lg font-bold text-on-surface mb-4">
                   {t('expense.partial')}
                 </Dialog.Title>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1">
+                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
                       {t('expense.amountLabel')}
                     </label>
                     <input
                       type="number"
-                      className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
+                      className="w-full bg-surface-container-low border border-outline-variant p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
                       placeholder={t('expense.partialAmount')}
                       value={amount}
                       onChange={(e) => setAmount(Number(e.target.value))}
@@ -80,11 +80,11 @@ export default function PartialPaymentModal({
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1">
+                    <label className="block text-sm font-medium text-on-surface-variant mb-1">
                       {t('comments.comment')}
                     </label>
                     <textarea
-                      className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none resize-none"
+                      className="w-full bg-surface-container-low border border-outline-variant p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none resize-none"
                       rows={3}
                       placeholder={t('comments.placeholder')}
                       value={comment}
@@ -95,7 +95,7 @@ export default function PartialPaymentModal({
                   <div className="flex gap-2 justify-end pt-2">
                     <button
                       onClick={onClose}
-                      className="text-sm font-semibold bg-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-300 transition-colors"
+                      className="text-sm font-semibold bg-surface-container-high text-on-surface-variant px-4 py-2 rounded-xl hover:bg-surface-container-highest transition-colors"
                     >
                       {t('common.cancel')}
                     </button>

@@ -3,6 +3,7 @@ import { expensesApi, profilesApi } from '../api'
 import { useAuth } from '../hooks/useAuth'
 import { useCategories } from '../hooks/useCategories'
 import { useFixedExpenses } from '../hooks/useFixedExpenses'
+import { useTheme } from '../hooks/useTheme'
 import type { ProfileType } from '../api/profiles'
 import { useTranslation } from 'react-i18next'
 import i18n from '../i18n/config'
@@ -61,6 +62,7 @@ function escapeCsv(value: unknown) {
 export default function Settings() {
     const { user, updatePassword, updateLanguage, logout } = useAuth()
     const { t } = useTranslation()
+    const { isDark, toggleTheme } = useTheme()
     const { categories } = useCategories()
     const { fixedExpenses } = useFixedExpenses()
     const [profiles, setProfiles] = useState<profilesApi.Profile[]>([])
@@ -209,9 +211,9 @@ export default function Settings() {
     return (
         <main className="min-h-screen pb-xl">
             <div className="p-sm sm:p-lg space-y-lg">
-                <div className="relative overflow-hidden rounded-2xl bg-primary-container px-lg py-xl text-on-primary">
+                <div className="relative overflow-hidden rounded-2xl bg-primary-container px-lg py-xl text-on-primary-container">
                     <div className="relative z-10">
-                        <div className="mb-sm flex items-center gap-sm text-secondary-fixed"><span className="material-symbols-outlined">tune</span><span className="text-label-caps font-label-caps uppercase tracking-widest">{t('settings.preferences')}</span></div>
+                        <div className="mb-sm flex items-center gap-sm text-secondary"><span className="material-symbols-outlined">tune</span><span className="text-label-caps font-label-caps uppercase tracking-widest">{t('settings.preferences')}</span></div>
                         <h1 className="text-headline-lg font-headline-lg">{t('navigation.settings')}</h1>
                         <p className="mt-xs max-w-2xl text-body-md opacity-80">{t('settings.configure')}</p>
                     </div>
@@ -251,8 +253,38 @@ export default function Settings() {
                     </section>
 
                     <section className="bento-card lg:col-span-6">
-                         <p className="text-label-caps font-label-caps uppercase tracking-widest text-on-surface-variant">{t('settingsExtra.notifications')}</p>
-                         <h2 className="mt-xs text-headline-md font-headline-md">{t('settingsExtra.notificationPrompt')}</h2>
+                        <p className="text-label-caps font-label-caps uppercase tracking-widest text-on-surface-variant">{t('settingsExtra.appearance')}</p>
+                        <h2 className="mt-xs text-headline-md font-headline-md">{t('settingsExtra.theme')}</h2>
+                        <div className="mt-lg">
+                            <div className="flex items-center justify-between gap-md rounded-xl border border-outline-variant p-md">
+                                <div className="flex items-center gap-sm">
+                                    <span className="material-symbols-outlined text-primary" aria-hidden="true">{isDark ? 'dark_mode' : 'light_mode'}</span>
+                                    <div>
+                                        <p id="dark-mode-label" className="font-medium">{t('settingsExtra.darkMode')}</p>
+                                        <p id="dark-mode-description" className="text-body-xs text-on-surface-variant">{t('settingsExtra.darkModeDescription')}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={toggleTheme}
+                                    role="switch"
+                                    aria-checked={isDark}
+                                    aria-labelledby="dark-mode-label"
+                                    aria-describedby="dark-mode-description"
+                                    className={`relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${isDark ? 'bg-primary' : 'bg-outline'}`}
+                                >
+                                    <span
+                                        aria-hidden="true"
+                                        className={`pointer-events-none inline-block h-6 w-6 transform rounded-full shadow ring-0 transition duration-200 ease-in-out motion-reduce:transition-none ${isDark ? 'translate-x-5 bg-on-primary' : 'translate-x-0 bg-surface-container-lowest'}`}
+                                    />
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section className="bento-card lg:col-span-6">
+                          <p className="text-label-caps font-label-caps uppercase tracking-widest text-on-surface-variant">{t('settingsExtra.notifications')}</p>
+                          <h2 className="mt-xs text-headline-md font-headline-md">{t('settingsExtra.notificationPrompt')}</h2>
                         <div className="mt-lg space-y-sm">
                             {notificationRows.map((row) => <div key={row.id} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md"><div className="mb-sm"><p className="font-medium">{t(`settings.notifications.${row.title}`)}</p><p className="text-body-xs text-on-surface-variant">{t(`settings.notifications.${row.description}`)}</p></div><div className="grid grid-cols-2 gap-sm border-t border-outline-variant pt-sm"><label className="flex items-center justify-between gap-sm text-body-sm">{t('settings.email')}<input className="h-5 w-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" checked={notifications[row.id].email} onChange={() => toggleNotification(row.id, 'email')} /></label><label className="flex items-center justify-between gap-sm text-body-sm">{t('settingsExtra.push')}<input className="h-5 w-5 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox" checked={notifications[row.id].push} onChange={() => toggleNotification(row.id, 'push')} /></label></div></div>)}
                         </div>
@@ -266,7 +298,7 @@ export default function Settings() {
                          {exporting && <p className="mt-sm text-body-xs text-on-surface-variant">{t('settingsExtra.preparingExport')}</p>}{exportMessage && <p className={`mt-sm text-body-sm ${exportMessage.startsWith('No') ? 'text-error' : 'text-secondary'}`}>{exportMessage}</p>}
                     </section>
 
-                    <section className="bento-card border-l-4 border-on-tertiary-container lg:col-span-6"><p className="text-label-caps font-label-caps uppercase tracking-widest text-on-surface-variant">{t('settingsExtra.accountManagement')}</p><h2 className="mt-xs text-headline-md font-headline-md">{t('settingsExtra.deactivation')}</h2><p className="mt-sm text-body-sm text-on-surface-variant">{t('settingsExtra.deactivationUnavailable')}</p><button type="button" disabled className="mt-lg w-full rounded-lg bg-on-tertiary-container/10 px-md py-sm font-bold text-on-tertiary-container opacity-60 sm:w-auto">{t('settingsExtra.unavailable')}</button></section>
+                    <section className="bento-card border-l-4 border-tertiary lg:col-span-6"><p className="text-label-caps font-label-caps uppercase tracking-widest text-on-surface-variant">{t('settingsExtra.accountManagement')}</p><h2 className="mt-xs text-headline-md font-headline-md">{t('settingsExtra.deactivation')}</h2><p className="mt-sm text-body-sm text-on-surface-variant">{t('settingsExtra.deactivationUnavailable')}</p><button type="button" disabled className="mt-lg w-full rounded-lg bg-tertiary/10 px-md py-sm font-bold text-tertiary opacity-60 sm:w-auto">{t('settingsExtra.unavailable')}</button></section>
                 </div>
                  <button type="button" onClick={saveSettings} disabled={savingSettings} className="fixed bottom-lg right-lg z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-on-primary shadow-2xl transition-transform hover:scale-105 disabled:opacity-50" aria-label={t('settings.savePreferences')} title={t('settings.savePreferences')}><span className="material-symbols-outlined">{savingSettings ? 'progress_activity' : 'save'}</span></button>
             </div>

@@ -85,7 +85,7 @@ export default function CalendarView({ year, month }: Props) {
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6">
+    <div className="bg-surface-container-lowest shadow-lg rounded-lg p-6">
       <h3 className="text-xl font-bold mb-4">{t('calendar.expensesCalendar')}</h3>
       <Calendar
         tileContent={tileContent}
@@ -95,14 +95,14 @@ export default function CalendarView({ year, month }: Props) {
         locale={i18n.language}
       />
       {selectedDay && (
-        <div className="mt-4 bg-slate-50 p-4 rounded-lg">
+        <div className="mt-4 bg-surface-container-low p-4 rounded-lg">
           <p className="font-bold text-lg">Día {selectedDay.day}</p>
           <p>{t('common.total')}: <span className="font-black text-blue-600">{formatCurrecy(selectedDay.total)}</span></p>
           <p>Gastos: {selectedDay.count}</p>
           {selectedDay.expenses && selectedDay.expenses.length > 0 && (
             <div className="mt-2 space-y-1">
               {selectedDay.expenses.map((exp, i) => (
-                <div key={i} className="flex justify-between text-sm bg-white p-1 rounded">
+                <div key={i} className="flex justify-between text-sm bg-surface-container-lowest p-1 rounded">
                   <span>{exp.name}</span>
                   <span className="font-semibold">{formatCurrecy(exp.amount)}</span>
                 </div>

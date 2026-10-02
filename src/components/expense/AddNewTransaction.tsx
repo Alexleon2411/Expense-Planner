@@ -49,7 +49,7 @@ export default function AddNewTrasaction({
     const statusButtonClasses = (btnStatus: Status) =>
         `status-btn px-lg py-sm rounded-full border text-label-caps font-label-caps transition-all flex items-center gap-xs ${
             status === btnStatus
-                ? 'bg-primary text-white border-primary'
+                ? 'bg-primary text-on-primary border-primary'
                 : 'border-outline-variant'
         }`;
 
@@ -159,14 +159,14 @@ export default function AddNewTrasaction({
                             </div>
                             <div className="flex-1 space-y-xs">
                                 <input
-                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                     placeholder={t('expense.merchant')}
                                     type="text"
                                     value={merchant}
                                     onChange={(e) => setMerchant(e.target.value)}
                                 />
                                 <select
-                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
                                 >
@@ -182,7 +182,7 @@ export default function AddNewTrasaction({
                             <button type="button"
                                 className={`px-lg py-sm rounded-full border text-label-caps font-label-caps transition-all flex items-center justify-center gap-xs ${
                                     type === 'expense'
-                                        ? 'bg-primary text-white border-primary'
+                                        ? 'bg-primary text-on-primary border-primary'
                                         : 'border-outline-variant'
                                 }`}
                                 onClick={() => setType('expense')}
@@ -193,7 +193,7 @@ export default function AddNewTrasaction({
                             <button type="button"
                                 className={`px-lg py-sm rounded-full border text-label-caps font-label-caps transition-all flex items-center justify-center gap-xs ${
                                     type === 'saving'
-                                        ? 'bg-primary text-white border-primary'
+                                        ? 'bg-primary text-on-primary border-primary'
                                         : 'border-outline-variant'
                                 }`}
                                 onClick={() => setType('saving')}
@@ -209,7 +209,7 @@ export default function AddNewTrasaction({
                                 <div className="relative">
                                     <span className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant font-data-mono p-2">$</span>
                                     <input
-                                        className="w-full px-5 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                        className="w-full px-5 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                         placeholder={t('expense.amountPlaceholder')}
                                         step="0.01"
                                         type="number"
@@ -221,7 +221,7 @@ export default function AddNewTrasaction({
                             <div>
                                 <label className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.date')}</label>
                                 <input
-                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                     type="date"
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}

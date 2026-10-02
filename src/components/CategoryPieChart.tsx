@@ -23,7 +23,7 @@ export default function CategoryPieChart({ data }: Props) {
   })
 
   if (data.length === 0) {
-    return <p className="text-gray-500 text-center py-8">{t('common.noData')}</p>
+    return <p className="text-on-surface-variant text-center py-8">{t('common.noData')}</p>
   }
 
   return (
