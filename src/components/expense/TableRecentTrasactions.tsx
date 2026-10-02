@@ -137,7 +137,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
   const statusBtnClass = (s: EditStatus) =>
     `px-sm py-xs rounded-full border text-label-caps font-label-caps transition-all text-xs ${
       editStatus === s
-        ? 'bg-primary text-white border-primary'
+        ? 'bg-primary text-on-primary border-primary'
         : 'border-outline-variant text-on-surface-variant hover:border-primary'
     }`;
 
@@ -201,7 +201,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                           <div className="flex items-center gap-xs animate-in fade-in duration-200">
                             <span className="text-on-surface-variant text-xs">$</span>
                             <input
-                              className="w-20 px-xs py-xs rounded border border-outline-variant bg-slate-50 text-center text-xs focus:ring-primary focus:outline-none"
+                              className="w-20 px-xs py-xs rounded border border-outline-variant bg-surface-container-low text-center text-xs focus:ring-primary focus:outline-none"
                               type="number"
                               step="0.01"
                               min="0"
@@ -221,7 +221,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                           >
                              {saving ? '...' : t('common.save')}
                           </button>
-                           <button className="px-sm py-xs rounded bg-gray-200 text-xs hover:bg-gray-300" onClick={cancelEditing} type="button">{t('common.cancel')}</button>
+                           <button className="px-sm py-xs rounded bg-surface-container-high text-xs hover:bg-surface-container-highest" onClick={cancelEditing} type="button">{t('common.cancel')}</button>
                         </div>
                       </div>
                     ) : (
@@ -297,7 +297,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                     </div>
                     {editStatus === 'partial' && (
                       <input
-                        className="w-full px-sm py-xs rounded border border-outline-variant bg-slate-50 text-sm focus:ring-primary focus:outline-none"
+                        className="w-full px-sm py-xs rounded border border-outline-variant bg-surface-container-low text-sm focus:ring-primary focus:outline-none"
                         type="number"
                         step="0.01"
                         min="0"
@@ -309,7 +309,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                     )}
                     <div className="flex gap-xs">
                        <button className="flex-1 px-sm py-xs rounded bg-green-600 text-white text-xs font-bold disabled:opacity-50" onClick={() => saveStatus(expense)} disabled={saving || (editStatus === 'partial' && (!editPartialAmount || parseFloat(editPartialAmount) <= 0))} type="button">{saving ? '...' : t('expense.saveStatus')}</button>
-                       <button className="px-sm py-xs rounded bg-gray-200 text-xs" onClick={cancelEditing} type="button">{t('common.cancel')}</button>
+                       <button className="px-sm py-xs rounded bg-surface-container-high text-xs" onClick={cancelEditing} type="button">{t('common.cancel')}</button>
                     </div>
                   </div>
                 ) : (

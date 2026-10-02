@@ -32,7 +32,7 @@ export default function UserProfile() {
     <main className=" p-lg min-h-screen">
         <div className="max-w-6xl mx-auto">
             {/* <!-- Page Title --> */}
-            <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+            <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary-container">
                 <div className="relative z-10">
                     <h2 className="text-headline-lg font-headline-lg mb-xs">{t('profile.title')}</h2>
                     <p className="text-body-md opacity-80 max-w-2xl mx-auto">{t('profile.subtitle')}</p>
@@ -48,7 +48,7 @@ export default function UserProfile() {
                 {/* <!-- Profile Header Card (8 cols) --> */}
                 <div className="col-span-12 lg:col-span-12 bento-card flex flex-col md:flex-row items-center gap-xl">
                     <div >
-                        <div className="w-14 h-14 rounded-md bg-black text-white flex items-center justify-center text-xl font-bold">
+                        <div className="w-14 h-14 rounded-md bg-primary text-on-primary flex items-center justify-center text-xl font-bold">
                             {initials}
                         </div>
                         
@@ -177,7 +177,7 @@ export default function UserProfile() {
                                 </tr>
                                 <tr className="group hover:bg-surface-container-low transition-colors">
                                     <td className="py-md flex items-center gap-sm">
-                                        <div className="w-8 h-8 rounded bg-on-tertiary-container/10 flex items-center justify-center text-on-tertiary-container">
+                                        <div className="w-8 h-8 rounded bg-tertiary/10 flex items-center justify-center text-tertiary">
                                             <span className="material-symbols-outlined text-sm">file_download</span>
                                         </div>
                                         <span className="font-medium">{t('profile.dataExport')}</span>

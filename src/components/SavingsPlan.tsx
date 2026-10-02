@@ -106,7 +106,7 @@ export default function SavingsPlan({ month, year }: Props) {
               key={plan.id}
               type="button"
               onClick={() => { setSelectedPlanId(plan.id); setEditing(false) }}
-              className={`shrink-0 px-sm py-xs rounded-full text-xs font-semibold border transition-colors ${selectedPlanId === plan.id ? 'bg-primary text-white border-primary' : 'bg-surface-container-high text-on-surface border-outline-variant'}`}
+              className={`shrink-0 px-sm py-xs rounded-full text-xs font-semibold border transition-colors ${selectedPlanId === plan.id ? 'bg-primary text-on-primary border-primary' : 'bg-surface-container-high text-on-surface border-outline-variant'}`}
             >
               {plan.name || t('dashboard.savingsDefaultName')}
             </button>
@@ -161,7 +161,7 @@ export default function SavingsPlan({ month, year }: Props) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-md py-sm rounded-lg bg-primary text-white text-label-caps font-label-caps hover:opacity-90 disabled:opacity-50"
+             className="px-md py-sm rounded-lg bg-primary text-on-primary text-label-caps font-label-caps hover:opacity-90 disabled:opacity-50"
           >
             {saving ? t('dashboard.loading') : t('common.save')}
           </button>

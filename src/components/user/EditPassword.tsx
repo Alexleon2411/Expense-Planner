@@ -57,7 +57,7 @@ export default function EditPassword({ onClose }: Props) {
         aria-label={t('profile.changePassword')}
         onClick={onClose}
       >
-        <div className="max-w-lg mx-auto bg-white rounded-md p-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="max-w-lg mx-auto bg-surface-container-lowest rounded-md p-lg" onClick={(e) => e.stopPropagation()}>
           <div className="bento-card">
             <span className="text-label-caps text-on-surface-variant mb-xl block">{t('user.changePassword')}</span>
 
@@ -76,7 +76,7 @@ export default function EditPassword({ onClose }: Props) {
               <div>
                 <label className="block text-body-sm font-bold mb-xs">{t('user.currentPassword')}</label>
                 <input
-                  className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                  className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
@@ -86,7 +86,7 @@ export default function EditPassword({ onClose }: Props) {
               <div>
                 <label className="block text-body-sm font-bold mb-xs">{t('user.newPassword')}</label>
                 <input
-                  className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                  className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -96,7 +96,7 @@ export default function EditPassword({ onClose }: Props) {
               <div>
                 <label className="block text-body-sm font-bold mb-xs">{t('user.confirmNewPassword')}</label>
                 <input
-                  className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                  className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -108,13 +108,13 @@ export default function EditPassword({ onClose }: Props) {
 
           <div className="flex items-center justify-end gap-md pt-md">
             <button
-              className="px-lg py-sm border border-outline-variant bg-white text-on-surface font-bold rounded-lg hover:bg-surface-container transition-colors text-body-md"
+              className="px-lg py-sm border border-outline-variant bg-surface-container-lowest text-on-surface font-bold rounded-lg hover:bg-surface-container transition-colors text-body-md"
               onClick={onClose}
             >
               {t('user.cancel')}
             </button>
             <button
-              className="px-lg py-sm bg-primary text-on-primary font-bold rounded-lg shadow-md hover:opacity-90 hover:bg-white transform active:scale-95 transition-all text-body-md"
+              className="px-lg py-sm bg-primary text-on-primary font-bold rounded-lg shadow-md hover:opacity-90 hover:bg-surface-container-lowest transform active:scale-95 transition-all text-body-md"
               onClick={handleSubmit}
             >
               {t('user.saveChanges')}

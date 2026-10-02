@@ -10,16 +10,19 @@ import App from './App.tsx'
 import { BudgetProvider } from './context/BudgetContext.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { CategoriesProvider } from './context/CategoriesContext.tsx'
+import { ThemeProvider } from './context/ThemeContext.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <BudgetProvider>
-        <CategoriesProvider>
-          <App />
-        </CategoriesProvider>
-      </BudgetProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BudgetProvider>
+          <CategoriesProvider>
+            <App />
+          </CategoriesProvider>
+        </BudgetProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </StrictMode>,
 )

@@ -113,12 +113,12 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
               <button
                 type="button"
                 onClick={() => dispatch({ type: 'close-modal' })}
-                className=" hover:bg-black text-md font-boldn absolute top-4 right-5 px-3 py-2 rounded-lg text-white bg-zinc-900"
+                className=" hover:bg-black text-md font-boldn absolute top-4 right-5 px-3 py-2 rounded-lg text-white bg-inverse-surface"
                 aria-label={t('expense.close')}
               >
                 X
               </button>
-      <legend className="uppercase text-center text-2xl font-black border-b-4 border-zinc-700 py-2">
+      <legend className="uppercase text-center text-2xl font-black border-b-4 border-outline py-2">
         {state.editingId ? t('expense.update') : t('expense.new')}
       </legend>
       {error && <ErrorMessage>{error}</ErrorMessage>}
@@ -131,7 +131,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
           type="text"
           id="expenseName"
           placeholder={t('expense.namePlaceholder')}
-          className="bg-slate-100 p-2"
+          className="bg-surface-container-low p-2"
           name="expenseName"
           value={expense.expenseName}
           onChange={handleChange}
@@ -143,7 +143,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
         <NumericFormat
           id="amount"
           placeholder={t('expense.amountPlaceholder')}
-          className="bg-slate-100 p-2"
+          className="bg-surface-container-low p-2"
           name="amount"
           value={expense.amount}
           onChange={handleChange}
@@ -154,7 +154,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
         <label htmlFor="category" className="text-xl">{t('expense.category')}: </label>
         <Select
           id="category"
-          className="bg-slate-100 p-2"
+          className="bg-surface-container-low p-2"
           name="category"
           value={expense.category}
           onChange={handleChange}
@@ -178,7 +178,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
         <label htmlFor="expenseDate" className="text-xl">{t('expense.date')}: </label>
         <DatePicker
           id="expenseDate"
-          className="bg-slate-100 p-2"
+          className="bg-surface-container-low p-2"
           value={expense.date}
           onChange={handleDate}
         />
@@ -188,7 +188,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
         <label htmlFor="status" className="text-xl">{t('expense.status')}: </label>
         <Select
           id="status"
-          className="bg-slate-100 p-2"
+          className="bg-surface-container-low p-2"
           name="status"
           value={expense.status}
           onChange={handleChange}
@@ -205,7 +205,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
           <NumericFormat
             id="partialAmount"
             placeholder={t('expense.amountPlaceholder')}
-            className="bg-slate-100 p-2"
+            className="bg-surface-container-low p-2"
             name="partialAmount"
             value={expense.partialAmount}
             onChange={handleChange}
@@ -217,7 +217,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
         <label htmlFor="comment" className="text-xl">{t('expense.commentOptional')}: </label>
         <textarea
           id="comment"
-          className="bg-slate-100 p-2 border rounded"
+          className="bg-surface-container-low p-2 border rounded"
           name="comment"
           rows={3}
           placeholder={t('comments.placeholder')}
@@ -229,7 +229,7 @@ const [showCategoryForm, setShowCategoryForm] = useState(false)
       <input
         type="submit"
         disabled={apiLoading}
-        className="bg-zinc-900 cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg disabled:opacity-50"
+        className="bg-inverse-surface cursor-pointer w-full p-2 text-white uppercase font-bold rounded-lg disabled:opacity-50"
         value={apiLoading ? t('budget.saving') : state.editingId ? t('expense.saveChanges') : t('expense.register')}
       />
     </form>

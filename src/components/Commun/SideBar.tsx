@@ -53,7 +53,7 @@ export default function SideBar({ currentView, onNavigate, onCollapsedChange, mo
         `flex items-center gap-md py-sm transition-colors pl-4 rounded-lg w-full text-left ${
             currentView === view
                 ? 'text-primary font-bold border-l-4 border-primary'
-                : 'hover:bg-surface-container text-on-surface-variant dark:text-outline'
+                : 'hover:bg-surface-container text-on-surface-variant'
         }`;
 
     const sidebarWidth = collapsed ? 'w-[72px]' : 'w-64';

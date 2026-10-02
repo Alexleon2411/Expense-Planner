@@ -61,8 +61,8 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-100">
-         <p className="text-2xl text-gray-600">{t('common.loading')}</p>
+      <div className="flex items-center justify-center min-h-screen bg-surface-container-low">
+         <p className="text-2xl text-on-surface-variant">{t('common.loading')}</p>
       </div>
     )
   }
@@ -98,7 +98,7 @@ function App() {
       default:
         return (
           <>
-            {/* <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-ld mt-10 p-10">
+            {/* <div className="max-w-3xl mx-auto bg-surface-container-lowest shadow-lg rounded-ld mt-10 p-10">
               {isValidBudget ? <BudgetTracker /> : <BudgetForm />}
             </div> */}
             <ExpenseFeed searchTerm={searchTerm} />

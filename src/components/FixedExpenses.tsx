@@ -182,10 +182,10 @@ export default function FixedExpenses() {
         <div className="p-sm sm:p-lg space-y-lg">
             <main className="space-y-xl">
                 {/* Header */}
-                <div className="mb-xl text-left sm:text-center px-lg py-lg sm:py-xl relative overflow-hidden rounded-2xl bg-primary-container text-on-primary">
+                <div className="mb-xl text-left sm:text-center px-lg py-lg sm:py-xl relative overflow-hidden rounded-2xl bg-primary-container text-on-primary-container">
                         <div className="relative z-10">
                             <div className="flex items-center gap-sm mb-sm sm:justify-center">
-                                <span className="material-symbols-outlined text-secondary-fixed">event_repeat</span>
+                                <span className="material-symbols-outlined text-secondary">event_repeat</span>
                             <span className="text-label-caps font-label-caps uppercase tracking-widest opacity-70">{t('fixedExpenses.planning')}</span>
                             </div>
                             <h2 className="text-headline-lg font-headline-lg mb-xs">{t('fixedExpenses.title')}</h2>

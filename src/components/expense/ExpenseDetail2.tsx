@@ -84,7 +84,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
     const statusBtnClass = (s: EditStatus) =>
         `px-sm py-xs rounded-full border text-label-caps font-label-caps transition-all text-xs ${
             status === s
-                ? 'bg-primary text-white border-primary'
+                ? 'bg-primary text-on-primary border-primary'
                 : 'border-outline-variant text-on-surface-variant hover:border-primary'
         }`;
 
@@ -201,7 +201,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                         <div className="flex-1">
                             {editing ? (
                                 <input
-                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all font-bold text-on-surface"
+                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all font-bold text-on-surface"
                                     value={merchant}
                                     onChange={(e) => setMerchant(e.target.value)}
                                 />
@@ -210,7 +210,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                             )}
                             {editing ? (
                                 <select
-                                    className="w-full mt-1 px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all text-body-sm"
+                                    className="w-full mt-1 px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all text-body-sm"
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
                                 >
@@ -232,7 +232,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                                 <div className="relative">
                                     <span className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant font-data-mono p-2 text-sm">$</span>
                                     <input
-                                        className="w-full px-5 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all text-headline-md font-data-mono"
+                                        className="w-full px-5 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all text-headline-md font-data-mono"
                                         type="number"
                                         step="0.01"
                                         min="0"

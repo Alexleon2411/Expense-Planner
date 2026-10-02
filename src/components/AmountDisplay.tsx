@@ -11,9 +11,9 @@ export default function AmountDisplay({label, amount, totalAmount} : AmountDispl
   return (
     <p className="text-2xl text-blue-600 font-bold ">
       {label && `${label}: `}
-      <span className="font-black text-black">{formatCurrecy(amount)}</span>
+      <span className="font-black text-on-surface">{formatCurrecy(amount)}</span>
       {totalAmount !== undefined && (
-        <span className="text-sm text-slate-500">
+        <span className="text-sm text-on-surface-variant">
           / {formatCurrecy(totalAmount)}
         </span>
       )}

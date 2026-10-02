@@ -158,7 +158,7 @@ export default function Report2() {
       <main className="min-h-screen pb-xl">
         <div className="p-container-margin max-w-7xl mx-auto space-y-gutter">
           <div className="mb-xl">
-            <div className="text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary">
+            <div className="text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary-container">
               <div className="relative z-10">
                 <h2 className="text-headline-lg font-xl mb-xs">{t('reports.title')}</h2>
                 <p className="text-lg opacity-80 max-w-2xl mx-auto">{t('reports.subtitle')}</p>
@@ -258,7 +258,7 @@ export default function Report2() {
                           style={{ height: `${Math.max(pct, day.inMonth ? 2 : 1)}%` }}
                         >
                           {day.current > 0 && (
-                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-on-primary text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap">
                               {formatCurrecy(day.current)}
                             </div>
                           )}
@@ -364,7 +364,7 @@ export default function Report2() {
                   </div>
                   <div className="mt-xl p-md bg-primary-container rounded-lg">
                       <p className="text-label-caps text-on-primary-container mb-1">{t('reports.predicted')}</p>
-                    <p className="text-headline-md font-bold text-on-primary font-data-mono">{formatCurrecy(predictedEom)}</p>
+                    <p className="text-headline-md font-bold text-on-primary-container font-data-mono">{formatCurrecy(predictedEom)}</p>
                       <p className="text-body-sm text-on-primary-container">{t('reports.daysRemaining', { count: daysInMonth - daysElapsed })}</p>
                   </div>
                 </div>

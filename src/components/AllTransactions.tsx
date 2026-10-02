@@ -22,7 +22,7 @@ export default function AllTransactions({ transactions }: AllTransactionsProps) 
       return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-secondary/10 text-secondary">{t('common.paid')}</span>
     }
     if (status === 'partial') {
-      return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-tertiary-container/10 text-on-tertiary-container">{t('common.partial')}</span>
+      return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-tertiary/10 text-tertiary">{t('common.partial')}</span>
     }
     return <span className="px-sm py-xs rounded-full text-[10px] font-bold uppercase bg-surface-container-high text-on-surface-variant">{t('expense.expense')}</span>
   }

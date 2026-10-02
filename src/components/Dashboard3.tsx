@@ -302,7 +302,7 @@ export default function Dashboard3() {
   return (
     <div>
       <main className="min-h-screen pb-xl">
-        <div className="mt-6 mx-6 p-lg space-y-lg text-center py-xl overflow-hidden rounded-xl bg-primary-container text-on-primary">
+        <div className="mt-6 mx-6 p-lg space-y-lg text-center py-xl overflow-hidden rounded-xl bg-primary-container text-on-primary-container">
           <div className="relative z-10">
             <h2 className="text-display-md font-display-md mb-xs tracking-tight">{t('dashboard.title')}</h2>
             <p className="text-headline-sm font-headline-sm opacity-80 max-w-2xl mx-auto">{t('dashboard.overview')}</p>

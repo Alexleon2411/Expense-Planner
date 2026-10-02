@@ -86,7 +86,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
             aria-label={t('profile.edit')}
             onClick={handeEditeProfile}
         >
-            <div className="max-w-5xl mx-auto bg-white rounded-md p-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="max-w-5xl mx-auto bg-surface-container-lowest rounded-md p-lg" onClick={(e) => e.stopPropagation()}>
                 {/* <!-- Header Section --> */}
                 
                 {/* <!-- Bento Grid Layout --> */}
@@ -129,7 +129,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                 <div className="md:col-span-2">
                                   <label className="block text-body-sm font-bold mb-xs">{t('user.fullName')}</label>
                                   <input 
-                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                       type="text"
                                       value={name}
                                       onChange={(e) => setName(e.target.value)}
@@ -139,7 +139,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                     <label className="block text-body-sm font-bold mb-xs">{t('user.emailAddress')}</label>
                                     <div className="relative">
                                         <input 
-                                          className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                          className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                            type="email" 
                                            value={email}
                                            onChange={(e) => setEmail(e.target.value)}
@@ -149,7 +149,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                 <div>
                                     <label className="block text-body-sm font-bold mb-xs">{t('user.phoneNumber')}</label>
                                     <input 
-                                   className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                   className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                     type="tel" 
                                     value={phoneNumber}
                                     onChange={(e) => setPhoneNumber(e.target.value)}
@@ -158,7 +158,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                 <div>
                                     <label className="block text-body-sm font-bold mb-xs">{t('user.street')}</label>
                                     <input 
-                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                       type="text" 
                                       value={street}
                                       onChange={(e) => setStreet(e.target.value)}
@@ -167,7 +167,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                 <div>
                                       <label className="block text-body-sm font-bold mb-xs">{t('user.houseNumber')}</label>
                                     <input 
-                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                       type="text" 
                                       value={houseNumber}
                                       onChange={(e) => setHouseNumber(e.target.value)}
@@ -176,7 +176,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                 <div>
                                       <label className="block text-body-sm font-bold mb-xs">{t('user.city')}</label>
                                     <input 
-                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                       type="text" 
                                       value={city}
                                       onChange={(e) => setCity(e.target.value)}
@@ -185,7 +185,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                 <div>
                                       <label className="block text-body-sm font-bold mb-xs">{t('user.country')}</label>
                                     <input 
-                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                       type="text" 
                                       value={country}
                                       onChange={(e) => setCountry(e.target.value)}
@@ -197,7 +197,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                 </div>
                                 <div>
                                     <label className="block text-body-sm font-bold mb-xs">Country</label>
-                                    <select className="input-field text-body-md bg-white">
+                                    <select className="input-field text-body-md bg-surface-container-lowest">
                                         <option>Spain</option>
                                         <option>Mexico</option>
                                         <option>United States</option>
@@ -212,7 +212,7 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                                 <div>
                                      <label className="block text-body-sm font-bold mb-xs">{t('user.interfaceLanguage')}</label>
                                     <select 
-                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-slate-100 focus:outline-offset-4 focus:border-none form-input transition-all"
+                                      className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
                                       value={language}
                                       onChange={(e) => {
                                          const newLanguage = e.target.value as AppLanguage
@@ -232,13 +232,13 @@ export default function EditUserProfile({ user, handeEditeProfile}: Props) {
                         {/* <!-- Actions --> */}
                         <div className="flex items-center justify-end gap-md pt-md">
                             <button 
-                              className="px-lg py-sm border border-outline-variant bg-white text-on-surface font-bold rounded-lg hover:bg-surface-container transition-colors text-body-md"  
+                              className="px-lg py-sm border border-outline-variant bg-surface-container-lowest text-on-surface font-bold rounded-lg hover:bg-surface-container transition-colors text-body-md"  
                               onClick={handeEditeProfile}
                             >
                                  {t('user.cancel')}
                             </button>
                             <button 
-                                className="px-lg py-sm bg-primary text-on-primary font-bold rounded-lg shadow-md hover:opacity-90 hover:bg-white transform active:scale-95 transition-all text-body-md"
+                                className="px-lg py-sm bg-primary text-on-primary font-bold rounded-lg shadow-md hover:opacity-90 hover:bg-surface-container-lowest transform active:scale-95 transition-all text-body-md"
                                 onClick={() => handleEditProfile({ name, email, phoneNumber, street, houseNumber, city, country, language })}
                             >
                                  {t('user.saveChanges')}

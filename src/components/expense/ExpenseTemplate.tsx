@@ -94,40 +94,40 @@ export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
   }
 
   return (
-    <div className="w-full bg-white   flex flex-col font-sans antialiased text-black selection:bg-blue-100">
+    <div className="w-full bg-surface-container-lowest   flex flex-col font-sans antialiased text-on-surface selection:bg-blue-100">
 
       {/* Feed de comentarios */}
       <div ref={listRef} className="overflow-y-auto px-4 py-4 space-y-4 scroll-smooth max-h-64">
         {loading ? (
           <div className="flex items-center justify-center h-20">
-            <FontAwesomeIcon icon={faSpinner} spin className="text-slate-400 text-xl" />
+            <FontAwesomeIcon icon={faSpinner} spin className="text-outline text-xl" />
           </div>
         ) : comments.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-6">
-            {/* <div className="w-12 h-12 rounded-full border-2 border-slate-300 flex items-center justify-center mb-2">
-              <span className="text-2xl font-light text-slate-400">+</span>
+            {/* <div className="w-12 h-12 rounded-full border-2 border-outline-variant flex items-center justify-center mb-2">
+              <span className="text-2xl font-light text-outline">+</span>
             </div> */}
-             <p className="font-bold text-base text-slate-700">{t('comments.emptyTitle')}</p>
-             <p className="text-slate-400 text-xs mt-1 max-w-[220px]">{t('comments.emptyText')}</p>
+             <p className="font-bold text-base text-on-surface">{t('comments.emptyTitle')}</p>
+             <p className="text-outline text-xs mt-1 max-w-[220px]">{t('comments.emptyText')}</p>
           </div>
         ) : (
           [...comments].reverse().map((comment: any) => (
             <div key={comment.id} className="flex items-start gap-3 group animate-fadeIn">
-              <div className="w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center text-white text-[10px] font-bold shrink-0 border border-slate-200 shadow-inner">
+                            <div className="w-7 h-7 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface text-[10px] font-bold shrink-0 border border-outline-variant shadow-inner">
                 {comment.userId ? comment.userId.slice(0, 2).toUpperCase() : 'U'}
               </div>
               <div className="flex-1 min-w-0 pt-0.5">
-                <p className="text-sm text-slate-900 leading-snug break-words">
-                  <span className="font-bold mr-1.5 text-slate-800 text-xs">
+                <p className="text-sm text-on-surface leading-snug break-words">
+                  <span className="font-bold mr-1.5 text-on-surface text-xs">
                      {comment.userId ? t('comments.user', { id: comment.userId.slice(0, 4) }) : t('comments.anonymous')}
                   </span>
                   {comment.comment}
                 </p>
-                <div className="flex items-center gap-3 mt-1 text-[11px] font-medium text-slate-400">
+                <div className="flex items-center gap-3 mt-1 text-[11px] font-medium text-outline">
                   <span>{formatRelativeTime(comment.createdAt)}</span>
                   <button
                     onClick={() => handleDeleteComment(comment.id)}
-                    className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    className="text-outline hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200"
                      title={t('comments.delete')}
                   >
                     <FontAwesomeIcon icon={faTrash} className="text-[10px]" />
@@ -140,15 +140,15 @@ export default function ExpenseComments({ expenseId }: ExpenseCommentsProps) {
       </div>
 
       {/* Input inferior */}
-      <div className="border-t border-slate-100 px-4 py-3 bg-white shrink-0">
-        <div className="flex gap-3 items-center bg-slate-50 rounded-full px-4 py-2 border border-slate-200 focus-within:border-slate-400 transition-all duration-150">
+      <div className="border-t border-outline-variant px-4 py-3 bg-surface-container-lowest shrink-0">
+        <div className="flex gap-3 items-center bg-surface-container-low rounded-full px-4 py-2 border border-outline-variant focus-within:border-outline transition-all duration-150">
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={handleKeyDown}
              placeholder={t('comments.placeholder')}
             rows={1}
-            className="flex-1 bg-transparent text-sm resize-none focus:outline-none placeholder-slate-400 text-slate-900 max-h-20 py-0.5 leading-tight"
+            className="flex-1 bg-transparent text-sm resize-none focus:outline-none placeholder-outline text-on-surface max-h-20 py-0.5 leading-tight"
           />
           <button
             onClick={handleAddComment}
