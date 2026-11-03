@@ -25,9 +25,9 @@ interface ExpenseDetail2Props {
 type EditStatus = 'paid' | 'pending' | 'partial';
 
 const statusClass = (status: string) => {
-    if (status === 'paid') return 'status-paid';
-    if (status === 'pending') return 'status-pending';
-    return 'status-partial';
+    if (status === 'paid') return 'bg-emerald-400/[0.12] text-[#34D399]';
+    if (status === 'pending') return 'bg-amber-400/[0.12] text-[#FBBF24]';
+    return 'bg-blue-500/[0.12] text-[#60A5FA]';
 };
 
 function toInputDate(date: Expense['date']): string {
@@ -82,10 +82,10 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
     if (!isOpen || !expense) return null;
 
     const statusBtnClass = (s: EditStatus) =>
-        `px-sm py-xs rounded-full border text-label-caps font-label-caps transition-all text-xs ${
+        `inline-flex min-h-11 w-full min-w-0 items-center justify-center whitespace-normal break-words rounded-md border px-2 py-2 text-center text-xs font-medium transition-colors sm:min-h-9 sm:rounded-full sm:px-3 ${
             status === s
-                ? 'bg-primary text-on-primary border-primary'
-                : 'border-outline-variant text-on-surface-variant hover:border-primary'
+                ? 'border-[#3B82F6] bg-[#3B82F6] text-white'
+                : 'border-white/[0.08] text-[#9CA3AF] hover:border-[#3B82F6] hover:text-[#F9FAFB]'
         }`;
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -174,13 +174,13 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
             ></div>
 
             <div
-                className="fixed inset-0 z-[101] flex items-center justify-center p-lg"
+                className="fixed inset-0 z-[101] flex items-center justify-center p-2 sm:p-6"
                 role="dialog"
                 aria-modal="true"
                 onClick={onClose}
             >
-            <div className="w-full max-w-md max-h-[90vh] bg-surface shadow-2xl rounded-xl flex flex-col p-lg" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center justify-between mb-xl">
+            <div className="flex max-h-[calc(100dvh_-_1rem)] w-full max-w-md flex-col rounded-lg bg-surface p-4 shadow-2xl sm:max-h-[90vh] sm:rounded-xl sm:p-6" onClick={(e) => e.stopPropagation()}>
+                <div className="mb-4 flex items-center justify-between sm:mb-8">
                     <h3 className="text-headline-md font-headline-md">
                          {editing ? t('expense.editTransaction') : t('expense.transactionDetails')}
                     </h3>
@@ -189,7 +189,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                     </button>
                 </div>
 
-                <div className="flex-1 space-y-lg overflow-y-auto hide-scrollbar">
+                <div className="hide-scrollbar flex-1 space-y-4 overflow-y-auto sm:space-y-6">
                     {/* Header */}
                     <div className="flex items-center gap-md">
                         <CategoryIcon
@@ -225,7 +225,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                     </div>
 
                     {/* Amount & Status */}
-                    <div className={editing ? "space-y-md p-lg bg-surface-container-low rounded-xl" : "grid grid-cols-2 gap-md p-lg bg-surface-container-low rounded-xl"}>
+                    <div className={editing ? "space-y-md rounded-lg bg-surface-container-low p-4 sm:rounded-xl sm:p-6" : "grid grid-cols-1 gap-4 rounded-lg bg-surface-container-low p-4 sm:grid-cols-2 sm:rounded-xl sm:p-6"}>
                         <div>
                             <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.amountLabel')}</p>
                             {editing ? (
@@ -247,13 +247,13 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                         <div>
                             <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.statusLabel')}</p>
                             {editing ? (
-                                <div className="flex gap-1">
-                                    <button className={`${statusBtnClass('paid')} flex-1`} onClick={() => setStatus('paid')} type="button">{t('expense.paid')}</button>
-                                    <button className={`${statusBtnClass('pending')} flex-1`} onClick={() => setStatus('pending')} type="button">{t('expense.pending')}</button>
-                                    <button className={`${statusBtnClass('partial')} flex-1`} onClick={() => setStatus('partial')} type="button">{t('expense.partial')}</button>
+                                <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3">
+                                    <button className={statusBtnClass('paid')} onClick={() => setStatus('paid')} type="button">{t('expense.paid')}</button>
+                                    <button className={statusBtnClass('pending')} onClick={() => setStatus('pending')} type="button">{t('expense.pending')}</button>
+                                    <button className={statusBtnClass('partial')} onClick={() => setStatus('partial')} type="button">{t('expense.partial')}</button>
                                 </div>
                             ) : (
-                                <span className={`px-sm py-xs rounded-full text-label-caps font-label-caps uppercase ${statusClass(expense.status || 'pending')}`}>
+                                <span className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium uppercase ${statusClass(expense.status || 'pending')}`}>
                                     {t(`expense.${expense.status || 'pending'}`)}
                                 </span>
                             )}
@@ -393,7 +393,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                 </div>
 
                 {/* Footer actions */}
-                <div className="pt-lg border-t border-outline-variant flex gap-md">
+                <div className="flex gap-3 border-t border-outline-variant pt-4 sm:gap-4 sm:pt-6">
                     {editing ? (
                         <>
                             <button

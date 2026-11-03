@@ -33,10 +33,12 @@ interface Row {
 }
 
 const statusMap: Record<string, { key: string; className: string }> = {
-    paid: { key: 'expense.paid', className: 'status-paid' },
-    pending: { key: 'expense.pending', className: 'status-pending' },
-    partial: { key: 'expense.partial', className: 'status-partial' },
+    paid: { key: 'expense.paid', className: 'bg-emerald-400/[0.12] text-[#34D399]' },
+    pending: { key: 'expense.pending', className: 'bg-amber-400/[0.12] text-[#FBBF24]' },
+    partial: { key: 'expense.partial', className: 'bg-blue-500/[0.12] text-[#60A5FA]' },
 };
+
+const statusPillClassName = 'inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium uppercase';
 
 function formatDate(date: Expense['date']): string {
     if (!date) return '';
@@ -88,7 +90,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
         partialAmount: expense.partialAmount,
       };
     });
-  }, [expenses, categoryById]);
+  }, [expenses, categoryById, t]);
 
   const startEditing = (row: Row, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -135,31 +137,31 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
   };
 
   const statusBtnClass = (s: EditStatus) =>
-    `px-sm py-xs rounded-full border text-label-caps font-label-caps transition-all text-xs ${
+    `inline-flex min-h-9 shrink-0 items-center whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors sm:min-h-8 ${
       editStatus === s
-        ? 'bg-primary text-on-primary border-primary'
-        : 'border-outline-variant text-on-surface-variant hover:border-primary'
+        ? 'border-[#3B82F6] bg-[#3B82F6] text-white'
+        : 'border-white/[0.08] text-[#9CA3AF] hover:border-[#3B82F6] hover:text-[#F9FAFB]'
     }`;
 
   return (
-    <div className="bento-card  overflow-hidden relative">
-      <div className=" flex justify-between items-center">
-         <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase">{t('expense.recent')}</h3>
-         <span className="text-body-sm font-body-sm text-outline sm:display-none">{t('expense.showing', { count: rows.length })}</span>
+    <div className="relative overflow-hidden rounded-lg border border-white/[0.08] bg-[#14171F]">
+      <div className="flex items-center justify-between px-4 pb-2 pt-4">
+         <h3 className="text-sm font-medium text-[#F9FAFB]">{t('expense.recent')}</h3>
+         <span className="hidden text-xs text-[#9CA3AF] sm:inline">{t('expense.showing', { count: rows.length })}</span>
       </div>
       <div className="hidden sm:block overflow-x-auto max-h-[480px] overflow-y-auto relative">
-        <table className="w-full min-w-[900px] text-left border-collapse">
+        <table className="w-full min-w-[900px] border-collapse text-left">
           <thead>
-            <tr className="bg-surface-container-low border-b border-outline-variant">
-               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">{t('expense.date')}</th>
-               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">{t('expense.merchant')}</th>
-               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase">{t('expense.category')}</th>
-               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase text-right">{t('expense.amountLabel')}</th>
-               <th className="px-lg py-md text-label-caps font-label-caps text-on-surface-variant uppercase text-center">{t('expense.statusLabel')}</th>
-              <th className="px-lg py-md"></th>
+            <tr className="border-b border-white/[0.08]">
+               <th className="px-4 py-3 text-left text-xs font-medium text-[#9CA3AF]">{t('expense.date')}</th>
+               <th className="px-4 py-3 text-left text-xs font-medium text-[#9CA3AF]">{t('expense.merchant')}</th>
+               <th className="px-4 py-3 text-left text-xs font-medium text-[#9CA3AF]">{t('expense.category')}</th>
+               <th className="px-4 py-3 text-right font-mono text-xs font-medium tabular-nums text-[#9CA3AF]">{t('expense.amountLabel')}</th>
+               <th className="px-4 py-3 text-center text-xs font-medium text-[#9CA3AF]">{t('expense.statusLabel')}</th>
+              <th className="px-4 py-3"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-outline-variant">
+          <tbody className="divide-y divide-white/[0.08]">
             {rows.map((row) => {
               const expense = expenses.find(e => e.id === row.id);
               const isEditing = editingId === row.id;
@@ -167,16 +169,16 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
               return (
                 <tr
                   key={row.id}
-                  className="hover:bg-surface-container-lowest cursor-pointer transition-colors group"
+                  className="cursor-pointer transition-colors hover:bg-white/[0.03] group"
                   onClick={() => !isEditing && expense && onRowClick(expense)}
                 >
-                  <td className="px-lg py-md text-body-sm font-body-sm text-on-surface">{row.date}</td>
-                  <td className="px-lg py-md">
+                  <td className="px-4 py-3 text-sm text-[#9CA3AF]">{row.date}</td>
+                  <td className="px-4 py-3">
                     <div className="flex items-center gap-sm">
-                      <span className="text-body-md font-body-md text-on-surface font-semibold">{row.merchant}</span>
+                      <span className="text-sm font-medium text-[#F9FAFB]">{row.merchant}</span>
                     </div>
                   </td>
-                  <td className="px-lg py-md">
+                  <td className="px-4 py-3">
                     <div className="flex items-center gap-sm">
                       <CategoryIcon
                         icon={row.icon}
@@ -184,12 +186,11 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                         name={row.category}
                         size="sm"
                       />
-                      -
-                    <span className="py-xs rounded-full text-body-sm text-on-surface-variant">{row.category}</span>
+                    <span className="text-sm text-[#9CA3AF]">{row.category}</span>
                     </div>
                   </td>
-                  <td className="px-lg py-md text-right text-data-mono font-data-mono text-on-surface">{row.displayAmount}</td>
-                  <td className="px-lg py-md text-center">
+                  <td className="px-4 py-3 text-right font-mono text-sm tabular-nums text-[#F9FAFB]">{row.displayAmount}</td>
+                  <td className="px-4 py-3 text-center">
                     {isEditing ? (
                       <div className="flex flex-col items-center gap-xs" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-xs">
@@ -225,15 +226,16 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                         </div>
                       </div>
                     ) : (
-                      <span
-                        className={`px-sm py-xs rounded-full text-label-caps font-label-caps uppercase ${row.statusClassName} cursor-pointer hover:opacity-80 transition-opacity`}
+                      <button
+                        type="button"
+                        className={`${statusPillClassName} ${row.statusClassName} transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6]`}
                         onClick={(e) => startEditing(row, e)}
                       >
                         {row.statusLabel}
-                      </span>
+                      </button>
                     )}
                   </td>
-                  <td className="px-lg py-md text-right">
+                  <td className="px-4 py-3 text-right">
                     <button
                       type="button"
                       onClick={(e) => expense && handleDelete(expense, e)}
@@ -263,7 +265,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
           </button>
         )}
       </div>
-      <div className="sm:hidden space-y-sm mt-md">
+      <div className="divide-y divide-white/[0.08] sm:hidden">
         {rows.map((row) => {
           const expense = expenses.find(e => e.id === row.id);
           const isEditing = editingId === row.id;
@@ -272,25 +274,25 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
           return (
             <article
               key={row.id}
-              className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md"
+              className="px-4 py-3 transition-colors hover:bg-white/[0.03]"
               onClick={() => !isEditing && onRowClick(expense)}
             >
-              <div className="flex items-start justify-between gap-sm">
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-semibold truncate">{row.merchant}</p>
-                  <div className="mt-xs flex items-center gap-xs text-body-xs text-on-surface-variant">
+                  <p className="truncate text-sm font-medium text-[#F9FAFB]">{row.merchant}</p>
+                  <div className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-[#9CA3AF]">
                     <CategoryIcon icon={row.icon} color={row.categoryColor} name={row.category} size="sm" />
-                    <span className="truncate">{row.category}</span>
-                    <span>·</span>
-                    <span className="whitespace-nowrap">{row.date}</span>
+                    <span className="min-w-0 flex-1 truncate">{row.category}</span>
+                    <span aria-hidden="true">·</span>
+                    <span className="shrink-0 whitespace-nowrap">{row.date}</span>
                   </div>
                 </div>
-                <span className="shrink-0 font-data-mono font-bold">{row.displayAmount}</span>
+                <span className="max-w-[45%] shrink-0 whitespace-nowrap font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">{row.displayAmount}</span>
               </div>
-              <div className="mt-md border-t border-outline-variant pt-sm" onClick={(e) => e.stopPropagation()}>
+              <div className="mt-2 min-w-0" onClick={(e) => e.stopPropagation()}>
                 {isEditing ? (
                   <div className="space-y-sm">
-                    <div className="flex flex-wrap gap-xs">
+                    <div className="flex flex-wrap gap-2">
                        <button className={statusBtnClass('paid')} onClick={() => setEditStatus('paid')} type="button">{t('expense.paid')}</button>
                        <button className={statusBtnClass('pending')} onClick={() => setEditStatus('pending')} type="button">{t('expense.pending')}</button>
                        <button className={statusBtnClass('partial')} onClick={() => setEditStatus('partial')} type="button">{t('expense.partial')}</button>
@@ -307,14 +309,14 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                         onChange={(e) => setEditPartialAmount(e.target.value)}
                       />
                     )}
-                    <div className="flex gap-xs">
+                    <div className="flex flex-wrap gap-2">
                        <button className="flex-1 px-sm py-xs rounded bg-green-600 text-white text-xs font-bold disabled:opacity-50" onClick={() => saveStatus(expense)} disabled={saving || (editStatus === 'partial' && (!editPartialAmount || parseFloat(editPartialAmount) <= 0))} type="button">{saving ? '...' : t('expense.saveStatus')}</button>
                        <button className="px-sm py-xs rounded bg-surface-container-high text-xs" onClick={cancelEditing} type="button">{t('common.cancel')}</button>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between gap-sm">
-                    <button className={`rounded-full text-label-caps font-label-caps uppercase ${row.statusClassName}`} onClick={(e) => startEditing(row, e)} type="button">{row.statusLabel}</button>
+                  <div className="flex items-center justify-between gap-3">
+                    <button className={`${statusPillClassName} ${row.statusClassName} transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6]`} onClick={(e) => startEditing(row, e)} type="button">{row.statusLabel}</button>
                     <div className="flex items-center gap-xs">
                       <span className="text-body-xs text-on-surface-variant">{t('expense.details')}</span>
                       <button
@@ -335,7 +337,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
         })}
       </div>
       {hasMore && (
-        <div className="p-lg border-t border-outline-variant flex justify-center">
+        <div className="flex justify-center border-t border-white/[0.08] p-4">
           <button
             className="text-primary font-bold text-body-sm hover:underline flex items-center gap-xs disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={onLoadMore}
