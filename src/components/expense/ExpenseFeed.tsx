@@ -174,22 +174,21 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
 
   return (
     <section>
-      <main className="min-h-screen">
-        <div className="p-lg space-y-lg">
-            <div className="mb-xl text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary-container">
-                <div className="relative z-10">
-                    <h2 className="text-headline-lg font-headline-lg mb-xs">{t('expense.title')}</h2>
-                    <p className="text-body-md opacity-80 max-w-2xl mx-auto">{t('expense.description')}</p>
-                </div>
-            </div>
-            <div className="flex justify-start">
-              <button
-                className="py-md px-lg bg-primary text-on-primary rounded-lg font-body-md font-bold flex items-center gap-xs shadow-md hover:opacity-90"
-                onClick={openEmptyModal}>
-              <span className="material-symbols-outlined" data-icon="add">add</span>
+      <main className="min-h-screen bg-[#0B0D11] text-[#F9FAFB]">
+        <div className="space-y-4 p-4 md:p-6">
+          <header className="flex min-h-12 items-center justify-between gap-4">
+            <h1 className="min-w-0 text-xl font-semibold tracking-tight">
+              {t('expense.title')}
+            </h1>
+            <button
+              type="button"
+              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-[#3B82F6] px-3 text-sm font-medium text-white transition-colors hover:bg-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#60A5FA] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B0D11]"
+              onClick={openEmptyModal}
+            >
+              <span aria-hidden="true" className="text-lg leading-none">+</span>
               {t('expense.addTransaction')}
-              </button>
-            </div>
+            </button>
+          </header>
           <Filter
             category={selectedCategory}
             status={selectedStatus}
@@ -199,7 +198,7 @@ const ExpenseFeed: React.FC<ExpenseFeedProps> = ({ searchTerm = '' }) => {
             onDateRangeChange={setSelectedDateRange}
           />
           {loadingList && filteredExpenses.length === 0 && (
-            <p className="text-body-sm text-on-surface-variant">{t('common.loading')}</p>
+            <p className="text-sm text-[#9CA3AF]">{t('common.loading')}</p>
           )}
           <TableRecentTransactions
             expenses={filteredExpenses}

@@ -46,11 +46,28 @@ export default function AddNewTrasaction({
         setStatus(newStatus);
     };
 
-    const statusButtonClasses = (btnStatus: Status) =>
-        `status-btn px-lg py-sm rounded-full border text-label-caps font-label-caps transition-all flex items-center gap-xs ${
+    const fieldClassName = 'w-full rounded-md border border-white/[0.08] bg-[#1B202B] px-3 py-2.5 text-sm leading-5 text-[#F9FAFB] placeholder:text-[#6B7280] outline-none transition focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/30 [color-scheme:dark]';
+    const fieldLabelClassName = 'mb-2 block text-xs font-medium text-[#9CA3AF]';
+
+    const statusButtonClasses = (btnStatus: Exclude<Status, null>) => {
+        const selectedClassName = btnStatus === 'paid'
+            ? 'border-emerald-400/20 bg-emerald-400/[0.12] text-[#34D399]'
+            : btnStatus === 'pending'
+                ? 'border-amber-400/20 bg-amber-400/[0.12] text-[#FBBF24]'
+                : 'border-blue-400/20 bg-blue-400/[0.12] text-[#60A5FA]';
+
+        return `inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-center text-xs font-medium leading-tight transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] sm:rounded-full sm:px-3 sm:text-sm ${
             status === btnStatus
-                ? 'bg-primary text-on-primary border-primary'
-                : 'border-outline-variant'
+                ? selectedClassName
+                : 'border-white/[0.08] bg-[#1B202B] text-[#9CA3AF] hover:border-white/20 hover:text-[#F9FAFB]'
+        }`;
+    };
+
+    const typeButtonClasses = (selected: boolean) =>
+        `inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-md border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] ${
+            selected
+                ? 'border-[#3B82F6] bg-[#3B82F6] text-white'
+                : 'border-white/[0.08] bg-[#1B202B] text-[#9CA3AF] hover:border-white/20 hover:text-[#F9FAFB]'
         }`;
 
     const resetForm = () => {
@@ -132,208 +149,248 @@ export default function AddNewTrasaction({
     return (
         <>
             <div
-                className="fixed inset-0 drawer-overlay z-[100] transition-opacity duration-300 bg-black/50 backdrop-blur-sm"
+                aria-hidden="true"
+                className="drawer-overlay fixed inset-0 z-[100] bg-black/70 transition-opacity duration-300"
                 onClick={onClose}
-            ></div>
+            />
 
             <div
-                className="fixed inset-0 z-[101] flex items-center justify-center p-lg"
+                className="fixed inset-0 z-[101] flex items-center justify-center p-2 sm:p-6"
                 role="dialog"
                 aria-modal="true"
+                aria-labelledby="add-transaction-title"
                 onClick={onClose}
             >
-                <div className="w-full max-w-md max-h-[90vh] bg-surface shadow-2xl rounded-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
-
-                    <div className="px-lg  py-md  text-primary flex justify-between items-center">
-                        <h3 className="text-headline-md font-headline-md">{t('expense.addTransaction')}</h3>
-                        <button className="p-xs hover:bg-surface-container rounded-full" onClick={onClose} aria-label={t('common.close')} title={t('common.close')}>
-                            <span className="material-symbols-outlined" data-icon="close">close</span>
+                <div
+                    className="flex max-h-[calc(100dvh_-_1rem)] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-white/[0.08] bg-[#14171F] text-[#F9FAFB] shadow-2xl sm:max-h-[90vh] sm:rounded-xl"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <header className="flex shrink-0 items-center justify-between border-b border-white/[0.08] px-4 py-3 sm:px-6">
+                        <h2 id="add-transaction-title" className="text-lg font-semibold">
+                            {t('expense.addTransaction')}
+                        </h2>
+                        <button
+                            type="button"
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-[#9CA3AF] transition-colors hover:bg-white/[0.06] hover:text-[#F9FAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6]"
+                            onClick={onClose}
+                            aria-label={t('common.close')}
+                            title={t('common.close')}
+                        >
+                            <span aria-hidden="true" className="material-symbols-outlined text-[20px]">close</span>
                         </button>
-                    </div>
+                    </header>
 
-                    <div className="flex-1 space-y-lg overflow-y-auto hide-scrollbar p-sm">
-
-<div className="flex items-center gap-md">
-                            <div className="w-16 h-16 rounded-lg bg-surface-container flex items-center justify-center">
-                                <span className="material-symbols-outlined text-[32px] text-primary" data-icon="receipt_long">receipt_long</span>
-                            </div>
-                            <div className="flex-1 space-y-xs">
-                                <input
-                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
-                                    placeholder={t('expense.merchant')}
-                                    type="text"
-                                    value={merchant}
-                                    onChange={(e) => setMerchant(e.target.value)}
-                                />
-                                <select
-                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
-                                    value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
+                    <form
+                        className="flex min-h-0 flex-1 flex-col"
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            void handleSave();
+                        }}
+                    >
+                        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:space-y-5 sm:px-6 sm:py-5">
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    aria-pressed={type === 'expense'}
+                                    className={typeButtonClasses(type === 'expense')}
+                                    onClick={() => setType('expense')}
                                 >
-                                    <option value="">{t('expense.select')}</option>
-                                    {categories.map((c) => (
-                                        <option key={c.id} value={c.id}>{c.name}</option>
-                                    ))}
-                                </select>
+                                    <span aria-hidden="true" className="material-symbols-outlined text-[18px]">shopping_bag</span>
+                                    <span className="truncate">{t('expense.typeExpense')}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    aria-pressed={type === 'saving'}
+                                    className={typeButtonClasses(type === 'saving')}
+                                    onClick={() => setType('saving')}
+                                >
+                                    <span aria-hidden="true" className="material-symbols-outlined text-[18px]">savings</span>
+                                    <span className="truncate">{t('expense.typeSaving')}</span>
+                                </button>
                             </div>
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-sm">
-                            <button type="button"
-                                className={`px-lg py-sm rounded-full border text-label-caps font-label-caps transition-all flex items-center justify-center gap-xs ${
-                                    type === 'expense'
-                                        ? 'bg-primary text-on-primary border-primary'
-                                        : 'border-outline-variant'
-                                }`}
-                                onClick={() => setType('expense')}
-                            >
-                                <span className="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
-                                {t('expense.typeExpense')}
-                            </button>
-                            <button type="button"
-                                className={`px-lg py-sm rounded-full border text-label-caps font-label-caps transition-all flex items-center justify-center gap-xs ${
-                                    type === 'saving'
-                                        ? 'bg-primary text-on-primary border-primary'
-                                        : 'border-outline-variant'
-                                }`}
-                                onClick={() => setType('saving')}
-                            >
-                                <span className="material-symbols-outlined" data-icon="savings">savings</span>
-                                {t('expense.typeSaving')}
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-md p-lg bg-surface-container-low rounded-xl">
-                            <div>
-                                <label className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.amountLabel')}</label>
-                                <div className="relative">
-                                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-on-surface-variant font-data-mono p-2">$</span>
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <label htmlFor="transaction-merchant" className="block min-w-0">
+                                    <span className={fieldLabelClassName}>{t('expense.merchant')}</span>
                                     <input
-                                        className="w-full px-5 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
-                                        placeholder={t('expense.amountPlaceholder')}
-                                        step="0.01"
-                                        type="number"
-                                        value={amount || ''}
-                                        onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+                                        id="transaction-merchant"
+                                        className={fieldClassName}
+                                        placeholder={t('expense.merchant')}
+                                        type="text"
+                                        autoComplete="off"
+                                        value={merchant}
+                                        onChange={(e) => setMerchant(e.target.value)}
+                                        required
                                     />
-                                </div>
+                                </label>
+
+                                <label htmlFor="transaction-category" className="block min-w-0">
+                                    <span className={fieldLabelClassName}>{t('expense.category')}</span>
+                                    <span className="relative block">
+                                        <select
+                                            id="transaction-category"
+                                            className={`${fieldClassName} appearance-none pr-10`}
+                                            value={category}
+                                            onChange={(e) => setCategory(e.target.value)}
+                                            required
+                                        >
+                                            <option value="">{t('expense.select')}</option>
+                                            {categories.map((c) => (
+                                                <option key={c.id} value={c.id}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                        <span aria-hidden="true" className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-[#9CA3AF]">expand_more</span>
+                                    </span>
+                                </label>
                             </div>
-                            <div>
-                                <label className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.date')}</label>
-                                <input
-                                    className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low focus:outline-offset-4 focus:border-none form-input transition-all"
-                                    type="date"
-                                    value={date}
-                                    onChange={(e) => setDate(e.target.value)}
-                                />
+
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                <label htmlFor="transaction-amount" className="block min-w-0">
+                                    <span className={fieldLabelClassName}>{t('expense.amountLabel')}</span>
+                                    <span className="relative block">
+                                        <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#9CA3AF]">€</span>
+                                        <input
+                                            id="transaction-amount"
+                                            className={`${fieldClassName} pl-9 font-mono tabular-nums`}
+                                            placeholder={t('expense.amountPlaceholder')}
+                                            step="0.01"
+                                            min="0"
+                                            type="number"
+                                            value={amount || ''}
+                                            onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+                                            required
+                                        />
+                                    </span>
+                                </label>
+
+                                <label htmlFor="transaction-date" className="block min-w-0">
+                                    <span className={fieldLabelClassName}>{t('expense.date')}</span>
+                                    <input
+                                        id="transaction-date"
+                                        className={fieldClassName}
+                                        type="date"
+                                        value={date}
+                                        onChange={(e) => setDate(e.target.value)}
+                                    />
+                                </label>
                             </div>
-                            <div className="col-span-2 pt-md border-t-2 border-outline-variant">
-                                <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.status')}</p>
-                                <div className="flex flex-wrap gap-2">
+
+                            <fieldset className="space-y-2">
+                                <legend className={fieldLabelClassName}>{t('expense.status')}</legend>
+                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                                     <button
                                         className={statusButtonClasses('paid')}
+                                        aria-pressed={status === 'paid'}
                                         onClick={() => handleStatus('paid')}
                                         type="button"
                                     >
-                                        <span className="material-symbols-outlined text-sm">check_circle</span> {t('expense.paid')}
+                                        <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[16px]">check_circle</span>
+                                        <span>{t('expense.paid')}</span>
                                     </button>
                                     <button
                                         className={statusButtonClasses('pending')}
+                                        aria-pressed={status === 'pending'}
                                         onClick={() => handleStatus('pending')}
                                         type="button"
                                     >
-                                        <span className="material-symbols-outlined text-sm">schedule</span> {t('expense.pending')}
+                                        <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[16px]">schedule</span>
+                                        <span>{t('expense.pending')}</span>
                                     </button>
                                     <button
                                         className={statusButtonClasses('partial')}
+                                        aria-pressed={status === 'partial'}
                                         onClick={() => handleStatus('partial')}
                                         type="button"
                                     >
-                                        <span className="material-symbols-outlined text-sm">incomplete_circle</span> {t('expense.partial')}
+                                        <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[16px]">incomplete_circle</span>
+                                        <span>{t('expense.partial')}</span>
                                     </button>
                                 </div>
-                            </div>
-                        </div>
+                            </fieldset>
 
-                        {status === 'partial' && (
-                            <div className="space-y-md animate-in fade-in slide-in-from-top-2 duration-300">
-                                <div className="flex justify-between items-center py-sm border-b border-outline-variant">
-                                    <span className="text-body-md text-on-surface-variant">{t('expense.paidSoFar')}</span>
-                                    <span className="text-body-md font-semibold font-data-mono">
-                                        <input
-                                            className="text-right bg-transparent outline-none w-24"
-                                             placeholder={t('expense.amountPlaceholder')}
-                                            step="0.01"
-                                            type="number"
-                                            value={partialAmount || ''}
-                                            onChange={(e) => setPartialAmount(parseFloat(e.target.value) || 0)}
+                            {status === 'partial' && (
+                                <div className="space-y-3 rounded-lg border border-white/[0.08] bg-[#1B202B] p-3 sm:p-4">
+                                    <label htmlFor="transaction-partial-amount" className="block">
+                                        <span className={fieldLabelClassName}>{t('expense.paidSoFar')}</span>
+                                        <span className="relative block">
+                                            <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#9CA3AF]">€</span>
+                                            <input
+                                                id="transaction-partial-amount"
+                                                className={`${fieldClassName} pl-9 font-mono tabular-nums`}
+                                                placeholder={t('expense.amountPlaceholder')}
+                                                step="0.01"
+                                                type="number"
+                                                min="0"
+                                                max={amount}
+                                                value={partialAmount || ''}
+                                                onChange={(e) => setPartialAmount(parseFloat(e.target.value) || 0)}
+                                            />
+                                        </span>
+                                    </label>
+                                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-[#0B0D11] px-3 py-2 text-sm">
+                                        <span className="text-[#9CA3AF]">{t('expense.remaining')}</span>
+                                        <span className="font-mono tabular-nums text-[#FBBF24]">€{Math.max(0, amount - partialAmount).toFixed(2)}</span>
+                                    </div>
+                                    <label htmlFor="transaction-comment" className="block">
+                                        <span className={fieldLabelClassName}>{t('expense.paymentComments')}</span>
+                                        <textarea
+                                            id="transaction-comment"
+                                            className={`${fieldClassName} min-h-24 resize-y`}
+                                            placeholder={t('expense.partialCommentPlaceholder')}
+                                            rows={3}
+                                            value={comment}
+                                            onChange={(e) => setComment(e.target.value)}
                                         />
-                                    </span>
+                                    </label>
                                 </div>
-                                <div className="flex justify-between items-center py-sm border-b border-outline-variant">
-                                    <span className="text-body-md text-on-surface-variant">{t('expense.remaining')}</span>
-                                    <span className="text-body-md font-semibold font-data-mono text-error">
-                                        ${Math.max(0, amount - partialAmount).toFixed(2)}
-                                    </span>
-                                </div>
-                            </div>
-                        )}
+                            )}
 
-                        <div className="space-y-sm">
-                            <p className="text-label-caps font-label-caps text-on-surface-variant uppercase">
-                                {status === 'partial' ? t('expense.paymentComments') : t('upload.upload')}
-                            </p>
-                            {status === 'partial' ? (
-                                <textarea
-                                    className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg text-body-sm focus:ring-2 focus:ring-primary transition-all resize-none"
-                                     placeholder={t('expense.partialCommentPlaceholder')}
-                                    rows={3}
-                                    value={comment}
-                                    onChange={(e) => setComment(e.target.value)}
-                                ></textarea>
-                            ) : (
-                                <div className="space-y-sm">
+                            {status !== 'partial' && (
+                                <section className="space-y-2">
+                                    <h3 className={fieldLabelClassName}>{t('expense.receipt')}</h3>
                                     {scanning ? (
-                                        <div className="p-md border border-outline-variant rounded-lg flex items-center gap-md bg-surface-container-low">
-                                            <span className="material-symbols-outlined text-primary animate-spin" data-icon="sync">sync</span>
-                                            <div className="flex-1">
-                                                 <p className="text-body-sm font-semibold">{t('upload.scanning')}</p>
-                                                 <p className="text-body-sm text-outline">{t('upload.extracting')}</p>
+                                        <div className="flex items-center gap-3 rounded-md border border-white/[0.08] bg-[#1B202B] p-3">
+                                            <span aria-hidden="true" className="material-symbols-outlined animate-spin text-[#3B82F6]">sync</span>
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-medium text-[#F9FAFB]">{t('upload.scanning')}</p>
+                                                <p className="text-xs text-[#9CA3AF]">{t('upload.extracting')}</p>
                                             </div>
                                         </div>
                                     ) : receiptPreview ? (
-                                        <div className="relative rounded-lg overflow-hidden border border-outline-variant">
-                                             <img src={receiptPreview} alt={t('upload.preview')} className="w-full max-h-48 object-contain bg-surface-container-low" />
+                                        <div className="relative overflow-hidden rounded-md border border-white/[0.08] bg-[#1B202B]">
+                                            <img src={receiptPreview} alt={t('upload.preview')} className="max-h-40 w-full object-contain" />
                                             <button
-                                                className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                                                className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-md bg-[#0B0D11] text-[#F9FAFB] hover:bg-white/[0.1]"
                                                 onClick={handleRemoveReceipt}
                                                 type="button"
+                                                aria-label={t('common.close')}
                                             >
-                                                <span className="material-symbols-outlined text-[16px]">close</span>
+                                                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">close</span>
                                             </button>
                                         </div>
                                     ) : receiptFile ? (
-                                        <div className="flex items-center gap-md p-md border border-outline-variant rounded-lg bg-surface-container-low">
-                                            <span className="material-symbols-outlined text-primary" data-icon="description">description</span>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-body-sm font-semibold truncate">{receiptFile.name}</p>
-                                                <p className="text-body-sm text-outline">{(receiptFile.size / 1024).toFixed(1)} KB</p>
+                                        <div className="flex min-w-0 items-center gap-3 rounded-md border border-white/[0.08] bg-[#1B202B] p-3">
+                                            <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[#9CA3AF]">description</span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium text-[#F9FAFB]">{receiptFile.name}</p>
+                                                <p className="text-xs text-[#9CA3AF]">{(receiptFile.size / 1024).toFixed(1)} KB</p>
                                             </div>
-                                            <button className="text-red-600 hover:text-red-700" onClick={handleRemoveReceipt} type="button">
-                                                <span className="material-symbols-outlined text-[18px]">close</span>
+                                            <button className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-[#9CA3AF] hover:bg-white/[0.06] hover:text-[#F9FAFB]" onClick={handleRemoveReceipt} type="button" aria-label={t('common.close')}>
+                                                <span aria-hidden="true" className="material-symbols-outlined text-[18px]">close</span>
                                             </button>
                                         </div>
                                     ) : (
-                                        <div
-                                            className="p-md border border-dashed border-outline-variant rounded-lg flex items-center gap-md hover:border-primary transition-colors cursor-pointer"
+                                        <button
+                                            className="flex min-h-16 w-full items-center gap-3 rounded-md border border-dashed border-white/[0.16] bg-[#1B202B] px-3 py-3 text-left transition-colors hover:border-[#3B82F6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6]"
                                             onClick={() => fileInputRef.current?.click()}
+                                            type="button"
                                         >
-                                            <span className="material-symbols-outlined text-outline" data-icon="upload">upload</span>
-                                            <div className="flex-1">
-                                             <p className="text-body-sm font-semibold">{t('upload.upload')}</p>
-                                             <p className="text-body-sm text-outline">{t('upload.formats')}</p>
-                                            </div>
-                                        </div>
+                                            <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[#9CA3AF]">upload_file</span>
+                                            <span className="min-w-0">
+                                                <span className="block text-sm font-medium text-[#F9FAFB]">{t('upload.upload')}</span>
+                                                <span className="block text-xs text-[#9CA3AF]">{t('upload.formats')}</span>
+                                            </span>
+                                        </button>
                                     )}
                                     <input
                                         ref={fileInputRef}
@@ -342,26 +399,27 @@ export default function AddNewTrasaction({
                                         className="hidden"
                                         onChange={handleFileSelect}
                                     />
-                                </div>
+                                </section>
                             )}
                         </div>
-                    </div>
 
-                    <div className="pt-lg border-t border-outline-variant flex gap-md p-2">
-                        <button
-                            className="flex-1 py-md border border-outline-variant rounded-lg font-bold hover:bg-surface-container transition-colors"
-                            onClick={onClose}
-                        >
-                            {t('common.cancel')}
-                        </button>
-                        <button
-                            className="flex-1 py-md bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity disabled:opacity-50"
-                            onClick={handleSave}
-                            disabled={saving || !merchant.trim() || !category || amount <= 0}
-                        >
-                            {saving ? t('budget.saving') : t('expense.saveTransaction')}
-                        </button>
-                    </div>
+                        <footer className="flex shrink-0 flex-col-reverse gap-2 border-t border-white/[0.08] p-4 sm:flex-row sm:justify-end sm:px-6 sm:py-4">
+                            <button
+                                type="button"
+                                className="min-h-11 flex-1 rounded-md border border-white/[0.12] px-4 text-sm font-medium text-[#9CA3AF] transition-colors hover:bg-white/[0.04] hover:text-[#F9FAFB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6] sm:flex-none"
+                                onClick={onClose}
+                            >
+                                {t('common.cancel')}
+                            </button>
+                            <button
+                                type="submit"
+                                className="min-h-11 flex-1 rounded-md bg-[#3B82F6] px-4 text-sm font-medium text-white transition-colors hover:bg-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#60A5FA] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+                                disabled={saving || !merchant.trim() || !category || amount <= 0}
+                            >
+                                {saving ? t('budget.saving') : t('expense.saveTransaction')}
+                            </button>
+                        </footer>
+                    </form>
                 </div>
             </div>
         </>
