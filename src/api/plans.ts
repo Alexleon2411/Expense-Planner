@@ -6,6 +6,8 @@ export interface SavingPlanResponse {
   amount: number;
   month: number;
   year: number;
+  startDate: string;
+  endDate: string;
   userId: string;
 }
 
@@ -23,13 +25,29 @@ export async function getPlan(month: number, year: number) {
   return data;
 }
 
+export async function getPlansForPeriod(startDate: string, endDate: string) {
+  const params = new URLSearchParams({ startDate, endDate });
+  const { data } = await api.get<SavingPlanResponse[]>(`/plans?${params.toString()}`);
+  return data;
+}
+
 export async function createPlan(amount: number, month: number, year: number, name: string) {
   const { data } = await api.post<SavingPlanResponse>('/plans', { amount, month, year, name });
   return data;
 }
 
+export async function createPlanForPeriod(amount: number, startDate: string, endDate: string, name: string) {
+  const { data } = await api.post<SavingPlanResponse>('/plans', { amount, startDate, endDate, name });
+  return data;
+}
+
 export async function updatePlan(planId: string, amount: number, month: number, year: number, name: string) {
-  const { data } = await api.put<SavingPlanResponse>('/plans', { planId, amount, month, year, name });
+  const { data } = await api.put<SavingPlanResponse>('/plans', { id: planId, amount, month, year, name });
+  return data;
+}
+
+export async function updatePlanForPeriod(planId: string, amount: number, startDate: string, endDate: string, name: string) {
+  const { data } = await api.put<SavingPlanResponse>('/plans', { id: planId, amount, startDate, endDate, name });
   return data;
 }
 
@@ -37,8 +55,17 @@ export async function deletePlan(month: number, year: number, planId?: string) {
   await api.delete(`/plans?month=${month}&year=${year}${planId ? `&planId=${encodeURIComponent(planId)}` : ''}`);
 }
 
+export async function deletePlanById(planId: string) {
+  await api.delete(`/plans?planId=${encodeURIComponent(planId)}`);
+}
+
 export async function getProgress(month: number, year: number, planId?: string) {
   const query = planId ? `&planId=${encodeURIComponent(planId)}` : '';
   const { data } = await api.get<SavingProgressResponse>(`/plans/progress?month=${month}&year=${year}${query}`);
+  return data;
+}
+
+export async function getProgressForPlan(planId: string) {
+  const { data } = await api.get<SavingProgressResponse>(`/plans/progress?planId=${encodeURIComponent(planId)}`);
   return data;
 }

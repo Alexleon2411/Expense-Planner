@@ -147,7 +147,7 @@ export default function MonthReview({ month, year }: Props) {
         </section>
       )}
 
-      {review.fixedCandidates.length > 0 && (
+      {/* {review.fixedCandidates.length > 0 && (
         <section className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
           <p className="text-label-caps font-label-caps text-on-surface-variant mb-md">{t('dashboard.couldBeFixed')}</p>
           <div className="space-y-sm">
@@ -168,7 +168,7 @@ export default function MonthReview({ month, year }: Props) {
             })}
           </div>
         </section>
-      )}
+      )} */}
     </div>
   )
 }

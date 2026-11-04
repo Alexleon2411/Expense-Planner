@@ -24,12 +24,12 @@ export default defineConfig({
         theme_color: '#000000',
         icons: [
           {
-            src: '/icon-192x192.png',
+            src: '/accountflow images/phone-app-icon.jpg',
             type: 'image/png',
             sizes: '192x192'
           },
           {
-            src: '/icon-512x512.png',
+            src: '/accountflow images/image-loading-page.jpg',
             type: 'image/png',
             sizes: '512x512'
           }

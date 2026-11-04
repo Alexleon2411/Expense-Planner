@@ -22,7 +22,7 @@ import { formatDate } from '../helpers'
 type MainTab = 'dashboard' | 'insights'
 type InnerTab = 'resumen' | 'plantillas' | 'categorias' | 'estadisticas'
 
-const PIE_COLORS = ['#6750a4', '#625b71', '#7d5260', '#006c49', '#ba1a1a', '#00639b']
+// const PIE_COLORS = ['#6750a4', '#625b71', '#7d5260', '#006c49', '#ba1a1a', '#00639b']
 const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
 
 export default function Dashboard3() {
@@ -40,7 +40,7 @@ export default function Dashboard3() {
 
   const [overview, setOverview] = useState<OverviewResponse | null>(null)
   const [monthlyTrend, setMonthlyTrend] = useState<MonthlyTrend[]>([])
-  const [prevYearTrend, setPrevYearTrend] = useState<MonthlyTrend[]>([])
+  // const [prevYearTrend, setPrevYearTrend] = useState<MonthlyTrend[]>([])
   const [monthlyExpenses, setMonthlyExpenses] = useState<ExpenseResponse[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -49,13 +49,12 @@ export default function Dashboard3() {
     Promise.all([
       statsApi.getOverview(selectedMonth, selectedYear),
       statsApi.getMonthlyTrend(selectedYear),
-      statsApi.getMonthlyTrend(selectedYear - 1),
       expensesApi.listExpenses({ month: selectedMonth, year: selectedYear, page: 1, limit: 1000 }),
     ])
-      .then(([ov, cur, prev, expResp]) => {
+      .then(([ov, cur, expResp]) => {
         setOverview(ov)
         setMonthlyTrend(cur)
-        setPrevYearTrend(prev)
+        // setPrevYearTrend(prev)
         setMonthlyExpenses(expResp.expenses)
       })
       .catch(() => {})
@@ -155,11 +154,11 @@ export default function Dashboard3() {
     return map
   }, [monthlyTrend, selectedMonth, totalSpent])
 
-  const prevTrendByMonth = useMemo(() => {
-    const map = new Map<number, number>()
-    prevYearTrend.forEach(t => map.set(t.month, t.total))
-    return map
-  }, [prevYearTrend])
+  // const prevTrendByMonth = useMemo(() => {
+  //   const map = new Map<number, number>()
+  //   prevYearTrend.forEach(t => map.set(t.month, t.total))
+  //   return map
+  // }, [prevYearTrend])
 
   const momChange = useMemo(() => {
     const prevMonth = selectedMonth === 1 ? 12 : selectedMonth - 1
@@ -233,64 +232,64 @@ export default function Dashboard3() {
     return items
   }, [totalBudget, totalSpent, usagePct, sortedCategories, fixedTotal, selectedMonth, selectedYear])
 
-  const distribution = useMemo(() => {
-    const top = sortedCategories.slice(0, 5)
-    const max = Math.max(top.length, 3)
-    const withColors = top.map((c, i) => ({
-      ...c,
-      color: getCategoryInfo(c.category)?.color || PIE_COLORS[i % PIE_COLORS.length],
-    }))
-    while (withColors.length < max) {
-      withColors.push({ category: 'other', total: 0, count: 0, color: PIE_COLORS[withColors.length % PIE_COLORS.length] })
-    }
-    return withColors
-  }, [sortedCategories])
+  // const distribution = useMemo(() => {
+  //   const top = sortedCategories.slice(0, 5)
+  //   const max = Math.max(top.length, 3)
+  //   const withColors = top.map((c, i) => ({
+  //     ...c,
+  //     color: getCategoryInfo(c.category)?.color || PIE_COLORS[i % PIE_COLORS.length],
+  //   }))
+  //   while (withColors.length < max) {
+  //     withColors.push({ category: 'other', total: 0, count: 0, color: PIE_COLORS[withColors.length % PIE_COLORS.length] })
+  //   }
+  //   return withColors
+  // }, [sortedCategories])
 
-  const pieGradient = useMemo(() => {
-    if (totalSpent <= 0) return 'conic-gradient(#e0e0e0 0deg 360deg)'
-    let acc = 0
-    const segments = distribution
-      .filter(c => c.total > 0)
-      .map(c => {
-        const start = (acc / totalSpent) * 360
-        acc += c.total
-        const end = (acc / totalSpent) * 360
-        return `${c.color} ${start}deg ${end}deg`
-      })
-    return `conic-gradient(${segments.join(', ')})`
-  }, [distribution, totalSpent])
+  // const pieGradient = useMemo(() => {
+  //   if (totalSpent <= 0) return 'conic-gradient(#e0e0e0 0deg 360deg)'
+  //   let acc = 0
+  //   const segments = distribution
+  //     .filter(c => c.total > 0)
+  //     .map(c => {
+  //       const start = (acc / totalSpent) * 360
+  //       acc += c.total
+  //       const end = (acc / totalSpent) * 360
+  //       return `${c.color} ${start}deg ${end}deg`
+  //     })
+  //   return `conic-gradient(${segments.join(', ')})`
+  // }, [distribution, totalSpent])
 
-  const chartMonths = useMemo(() => {
-    const res: number[] = []
-    for (let i = 5; i >= 0; i--) {
-      const m = selectedMonth - i
-      res.push(m <= 0 ? m + 12 : m)
-    }
-    return res
-  }, [selectedMonth])
+  // const chartMonths = useMemo(() => {
+  //   const res: number[] = []
+  //   for (let i = 5; i >= 0; i--) {
+  //     const m = selectedMonth - i
+  //     res.push(m <= 0 ? m + 12 : m)
+  //   }
+  //   return res
+  // }, [selectedMonth])
 
-  const maxChartValue = useMemo(() => {
-    const values = chartMonths.flatMap(m => [
-      currentTrendByMonth.get(m) ?? 0,
-      prevTrendByMonth.get(m) ?? 0,
-    ])
-    const max = Math.max(...values)
-    return max > 0 ? max : 1
-  }, [chartMonths, currentTrendByMonth, prevTrendByMonth])
+  // const maxChartValue = useMemo(() => {
+  //   const values = chartMonths.flatMap(m => [
+  //     currentTrendByMonth.get(m) ?? 0,
+  //     prevTrendByMonth.get(m) ?? 0,
+  //   ])
+  //   const max = Math.max(...values)
+  //   return max > 0 ? max : 1
+  // }, [chartMonths, currentTrendByMonth, prevTrendByMonth])
 
-  const merchants = useMemo(() => {
-    const map = new Map<string, { name: string; category: string; count: number; total: number }>()
-    for (const exp of state.expenses) {
-      const existing = map.get(exp.expenseName)
-      if (existing) {
-        existing.count += 1
-        existing.total += exp.amount
-      } else {
-        map.set(exp.expenseName, { name: exp.expenseName, category: exp.category, count: 1, total: exp.amount })
-      }
-    }
-    return [...map.values()].sort((a, b) => b.total - a.total).slice(0, 5)
-  }, [state.expenses])
+  // const merchants = useMemo(() => {
+  //   const map = new Map<string, { name: string; category: string; count: number; total: number }>()
+  //   for (const exp of state.expenses) {
+  //     const existing = map.get(exp.expenseName)
+  //     if (existing) {
+  //       existing.count += 1
+  //       existing.total += exp.amount
+  //     } else {
+  //       map.set(exp.expenseName, { name: exp.expenseName, category: exp.category, count: 1, total: exp.amount })
+  //     }
+  //   }
+  //   return [...map.values()].sort((a, b) => b.total - a.total).slice(0, 5)
+  // }, [state.expenses])
 
   const innerTabs: { id: InnerTab; label: string }[] = [
     { id: 'resumen', label: t('dashboard.tabs.summary') },
@@ -693,7 +692,7 @@ export default function Dashboard3() {
                   <MonthReview month={selectedMonth} year={selectedYear} />
                 </div>
 
-                <section className="col-span-12 flex flex-col rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-5 sm:p-5">
+                {/* <section className="col-span-12 flex flex-col rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-5 sm:p-5">
                   <h3 className="text-label-caps font-label-caps text-on-surface-variant mb-lg">{t('dashboard.categoryDistribution')}</h3>
                   <div className="flex-grow flex items-center justify-center py-lg relative">
                     <div
@@ -724,9 +723,9 @@ export default function Dashboard3() {
                       <p className="text-body-sm text-on-surface-variant text-center py-sm">{t('dashboard.noData')}</p>
                     )}
                   </div>
-                </section>
+                </section> */}
 
-                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-7 sm:p-5">
+                {/* <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-7 sm:p-5">
                   <div className="flex justify-between items-center mb-lg">
                     <h3 className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.monthAnalysis')}</h3>
                     <div className="flex gap-md">
@@ -755,9 +754,9 @@ export default function Dashboard3() {
                       )
                     })}
                   </div>
-                </section>
+                </section> */}
 
-                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
+                {/* <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
                   <div className="flex justify-between items-center mb-lg">
                     <h3 className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.topExpenses')}</h3>
                     <button className="text-primary text-body-sm font-bold hover:underline">{t('dashboard.viewAll')}</button>
@@ -778,9 +777,6 @@ export default function Dashboard3() {
                           <tr key={m.name} className="group transition-colors hover:bg-white/[0.03]">
                             <td className="py-md flex items-center gap-md">
                               <div className="w-10 h-10 rounded-full  flex items-center justify-center">
-                                {/* <span className="material-symbols-outlined text-[20px]">
-                                  {getCategoryInfo(m.category)?.icon || 'receipt_long'}
-                                </span> */}
                                 <CategoryIcon
                                   icon={getCategoryInfo(m.category)?.icon}
                                   color={getCategoryInfo(m.category)?.color}
@@ -837,7 +833,7 @@ export default function Dashboard3() {
                       <p className="py-lg text-center text-on-surface-variant text-body-sm">{t('dashboard.noPeriod')}</p>
                     )}
                   </div>
-                </section>
+                </section> */}
               </>
             )}
           </div>
