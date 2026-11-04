@@ -53,7 +53,9 @@ export default function CategoryManager() {
         setCategories((prev) => [...prev, created])
       }
       resetForm()
-    } catch {}
+    } catch (error) {
+      console.error('Error saving category', error)
+    }
   }
 
   const startEdit = (cat: Category) => {
@@ -70,27 +72,29 @@ export default function CategoryManager() {
     try {
       await categoriesApi.deleteCategory(id)
       setCategories((prev) => prev.filter((c) => c.id !== id))
-    } catch {}
+    } catch (error) {
+      console.error('Error deleting category', error)
+    }
   }
 
   return (
-    <div className="bg-surface-container-lowest shadow-lg rounded-lg p-6">
+    <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold">{t('categories.title')}</h3>
         <button
           onClick={() => (showForm ? resetForm() : setShowForm(true))}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700"
+          className="min-h-11 rounded-md bg-[#3B82F6] px-4 text-sm font-medium text-white hover:bg-[#2563EB]"
         >
           {showForm ? t('common.cancel') : t('categories.new')}
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-surface-container-low p-4 rounded-lg mb-4 space-y-3">
+        <div className="mb-4 space-y-3 rounded-lg border border-white/[0.08] bg-[#1B202B] p-4">
           <div>
             <label className="text-sm">{editingId ? t('categories.edit') : t('categories.name')}</label>
             <input
-              className="w-full bg-surface-container-lowest p-2 border rounded"
+              className="mt-2 h-11 w-full rounded-md border border-white/[0.08] bg-[#14171F] px-3 text-sm text-[#F9FAFB] outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/30"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('categories.placeholder')}
@@ -121,17 +125,17 @@ export default function CategoryManager() {
             <input
               type="number"
               min={0}
-              className="w-full bg-surface-container-lowest p-2 border rounded"
+              className="mt-2 h-11 w-full rounded-md border border-white/[0.08] bg-[#14171F] px-3 font-mono text-sm tabular-nums text-[#F9FAFB] outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/30"
               value={monthlyLimit}
               onChange={(e) => setMonthlyLimit(e.target.value)}
               placeholder={t('categories.monthlyLimitPlaceholder')}
             />
           </div>
           <div className="flex gap-2">
-            <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700">
+            <button onClick={handleSave} className="min-h-11 rounded-md bg-[#3B82F6] px-4 text-sm font-medium text-white hover:bg-[#2563EB]">
               {editingId ? t('common.save') : t('categories.create')}
             </button>
-            <button onClick={resetForm} className="bg-surface-container-highest px-4 py-2 rounded-lg font-bold">
+            <button onClick={resetForm} className="min-h-11 rounded-md border border-white/[0.08] px-4 text-sm font-medium text-[#9CA3AF] hover:bg-white/[0.04] hover:text-[#F9FAFB]">
               {t('common.cancel')}
             </button>
           </div>
@@ -141,22 +145,22 @@ export default function CategoryManager() {
       {categories.length === 0 ? (
         <p className="text-on-surface-variant text-center py-4">{t('categories.empty')}</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
           {categories.map((cat) => (
             <div
               key={cat.id}
-              className="bg-surface-container-low rounded-lg p-4 flex flex-col items-center gap-2 border border-transparent hover:border-outline-variant"
+              className="flex flex-col items-center gap-2 rounded-lg border border-white/[0.08] bg-[#1B202B] p-4 transition-colors hover:bg-white/[0.03]"
             >
               <CategoryIcon icon={cat.icon} color={cat.color} name={cat.name} size="lg" />
               <span className={`text-sm text-center ${cat.isDefault ? 'font-semibold' : ''}`}>{cat.name}</span>
               {cat.monthlyLimit != null && (
-                <span className="text-[11px] text-on-surface-variant">{t('categories.monthlyLimit')}: ${cat.monthlyLimit}</span>
+                <span className="font-mono text-xs tabular-nums text-[#9CA3AF]">{t('categories.monthlyLimit')}: ${cat.monthlyLimit}</span>
               )}
               <div className="flex gap-1 mt-1">
                 <button
                   onClick={() => startEdit(cat)}
                   title={t('categories.editAction')}
-                  className="p-1.5 rounded text-on-surface-variant hover:bg-surface-container-high"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-md text-[#9CA3AF] hover:bg-white/[0.06] hover:text-[#F9FAFB]"
                 >
                   <span className="material-symbols-outlined text-[18px]">edit</span>
                 </button>
@@ -164,7 +168,7 @@ export default function CategoryManager() {
                   <button
                     onClick={() => handleDelete(cat.id)}
                     title={t('categories.deleteAction')}
-                    className="p-1.5 rounded text-red-600 hover:bg-red-100"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-md text-[#F87171] hover:bg-[#F87171]/[0.08]"
                   >
                     <span className="material-symbols-outlined text-[18px]">delete</span>
                   </button>

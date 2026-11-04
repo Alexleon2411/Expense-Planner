@@ -73,7 +73,9 @@ export default function ExpenseTemplates() {
       setGroups((prev) => [...prev, created])
       setGroupName('')
       setShowNewGroup(false)
-    } catch {}
+    } catch (error) {
+      console.error('Error creating template group', error)
+    }
   }
 
   const handleRenameGroup = async (id: string) => {
@@ -82,7 +84,9 @@ export default function ExpenseTemplates() {
       const updated = await templatesApi.updateTemplate(id, { name: groupNameEdit.trim() })
       setGroups((prev) => prev.map((g) => (g.id === id ? updated : g)))
       setEditingGroup(null)
-    } catch {}
+    } catch (error) {
+      console.error('Error renaming template group', error)
+    }
   }
 
   const handleDeleteGroup = async (id: string) => {
@@ -106,7 +110,9 @@ export default function ExpenseTemplates() {
         prev.map((g) => (g.id === groupId ? { ...g, items: [...g.items, created] } : g)),
       )
       resetItemForm()
-    } catch {}
+    } catch (error) {
+      console.error('Error adding template item', error)
+    }
   }
 
   const handleDeleteItem = async (groupId: string, itemId: string) => {
@@ -130,30 +136,32 @@ export default function ExpenseTemplates() {
         ),
       )
       setEditingItem(null)
-    } catch {}
+    } catch (error) {
+      console.error('Error updating template item', error)
+    }
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-bold">{t('templates.title')}</h3>
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-semibold text-[#F9FAFB]">{t('templates.title')}</h3>
         <button
           onClick={() => { setShowNewGroup(!showNewGroup); setGroupName('') }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700"
+          className="min-h-11 shrink-0 rounded-md bg-[#3B82F6] px-4 text-sm font-medium text-white hover:bg-[#2563EB]"
         >
           {showNewGroup ? t('templates.cancel') : t('templates.new')}
         </button>
       </div>
 
       {showNewGroup && (
-        <div className="bg-surface-container-low p-4 rounded-lg flex gap-3">
+        <div className="grid grid-cols-1 gap-2 rounded-lg border border-white/[0.08] bg-[#1B202B] p-3 sm:grid-cols-[1fr_auto]">
           <input
-            className="flex-1 bg-surface-container-lowest p-2 border rounded"
+            className="h-11 min-w-0 rounded-md border border-white/[0.08] bg-[#14171F] px-3 text-sm text-[#F9FAFB] outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/30"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
             placeholder={t('templates.groupPlaceholder')}
           />
-          <button onClick={handleCreateGroup} className="bg-green-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-green-700">
+          <button onClick={handleCreateGroup} className="min-h-11 rounded-md bg-[#3B82F6] px-4 text-sm font-medium text-white hover:bg-[#2563EB]">
             {t('templates.create')}
           </button>
         </div>
@@ -163,16 +171,16 @@ export default function ExpenseTemplates() {
         <p className="text-on-surface-variant text-center py-4">{t('templates.empty')}</p>
       ) : (
         groups.map((group) => (
-          <div key={group.id} className="bg-surface-container-lowest shadow rounded-lg overflow-hidden">
+          <section key={group.id} className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#14171F]">
             <div
-              className="flex items-center justify-between bg-surface-container-low p-4 cursor-pointer"
+              className="flex cursor-pointer items-center justify-between gap-3 border-b border-white/[0.08] px-4 py-3 transition-colors hover:bg-white/[0.03]"
               onClick={() => setExpandedGroup(expandedGroup === group.id ? null : group.id)}
             >
               <div className="flex-1">
                 {editingGroup === group.id ? (
-                  <div className="flex gap-2 items-center" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex min-w-0 flex-wrap items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <input
-                      className="flex-1 bg-surface-container-lowest p-2 border rounded text-sm"
+                      className="h-11 min-w-0 flex-1 rounded-md border border-white/[0.08] bg-[#1B202B] px-3 text-sm text-[#F9FAFB]"
                       value={groupNameEdit}
                       onChange={(e) => setGroupNameEdit(e.target.value)}
                        placeholder={t('templates.groupName')}
@@ -180,20 +188,20 @@ export default function ExpenseTemplates() {
                     />
                     <button
                       onClick={() => handleRenameGroup(group.id)}
-                      className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold hover:bg-green-700"
+                      className="min-h-11 rounded-md bg-[#3B82F6] px-3 text-sm font-medium text-white hover:bg-[#2563EB]"
                     >
                        {t('templates.save')}
                     </button>
                     <button
                       onClick={() => setEditingGroup(null)}
-                      className="bg-surface-container-highest px-3 py-1 rounded text-sm"
+                      className="min-h-11 rounded-md border border-white/[0.08] px-3 text-sm text-[#9CA3AF] hover:bg-white/[0.04]"
                     >
                        {t('templates.cancel')}
                     </button>
                   </div>
                 ) : (
                   <>
-                    <h4 className="font-bold text-lg">{group.name}</h4>
+                    <h4 className="truncate text-sm font-medium text-[#F9FAFB]">{group.name}</h4>
                      <p className="text-sm text-on-surface-variant">{t('templates.fixedCount', { count: group.items.length })}</p>
                   </>
                 )}
@@ -202,14 +210,14 @@ export default function ExpenseTemplates() {
                 <button
                   onClick={() => { setEditingGroup(group.id); setGroupNameEdit(group.name) }}
                    title={t('templates.edit')}
-                  className="p-2 rounded text-on-surface-variant hover:bg-surface-container-high"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-md text-[#9CA3AF] hover:bg-white/[0.06] hover:text-[#F9FAFB]"
                 >
                   <span className="material-symbols-outlined text-[20px]">edit</span>
                 </button>
                 <button
                   onClick={() => handleDeleteGroup(group.id)}
                    title={t('templates.delete')}
-                  className="p-2 rounded text-red-600 hover:bg-red-100"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-md text-[#F87171] hover:bg-[#F87171]/[0.08]"
                 >
                   <span className="material-symbols-outlined text-[20px]">delete</span>
                 </button>
@@ -217,19 +225,19 @@ export default function ExpenseTemplates() {
             </div>
 
             {expandedGroup === group.id && (
-              <div className="p-4 space-y-3">
+              <div className="space-y-3 p-3 sm:p-4">
                 {group.items.map((item) => (
-                  <div key={item.id} className="bg-surface-container-low p-3 rounded-lg space-y-2">
+                  <div key={item.id} className="space-y-2 rounded-lg border border-white/[0.08] bg-[#1B202B] p-3">
                     {editingItem === item.id ? (
                       <div className="space-y-2">
-                        <div className="flex gap-2 items-center">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-semibold">{item.name}</span>
-                           <span className="text-lg font-black text-blue-600">{formatCurrecy(item.amount)}</span>
+                           <span className="font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(item.amount)}</span>
                           <span className="text-xs bg-surface-container-high px-2 py-0.5 rounded">{item.category.name}</span>
                         </div>
                         <div className="flex gap-2 items-center flex-wrap">
                           <select
-                            className="bg-surface-container-lowest p-1 text-sm border rounded"
+                            className="h-11 rounded-md border border-white/[0.08] bg-[#14171F] px-3 text-sm text-[#F9FAFB]"
                             value={editStatus || item.status}
                             onChange={(e) => setEditStatus(e.target.value)}
                           >
@@ -239,52 +247,52 @@ export default function ExpenseTemplates() {
                           </select>
                           {(editStatus || item.status) === 'partial' && (
                             <NumericFormat
-                              className="bg-surface-container-lowest p-1 text-sm border rounded w-24"
+                              className="h-11 w-28 rounded-md border border-white/[0.08] bg-[#14171F] px-3 font-mono text-sm tabular-nums text-[#F9FAFB]"
                               value={editPartial !== undefined ? editPartial : item.partialAmount || ''}
                               onChange={(e) => setEditPartial(e.target.value)}
                                placeholder={t('templates.amount')}
                             />
                           )}
                           <input
-                            className="bg-surface-container-lowest p-1 text-sm border rounded flex-1"
+                            className="h-11 min-w-[180px] flex-1 rounded-md border border-white/[0.08] bg-[#14171F] px-3 text-sm text-[#F9FAFB]"
                             value={editComment !== undefined ? editComment : item.comment || ''}
                             onChange={(e) => setEditComment(e.target.value)}
                              placeholder={t('templates.comment')}
                           />
                           <button
                             onClick={() => handleSaveItemStatus(group.id, item)}
-                            className="bg-green-600 text-white px-2 py-1 rounded text-xs"
+                            className="min-h-11 rounded-md bg-[#3B82F6] px-3 text-xs font-medium text-white"
                           >
                              {t('templates.save')}
                           </button>
                           <button
                             onClick={() => setEditingItem(null)}
-                            className="bg-surface-container-highest px-2 py-1 rounded text-xs"
+                            className="min-h-11 rounded-md border border-white/[0.08] px-3 text-xs text-[#9CA3AF]"
                           >
                              {t('templates.cancel')}
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="font-semibold">{item.name}</p>
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-sm font-medium text-[#F9FAFB]">{item.name}</p>
                             <span className="text-xs bg-surface-container-high px-2 py-0.5 rounded">{item.category.name}</span>
-                            <PaymentStatusBadge status={item.status as 'pending' | 'paid' | 'partial'} partialAmount={item.partialAmount ?? undefined} expense={item as any} />
+                            <PaymentStatusBadge status={item.status as 'pending' | 'paid' | 'partial'} partialAmount={item.partialAmount ?? undefined} />
                            {item.dayOfMonth && <span className="text-xs text-on-surface-variant">{t('fixedExpenses.due', { day: item.dayOfMonth })}</span>}
                           </div>
-                           <p className="text-lg font-black text-blue-600">{formatCurrecy(item.amount)}</p>
+                           <p className="mt-2 font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(item.amount)}</p>
                           {item.comment && <p className="text-xs text-on-surface-variant italic">{item.comment}</p>}
                         </div>
-                        <div className="flex gap-2 items-center">
+                        <div className="flex shrink-0 items-center gap-2">
                           <button
                             onClick={() => { setEditingItem(item.id); setEditStatus(item.status); setEditComment(item.comment || ''); setEditPartial(item.partialAmount ? String(item.partialAmount) : '') }}
-                            className="text-xs text-blue-600 hover:underline"
+                            className="min-h-11 rounded-md px-2 text-xs font-medium text-[#60A5FA] hover:bg-white/[0.04]"
                           >
                              {t('templates.statusComment')}
                           </button>
-                           <button onClick={() => handleDeleteItem(group.id, item.id)} title={t('templates.deleteExpense')} className="text-red-600 hover:text-red-800">
+                           <button onClick={() => handleDeleteItem(group.id, item.id)} title={t('templates.deleteExpense')} className="inline-flex h-11 w-11 items-center justify-center rounded-md text-[#F87171] hover:bg-[#F87171]/[0.08]">
                             <span className="material-symbols-outlined text-[20px]">delete</span>
                           </button>
                         </div>
@@ -295,22 +303,22 @@ export default function ExpenseTemplates() {
 
                 {/* Add item form */}
                 {showItemForm === group.id ? (
-                  <div className="bg-blue-50 p-3 rounded-lg space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-3 rounded-lg border border-white/[0.08] bg-[#1B202B] p-3">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                       <input
-                        className="bg-surface-container-lowest p-2 border rounded text-sm"
+                        className="h-11 rounded-md border border-white/[0.08] bg-[#14171F] px-3 text-sm text-[#F9FAFB]"
                         value={itemName}
                         onChange={(e) => setItemName(e.target.value)}
                          placeholder={t('templates.addName')}
                       />
                       <NumericFormat
-                        className="bg-surface-container-lowest p-2 border rounded text-sm"
+                        className="h-11 rounded-md border border-white/[0.08] bg-[#14171F] px-3 font-mono text-sm tabular-nums text-[#F9FAFB]"
                         value={itemAmount}
                         onChange={(e) => setItemAmount(e.target.value)}
                          placeholder={t('templates.addAmount')}
                       />
                       <select
-                        className="bg-surface-container-lowest p-2 border rounded text-sm"
+                        className="h-11 rounded-md border border-white/[0.08] bg-[#14171F] px-3 text-sm text-[#F9FAFB]"
                         value={itemCategory}
                         onChange={(e) => setItemCategory(e.target.value)}
                       >
@@ -318,7 +326,7 @@ export default function ExpenseTemplates() {
                         {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                       <input
-                        className="bg-surface-container-lowest p-2 border rounded text-sm"
+                        className="h-11 rounded-md border border-white/[0.08] bg-[#14171F] px-3 font-mono text-sm tabular-nums text-[#F9FAFB]"
                         type="number"
                         min="1"
                         max="31"
@@ -328,8 +336,8 @@ export default function ExpenseTemplates() {
                       />
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => handleAddItem(group.id)} className="bg-green-600 text-white px-3 py-1 rounded text-sm font-bold">{t('templates.add')}</button>
-                      <button onClick={resetItemForm} className="bg-surface-container-highest px-3 py-1 rounded text-sm">{t('templates.cancel')}</button>
+                      <button onClick={() => handleAddItem(group.id)} className="min-h-11 rounded-md bg-[#3B82F6] px-3 text-sm font-medium text-white">{t('templates.add')}</button>
+                      <button onClick={resetItemForm} className="min-h-11 rounded-md border border-white/[0.08] px-3 text-sm text-[#9CA3AF]">{t('templates.cancel')}</button>
                     </div>
                   </div>
                 ) : (
@@ -342,7 +350,7 @@ export default function ExpenseTemplates() {
                 )}
               </div>
             )}
-          </div>
+          </section>
         ))
       )}
     </div>

@@ -10,6 +10,14 @@ type Props = {
   year: number
 }
 
+function replaceCategoryIdsWithNames(text: string, categories: { id: string; name: string }[]): string {
+  return categories.reduce((summary, category) => {
+    if (!category.id) return summary
+    const escapedId = category.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return summary.replace(new RegExp(escapedId, 'gi'), () => category.name)
+  }, text)
+}
+
 export default function MonthReview({ month, year }: Props) {
   const { t } = useTranslation()
   const { categories } = useCategories()
@@ -26,15 +34,16 @@ export default function MonthReview({ month, year }: Props) {
 
   const getCategoryInfo = (categoryIdOrName: string) => {
     if (!categoryIdOrName) return undefined
+    const normalizedValue = categoryIdOrName.trim().toLocaleLowerCase()
     return (
-      categories.find(c => c.id === categoryIdOrName) ||
-      categories.find(c => c.name.toLowerCase() === categoryIdOrName.toLowerCase())
+      categories.find(c => c.id.toLocaleLowerCase() === normalizedValue) ||
+      categories.find(c => c.name.toLocaleLowerCase() === normalizedValue)
     )
   }
 
   if (loading) {
     return (
-      <div className="bento-card">
+      <div className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
         <p className="text-body-sm text-on-surface-variant">{t('dashboard.loading')}</p>
       </div>
     )
@@ -42,15 +51,15 @@ export default function MonthReview({ month, year }: Props) {
 
   if (!review) {
     return (
-      <div className="bento-card">
+      <div className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
         <p className="text-body-sm text-on-surface-variant">{t('dashboard.noData')}</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-gutter">
-      <div className="bento-card">
+    <div className="space-y-4">
+      <section className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
         <div className="flex justify-between items-start mb-md">
           <p className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.monthReview')}</p>
           <span className={`material-symbols-outlined ${review.alerts.length > 0 ? 'text-error' : 'text-secondary'}`}>
@@ -58,29 +67,29 @@ export default function MonthReview({ month, year }: Props) {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-md mb-lg">
-          <div className="rounded-lg bg-surface-container-low p-md">
+        <div className="mb-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="rounded-lg bg-[#1B202B] p-3">
             <p className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.spent')}</p>
-            <p className="text-headline-sm font-data-mono font-bold text-primary">{formatCurrecy(review.totalSpent)}</p>
+            <p className="font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(review.totalSpent)}</p>
           </div>
-          <div className="rounded-lg bg-surface-container-low p-md">
+          <div className="rounded-lg bg-[#1B202B] p-3">
             <p className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.budgetLabel')}</p>
-            <p className="text-headline-sm font-data-mono font-bold">{formatCurrecy(review.budgeted)}</p>
+            <p className="font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(review.budgeted)}</p>
           </div>
-          <div className="rounded-lg bg-surface-container-low p-md">
+          <div className="rounded-lg bg-[#1B202B] p-3">
             <p className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.fixedTotal')}</p>
-            <p className="text-headline-sm font-data-mono font-bold">{formatCurrecy(review.totalFixed)}</p>
+            <p className="font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(review.totalFixed)}</p>
           </div>
-          <div className="rounded-lg bg-surface-container-low p-md">
+          <div className="rounded-lg bg-[#1B202B] p-3">
             <p className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.variableTotal')}</p>
-            <p className="text-headline-sm font-data-mono font-bold">{formatCurrecy(review.totalVariable)}</p>
+            <p className="font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(review.totalVariable)}</p>
           </div>
         </div>
 
         {review.summary.length > 0 && (
           <div className="space-y-xs mb-lg">
             {review.summary.map((line, i) => (
-              <p key={i} className="text-body-sm text-on-surface-variant">{line}</p>
+              <p key={i} className="text-body-sm text-on-surface-variant">{replaceCategoryIdsWithNames(line, categories)}</p>
             ))}
           </div>
         )}
@@ -93,7 +102,7 @@ export default function MonthReview({ month, year }: Props) {
             {review.alerts.map((alert, i) => (
               <div key={i} className="p-sm rounded-lg bg-error/10 flex items-start gap-sm">
                 <span className="material-symbols-outlined text-[18px] text-error shrink-0">error</span>
-                <p className="text-body-sm text-on-surface">{alert}</p>
+                <p className="text-body-sm text-on-surface">{replaceCategoryIdsWithNames(alert, categories)}</p>
               </div>
             ))}
           </div>
@@ -103,10 +112,10 @@ export default function MonthReview({ month, year }: Props) {
             <p className="text-body-sm text-on-surface">{t('dashboard.reviewAllClear')}</p>
           </div>
         )}
-      </div>
+      </section>
 
       {review.categories.length > 0 && (
-        <div className="bento-card">
+        <section className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
           <p className="text-label-caps font-label-caps text-on-surface-variant mb-md">{t('dashboard.categoryDistribution')}</p>
           <div className="space-y-sm">
             {review.categories.map((c) => {
@@ -135,11 +144,11 @@ export default function MonthReview({ month, year }: Props) {
               )
             })}
           </div>
-        </div>
+        </section>
       )}
 
       {review.fixedCandidates.length > 0 && (
-        <div className="bento-card">
+        <section className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
           <p className="text-label-caps font-label-caps text-on-surface-variant mb-md">{t('dashboard.couldBeFixed')}</p>
           <div className="space-y-sm">
             {review.fixedCandidates.map((cand, i) => {
@@ -158,7 +167,7 @@ export default function MonthReview({ month, year }: Props) {
               )
             })}
           </div>
-        </div>
+        </section>
       )}
     </div>
   )

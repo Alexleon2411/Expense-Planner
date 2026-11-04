@@ -17,17 +17,17 @@ const STATUS_CONFIG: Record<Status, { key: string; icon: string; badge: string }
   pending: {
     key: 'expense.pending',
     icon: 'schedule',
-    badge: 'bg-yellow-100 text-yellow-800',
+    badge: 'bg-amber-400/[0.12] text-[#FBBF24]',
   },
   paid: {
     key: 'expense.paid',
     icon: 'check_circle',
-    badge: 'bg-secondary-container/40 text-on-secondary-container',
+    badge: 'bg-emerald-400/[0.12] text-[#34D399]',
   },
   partial: {
     key: 'expense.partial',
     icon: 'pie_chart',
-    badge: 'bg-primary-fixed/70 text-on-primary-fixed',
+    badge: 'bg-blue-400/[0.12] text-[#60A5FA]',
   },
 }
 
@@ -64,8 +64,8 @@ export default function PaymentStatusBadge({ status, partialAmount, expense, onP
   }
 
   return (
-    <div className="inline-flex items-center gap-sm flex-wrap">
-      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${config.badge}`}>
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
+      <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium uppercase ${config.badge}`}>
         <span className="material-symbols-outlined text-[14px] leading-none">{config.icon}</span>
         {t(config.key)}
         {state === 'partial' && partialAmount !== undefined && partialAmount > 0 && (
@@ -74,11 +74,11 @@ export default function PaymentStatusBadge({ status, partialAmount, expense, onP
       </span>
 
       {interactive && (
-        <div className="inline-flex items-center gap-xs">
-          <div className="relative">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <div className="relative min-w-0">
             <select
                aria-label={t('expense.status')}
-              className="appearance-none pr-6 pl-2.5 py-1.5 text-xs font-bold rounded-md border border-outline-variant bg-surface-container-lowest cursor-pointer focus:ring-2 focus:ring-primary focus:outline-none"
+              className="h-11 max-w-full appearance-none cursor-pointer rounded-md border border-white/[0.08] bg-[#1B202B] py-1.5 pl-2.5 pr-7 text-xs font-medium text-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] sm:h-9"
               value={state}
               onChange={(e) => setState(e.target.value as Status)}
             >
@@ -96,7 +96,7 @@ export default function PaymentStatusBadge({ status, partialAmount, expense, onP
               type="number"
               min={0}
                aria-label={t('expense.partialAmount')}
-              className="w-24 px-2.5 py-1.5 text-xs font-data-mono rounded-md border border-outline-variant bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none"
+              className="h-11 w-28 rounded-md border border-white/[0.08] bg-[#1B202B] px-2.5 py-1.5 font-mono text-xs tabular-nums text-[#F9FAFB] focus:outline-none focus:ring-2 focus:ring-[#3B82F6] sm:h-9"
               value={localPartialAmount ?? ''}
               onChange={(e) => setLocalPartialAmount(Number(e.target.value))}
                placeholder={t('expense.amountLabel')}
@@ -106,7 +106,7 @@ export default function PaymentStatusBadge({ status, partialAmount, expense, onP
           <button
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold text-on-primary bg-primary hover:opacity-85 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex h-11 items-center gap-1 rounded-md bg-[#3B82F6] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50 sm:h-9"
           >
             <span className="material-symbols-outlined text-[14px] leading-none">{saving ? 'sync' : 'save'}</span>
              {saving ? t('budget.saving') : t('common.save')}

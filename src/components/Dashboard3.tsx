@@ -116,7 +116,7 @@ export default function Dashboard3() {
   const statusBadge = (status?: string) => {
     if (status === 'paid') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-secondary-container/40 text-on-secondary-container whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-emerald-400/[0.12] px-2.5 py-1 text-xs font-medium uppercase text-[#34D399]">
           <span className="material-symbols-outlined text-[14px] leading-none">check_circle</span>
           {t('dashboard.paid')}
         </span>
@@ -124,14 +124,14 @@ export default function Dashboard3() {
     }
     if (status === 'partial') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-primary-fixed/70 text-on-primary-fixed whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-blue-400/[0.12] px-2.5 py-1 text-xs font-medium uppercase text-[#60A5FA]">
           <span className="material-symbols-outlined text-[14px] leading-none">pie_chart</span>
           {t('dashboard.partial')}
         </span>
       )
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 whitespace-nowrap">
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-amber-400/[0.12] px-2.5 py-1 text-xs font-medium uppercase text-[#FBBF24]">
         <span className="material-symbols-outlined text-[14px] leading-none">schedule</span>
         {t('dashboard.pending')}
       </span>
@@ -300,66 +300,71 @@ export default function Dashboard3() {
   ]
 
   return (
-    <div>
-      <main className="min-h-screen pb-xl">
-        <div className="mt-6 mx-6 p-lg space-y-lg text-center py-xl overflow-hidden rounded-xl bg-primary-container text-on-primary-container">
-          <div className="relative z-10">
-            <h2 className="text-display-md font-display-md mb-xs tracking-tight">{t('dashboard.title')}</h2>
-            <p className="text-headline-sm font-headline-sm opacity-80 max-w-2xl mx-auto">{t('dashboard.overview')}</p>
+    <div className="min-h-screen bg-[#0B0D11] text-[#F9FAFB]">
+      <main className="space-y-4 p-4 pb-8 sm:p-6">
+        <header className="flex min-h-12 items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl font-semibold tracking-tight">{t('dashboard.title')}</h1>
+            <p className="mt-0.5 hidden truncate text-xs text-[#9CA3AF] sm:block">{t('dashboard.overview')}</p>
           </div>
-        </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <label className="relative block">
+              <span className="sr-only">{t('statistics.monthly')}</span>
+              <select
+                className="h-11 appearance-none rounded-md border border-white/[0.08] bg-[#1B202B] py-2 pl-3 pr-8 text-sm text-[#F9FAFB] outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/30 sm:h-9"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              >
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                  <option key={m} value={m}>{monthName(m)}</option>
+                ))}
+              </select>
+              <span aria-hidden="true" className="material-symbols-outlined pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-[#9CA3AF]">expand_more</span>
+            </label>
+            <label>
+              <span className="sr-only">{t('statistics.yearly')}</span>
+              <select
+                className="h-11 w-20 rounded-md border border-white/[0.08] bg-[#1B202B] px-2 text-sm font-medium tabular-nums text-[#F9FAFB] outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/30 sm:h-9"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+              >
+                {YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
+              </select>
+            </label>
+          </div>
+        </header>
 
-        <section className="px-container-margin py-md flex flex-wrap gap-md items-center justify-between">
-          <div className="flex bg-surface-container rounded-lg p-xs">
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-white/[0.08] bg-[#14171F] p-3">
+          <div className="inline-flex rounded-md bg-[#0B0D11] p-1">
             <button
+              type="button"
               onClick={() => setMainTab('dashboard')}
-              className={`px-md py-xs rounded-md font-label-caps text-label-caps ${
-                mainTab === 'dashboard' ? 'bg-surface-container-lowest shadow-sm text-primary' : 'text-on-surface-variant'
+              className={`min-h-11 rounded px-3 text-sm font-medium transition-colors sm:min-h-9 ${
+                mainTab === 'dashboard' ? 'bg-[#3B82F6] text-white' : 'text-[#9CA3AF] hover:bg-white/[0.06] hover:text-[#F9FAFB]'
               }`}
             >
               {t('dashboard.title')}
             </button>
             <button
+              type="button"
               onClick={() => setMainTab('insights')}
-              className={`px-md py-xs rounded-md font-label-caps text-label-caps ${
-                mainTab === 'insights' ? 'bg-surface-container-lowest shadow-sm text-primary' : 'text-on-surface-variant'
+              className={`min-h-11 rounded px-3 text-sm font-medium transition-colors sm:min-h-9 ${
+                mainTab === 'insights' ? 'bg-[#3B82F6] text-white' : 'text-[#9CA3AF] hover:bg-white/[0.06] hover:text-[#F9FAFB]'
               }`}
             >
               {t('dashboard.insights')}
             </button>
           </div>
-          <div className="relative">
-            <select
-              className="mr-1 appearance-none pl-md pr-xl py-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-medium focus:ring-2 focus:ring-primary"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(Number(e.target.value))}
-            >
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                <option key={m} value={m}>{monthName(m)} </option>
-              ))}
-            </select>
-          <select
-            className="appearance-none pl-md pr-xl py-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-medium focus:ring-2 focus:ring-primary w-24"
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
-          >
-            {YEARS.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-            <span className="material-symbols-outlined absolute right-xs top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
-          </div>
+          <span className="font-mono text-xs tabular-nums text-[#9CA3AF]">{monthName(selectedMonth)} {selectedYear}</span>
         </section>
 
         {mainTab === 'dashboard' ? (
-          <div className="px-container-margin space-y-gutter">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
-              <div className="bento-card">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <section className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
                 <SalarySection />
-              </div>
-              <div className="bento-card">
+              </section>
+              <section className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
                 <div className="flex justify-between items-start mb-sm">
                     <p className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.quickSummary')}</p>
                   <span className="material-symbols-outlined text-sm text-on-surface-variant">monitoring</span>
@@ -431,24 +436,24 @@ export default function Dashboard3() {
                     </div>
                   )}
                 </div>
-              </div>
+              </section>
             </div>
 
-            <div className="bento-card !p-0 overflow-hidden">
-              <div className="flex border-b border-outline-variant overflow-x-auto">
+            <section className="overflow-hidden rounded-lg border border-white/[0.08] bg-[#14171F]">
+              <div className="flex overflow-x-auto border-b border-white/[0.08]">
                 {innerTabs.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setInnerTab(t.id)}
-                    className={`flex-1 min-w-[120px] py-sm text-center font-label-caps transition-colors ${
-                      innerTab === t.id ? 'bg-primary-container text-on-primary-container font-bold' : 'text-on-surface-variant hover:bg-surface-container-low'
+                    className={`min-h-11 min-w-[120px] flex-1 px-3 text-center text-sm font-medium transition-colors ${
+                      innerTab === t.id ? 'bg-white/[0.06] text-[#F9FAFB]' : 'text-[#9CA3AF] hover:bg-white/[0.03] hover:text-[#F9FAFB]'
                     }`}
                   >
                     {t.label}
                   </button>
                 ))}
               </div>
-              <div className="p-lg">
+              <div className="p-3 sm:p-4">
                 {innerTab === 'resumen' && (
                   recentExpenses.length > 0 ? (
                     <div>
@@ -458,17 +463,17 @@ export default function Dashboard3() {
                           {t('dashboard.recentCount', { count: recentExpenses.length })}
                         </span>
                       </div>
-                      <div className="hidden sm:block overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-lowest shadow-sm pl-4">
-                        <table className="w-full text-left text-body-sm">
+                      <div className="hidden overflow-x-auto sm:block">
+                        <table className="w-full min-w-[900px] border-collapse text-left text-sm">
                           <thead>
-                            <tr className="text-label-caps font-label-caps text-on-surface-variant border-b border-outline-variant">
-                              <th className="py-xs pr-md whitespace-nowrap">{t('dashboard.date')}</th>
-                              <th className="py-xs pr-md">{t('dashboard.category')}</th>
-                              <th className="py-xs pr-md">{t('dashboard.expense')}</th>
-                              <th className="py-xs pr-md">{t('dashboard.status')}</th>
-                              <th className="py-xs pr-md">{t('dashboard.comment')}</th>
-                              <th className="py-xs pr-md text-right">{t('dashboard.amount')}</th>
-                              <th className="py-xs pl-md pr-md"></th>
+                            <tr className="border-b border-white/[0.08] text-xs font-medium text-[#9CA3AF]">
+                              <th className="px-4 py-3 whitespace-nowrap">{t('dashboard.date')}</th>
+                              <th className="px-4 py-3">{t('dashboard.category')}</th>
+                              <th className="px-4 py-3">{t('dashboard.expense')}</th>
+                              <th className="px-4 py-3 text-center">{t('dashboard.status')}</th>
+                              <th className="px-4 py-3">{t('dashboard.comment')}</th>
+                              <th className="px-4 py-3 text-right font-mono tabular-nums">{t('dashboard.amount')}</th>
+                              <th className="px-4 py-3"></th>
                             </tr>
                           </thead>
                           <tbody>
@@ -483,14 +488,14 @@ export default function Dashboard3() {
                                 <Fragment key={exp.id}>
                                   <tr
                                     onClick={() => setExpandedId(isExpanded ? null : exp.id)}
-                                    className={`border-b border-outline-variant/30 last:border-0 cursor-pointer hover:bg-surface-container-low transition-colors ${isExpanded ? 'bg-surface-container-low' : ''}`}
+                                    className={`cursor-pointer border-b border-white/[0.08] transition-colors last:border-0 hover:bg-white/[0.03] ${isExpanded ? 'bg-white/[0.03]' : ''}`}
                                   >
-                                    <td className="py-sm pr-md whitespace-nowrap text-on-surface-variant">
+                                    <td className="px-4 py-3 whitespace-nowrap text-[#9CA3AF]">
                                       {exp.date instanceof Date
                                          ? formatDate(exp.date.toISOString())
                                          : formatDate(String(exp.date))}
                                     </td>
-                                    <td className="py-sm pr-md">
+                                    <td className="px-4 py-3">
                                       <div className="flex items-center gap-xs min-w-[120px]">
                                         <CategoryIcon
                                           icon={category?.icon}
@@ -501,9 +506,9 @@ export default function Dashboard3() {
                                         <span className="truncate">{category?.name || exp.category}</span>
                                       </div>
                                     </td>
-                                    <td className="py-sm pr-md truncate max-w-[220px] font-medium">{exp.expenseName}</td>
-                                    <td className="py-sm pr-md">{statusBadge(effectiveStatus)}</td>
-                                    <td className="py-sm pr-md">
+                                    <td className="max-w-[220px] truncate px-4 py-3 font-medium text-[#F9FAFB]">{exp.expenseName}</td>
+                                    <td className="px-4 py-3 text-center">{statusBadge(effectiveStatus)}</td>
+                                    <td className="px-4 py-3 text-[#9CA3AF]">
                                       {exp.comment ? (
                                         <div className="flex items-center gap-1 max-w-[260px]">
                                           <span className="material-symbols-outlined text-[14px] text-on-surface-variant shrink-0">note</span>
@@ -513,26 +518,26 @@ export default function Dashboard3() {
                                         <span className="text-on-surface-variant/50">—</span>
                                       )}
                                     </td>
-                                    <td className="py-sm pr-md text-right">
+                                    <td className="px-4 py-3 text-right font-mono tabular-nums">
                                       {isPartial ? (
                                         <>
-                                          <p className="font-data-mono font-bold text-primary whitespace-nowrap">{formatCurrecy(remaining)}</p>
+                                          <p className="whitespace-nowrap font-semibold text-[#F9FAFB]">{formatCurrecy(remaining)}</p>
                                           <p className="text-[11px] text-on-surface-variant font-data-mono whitespace-nowrap">
                                              {t('dashboard.paidOf', { paid: formatCurrecy(paidAmount), total: formatCurrecy(exp.amount) })}
                                           </p>
                                         </>
                                       ) : (
-                                        <p className="font-data-mono font-bold text-primary whitespace-nowrap">{formatCurrecy(exp.amount)}</p>
+                                        <p className="whitespace-nowrap font-semibold text-[#F9FAFB]">{formatCurrecy(exp.amount)}</p>
                                       )}
                                     </td>
-                                    <td className="py-sm pl-md pr-md text-right">
+                                    <td className="px-4 py-3 text-right">
                                       <span className={`material-symbols-outlined text-on-surface-variant text-[18px] transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
                                         expand_more
                                       </span>
                                     </td>
                                   </tr>
                                   {isExpanded && (
-                                    <tr className="border-b border-outline-variant/30 bg-surface-container-low/60">
+                                    <tr className="border-b border-white/[0.08] bg-[#1B202B]">
                                       <td colSpan={7} className="py-sm px-md">
                                         <div className="flex items-center justify-between gap-md flex-wrap">
                                           <div className="flex items-center gap-md">
@@ -570,7 +575,7 @@ export default function Dashboard3() {
                           </tbody>
                         </table>
                       </div>
-                      <div className="sm:hidden space-y-sm">
+                      <div className="divide-y divide-white/[0.08] sm:hidden">
                         {recentExpenses.map((exp) => {
                           const category = getCategoryInfo(exp.category)
                           const paidAmount = exp.status === 'paid' ? exp.amount : (exp.partialAmount ?? 0)
@@ -579,7 +584,7 @@ export default function Dashboard3() {
                           const remaining = Math.max(0, exp.amount - paidAmount)
                           const isExpanded = expandedId === exp.id
                           return (
-                            <article key={exp.id} className={`rounded-xl border border-outline-variant bg-surface-container-lowest p-md ${isExpanded ? 'ring-1 ring-primary/30' : ''}`}>
+                            <article key={exp.id} className={`px-1 py-3 ${isExpanded ? 'bg-white/[0.03]' : ''}`}>
                               <button className="w-full text-left" type="button" onClick={() => setExpandedId(isExpanded ? null : exp.id)}>
                                 <div className="flex items-start justify-between gap-sm">
                                   <div className="flex min-w-0 items-center gap-sm">
@@ -589,15 +594,15 @@ export default function Dashboard3() {
                                        <p className="text-body-xs text-on-surface-variant truncate">{category?.name || exp.category} · {exp.date instanceof Date ? formatDate(exp.date.toISOString()) : formatDate(String(exp.date))}</p>
                                     </div>
                                   </div>
-                                  <span className="shrink-0 font-data-mono font-bold text-primary">{formatCurrecy(isPartial ? remaining : exp.amount)}</span>
+                                  <span className="shrink-0 whitespace-nowrap font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(isPartial ? remaining : exp.amount)}</span>
                                 </div>
-                                <div className="mt-sm flex items-center justify-between gap-sm border-t border-outline-variant pt-sm">
+                                <div className="mt-2 flex items-center justify-between gap-2 pt-2">
                                   {statusBadge(effectiveStatus)}
                                    <span className="text-body-xs text-on-surface-variant">{isExpanded ? t('dashboard.hideDetails') : t('dashboard.viewDetails')}</span>
                                 </div>
                               </button>
                               {isExpanded && (
-                                <div className="mt-sm flex flex-col gap-sm border-t border-outline-variant pt-sm">
+                                  <div className="mt-3 flex flex-col gap-3 border-t border-white/[0.08] pt-3">
                                   {exp.comment && <p className="text-body-sm text-on-surface-variant">{exp.comment}</p>}
                                   <div className="flex items-center justify-between gap-sm">
                                      <span className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.paymentStatus')}</span>
@@ -630,20 +635,20 @@ export default function Dashboard3() {
                 {/* {innerTab === 'calendario' && <CalendarView year={selectedYear} month={selectedMonth} />} */}
                 {innerTab === 'estadisticas' && <Statistics fixedExpenses={fixedExpenses} />}
               </div>
-            </div>
+            </section>
           </div>
         ) : (
-          <div className="px-container-margin grid grid-cols-12 gap-gutter">
+          <div className="grid grid-cols-12 gap-4">
             {loading ? (
               <div className="col-span-12 flex items-center justify-center py-24">
                     <p className="text-body-lg text-on-surface-variant">{t('dashboard.loading')}</p>
               </div>
             ) : (
               <>
-                <div className="col-span-12 md:col-span-4 bento-card flex flex-col justify-between">
+                <section className="col-span-12 flex flex-col justify-between rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-4 sm:p-5">
                   <div>
                     <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('dashboard.totalExpenses')}</p>
-                    <h3 className="text-display-lg font-display-lg text-on-surface font-data-mono">{formatCurrecy(totalSpent)}</h3>
+                    <h3 className="font-mono text-2xl font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(totalSpent)}</h3>
                   </div>
                   <div className="mt-md flex items-center gap-sm">
                     <div className={`flex items-center gap-xs px-sm py-1 rounded-full ${
@@ -656,8 +661,8 @@ export default function Dashboard3() {
                     </div>
                     <span className="text-body-sm text-on-surface-variant">{t('dashboard.lastMonth')}</span>
                   </div>
-                </div>
-                <div className="col-span-12 md:col-span-4 bento-card">
+                </section>
+                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-4 sm:p-5">
                   <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('dashboard.highestCategory')}</p>
                   <div className="flex items-center gap-md mt-sm">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center">
@@ -679,16 +684,16 @@ export default function Dashboard3() {
                       </p>
                     </div>
                   </div>
-                </div>
-                <div className="col-span-12 md:col-span-4 bento-card">
+                </section>
+                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-4 sm:p-5">
                   <SavingsPlan month={selectedMonth} year={selectedYear} />
-                </div>
+                </section>
 
                 <div className="col-span-12">
                   <MonthReview month={selectedMonth} year={selectedYear} />
                 </div>
 
-                <div className="col-span-12 md:col-span-5 bento-card flex flex-col">
+                <section className="col-span-12 flex flex-col rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-5 sm:p-5">
                   <h3 className="text-label-caps font-label-caps text-on-surface-variant mb-lg">{t('dashboard.categoryDistribution')}</h3>
                   <div className="flex-grow flex items-center justify-center py-lg relative">
                     <div
@@ -719,9 +724,9 @@ export default function Dashboard3() {
                       <p className="text-body-sm text-on-surface-variant text-center py-sm">{t('dashboard.noData')}</p>
                     )}
                   </div>
-                </div>
+                </section>
 
-                <div className="col-span-12 md:col-span-7 bento-card">
+                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-7 sm:p-5">
                   <div className="flex justify-between items-center mb-lg">
                     <h3 className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.monthAnalysis')}</h3>
                     <div className="flex gap-md">
@@ -750,9 +755,9 @@ export default function Dashboard3() {
                       )
                     })}
                   </div>
-                </div>
+                </section>
 
-                <div className="col-span-12 bento-card">
+                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
                   <div className="flex justify-between items-center mb-lg">
                     <h3 className="text-label-caps font-label-caps text-on-surface-variant">{t('dashboard.topExpenses')}</h3>
                     <button className="text-primary text-body-sm font-bold hover:underline">{t('dashboard.viewAll')}</button>
@@ -760,17 +765,17 @@ export default function Dashboard3() {
                   <div className="hidden sm:block overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="text-left border-b border-outline-variant">
-                          <th className="pb-md text-label-caps font-label-caps text-outline">{t('dashboard.expense')}</th>
-                          <th className="pb-md text-label-caps font-label-caps text-outline">{t('dashboard.category')}</th>
-                          <th className="pb-md text-label-caps font-label-caps text-outline">{t('dashboard.transactions')}</th>
-                          <th className="pb-md text-right text-label-caps font-label-caps text-outline">{t('dashboard.amount')}</th>
-                          <th className="pb-md text-right text-label-caps font-label-caps text-outline">{t('dashboard.share')}</th>
+                          <tr className="border-b border-white/[0.08] text-left">
+                           <th className="pb-3 text-xs font-medium text-[#9CA3AF]">{t('dashboard.expense')}</th>
+                           <th className="pb-3 text-xs font-medium text-[#9CA3AF]">{t('dashboard.category')}</th>
+                           <th className="pb-3 text-xs font-medium text-[#9CA3AF]">{t('dashboard.transactions')}</th>
+                           <th className="pb-3 text-right font-mono text-xs font-medium tabular-nums text-[#9CA3AF]">{t('dashboard.amount')}</th>
+                           <th className="pb-3 text-right text-xs font-medium text-[#9CA3AF]">{t('dashboard.share')}</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-outline-variant">
+                      <tbody className="divide-y divide-white/[0.08]">
                         {merchants.length > 0 ? merchants.map((m) => (
-                          <tr key={m.name} className="group hover:bg-surface-container-low transition-colors">
+                          <tr key={m.name} className="group transition-colors hover:bg-white/[0.03]">
                             <td className="py-md flex items-center gap-md">
                               <div className="w-10 h-10 rounded-full  flex items-center justify-center">
                                 {/* <span className="material-symbols-outlined text-[20px]">
@@ -791,7 +796,7 @@ export default function Dashboard3() {
                               </span>
                             </td>
                             <td className="py-md">{m.count} {m.count === 1 ? t('dashboard.entry') : t('dashboard.entries')}</td>
-                            <td className="py-md text-right font-data-mono text-data-mono">{formatCurrecy(m.total)}</td>
+                            <td className="py-3 text-right font-mono tabular-nums text-[#F9FAFB]">{formatCurrecy(m.total)}</td>
                             <td className="py-md text-right">
                               <span className="text-on-secondary-container flex items-center justify-end gap-xs text-body-sm">
                                 {totalSpent > 0 ? ((m.total / totalSpent) * 100).toFixed(1) : 0}%
@@ -808,9 +813,9 @@ export default function Dashboard3() {
                       </tbody>
                     </table>
                   </div>
-                  <div className="sm:hidden space-y-sm">
+                    <div className="divide-y divide-white/[0.08] sm:hidden">
                     {merchants.length > 0 ? merchants.map((m) => (
-                      <article key={m.name} className="rounded-xl border border-outline-variant bg-surface-container-lowest p-md">
+                      <article key={m.name} className="py-3">
                         <div className="flex items-center gap-sm">
                           <CategoryIcon
                             icon={getCategoryInfo(m.category)?.icon}
@@ -822,7 +827,7 @@ export default function Dashboard3() {
                             <p className="font-bold truncate">{m.name}</p>
                           <p className="text-body-xs text-on-surface-variant truncate">{getCategoryInfo(m.category)?.name || m.category} · {m.count} {m.count === 1 ? t('dashboard.entry') : t('dashboard.entries')}</p>
                           </div>
-                          <span className="font-data-mono font-bold text-primary">{formatCurrecy(m.total)}</span>
+                          <span className="shrink-0 font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(m.total)}</span>
                         </div>
                         <div className="mt-sm flex justify-end border-t border-outline-variant pt-sm text-body-xs text-on-surface-variant">
                           {totalSpent > 0 ? ((m.total / totalSpent) * 100).toFixed(1) : 0}% {t('dashboard.share')}
@@ -832,7 +837,7 @@ export default function Dashboard3() {
                       <p className="py-lg text-center text-on-surface-variant text-body-sm">{t('dashboard.noPeriod')}</p>
                     )}
                   </div>
-                </div>
+                </section>
               </>
             )}
           </div>

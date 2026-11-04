@@ -106,7 +106,7 @@ export default function SavingsPlan({ month, year }: Props) {
               key={plan.id}
               type="button"
               onClick={() => { setSelectedPlanId(plan.id); setEditing(false) }}
-              className={`shrink-0 px-sm py-xs rounded-full text-xs font-semibold border transition-colors ${selectedPlanId === plan.id ? 'bg-primary text-on-primary border-primary' : 'bg-surface-container-high text-on-surface border-outline-variant'}`}
+              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${selectedPlanId === plan.id ? 'border-[#3B82F6] bg-[#3B82F6] text-white' : 'border-white/[0.08] bg-[#1B202B] text-[#9CA3AF]'}`}
             >
               {plan.name || t('dashboard.savingsDefaultName')}
             </button>
@@ -117,17 +117,17 @@ export default function SavingsPlan({ month, year }: Props) {
       <div className="grid grid-cols-3 gap-md mb-md">
         <div>
           <p className="text-[11px] text-on-surface-variant">{t('dashboard.savingsGoal')}</p>
-          <p className="text-headline-sm font-data-mono font-bold">
+          <p className="font-mono text-sm font-semibold tabular-nums text-[#F9FAFB]">
             {progress?.plan != null ? formatCurrecy(progress.plan) : '—'}
           </p>
         </div>
         <div>
           <p className="text-[11px] text-on-surface-variant">{t('dashboard.saved')}</p>
-          <p className="text-headline-sm font-data-mono font-bold text-primary">{formatCurrecy(progress?.saved ?? 0)}</p>
+          <p className="font-mono text-sm font-semibold tabular-nums text-[#60A5FA]">{formatCurrecy(progress?.saved ?? 0)}</p>
         </div>
         <div>
           <p className="text-[11px] text-on-surface-variant">{t('dashboard.savingsLeft')}</p>
-          <p className="text-headline-sm font-data-mono font-bold text-secondary">
+          <p className="font-mono text-sm font-semibold tabular-nums text-[#34D399]">
             {progress?.plan != null ? formatCurrecy(progress.remaining) : '—'}
           </p>
         </div>
@@ -141,10 +141,10 @@ export default function SavingsPlan({ month, year }: Props) {
       </div>
 
       {editing ? (
-        <div className="flex gap-sm items-center mt-auto">
+        <div className="mt-auto grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-center">
             <input
               type="text"
-              className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest focus:outline-offset-4 form-input transition-all"
+              className="h-11 w-full rounded-md border border-white/[0.08] bg-[#1B202B] px-3 text-sm text-[#F9FAFB] outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/30"
               value={nameInput}
               onChange={(e) => setNameInput(e.target.value)}
               placeholder={t('dashboard.savingsNamePlaceholder', 'Ej. Inversiones, regalos o trabajo extra')}
@@ -153,7 +153,7 @@ export default function SavingsPlan({ month, year }: Props) {
             <input
               type="number"
             min={0}
-            className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest focus:outline-offset-4 form-input transition-all"
+            className="h-11 w-full rounded-md border border-white/[0.08] bg-[#1B202B] px-3 font-mono text-sm tabular-nums text-[#F9FAFB] outline-none focus:border-[#3B82F6] focus:ring-2 focus:ring-[#3B82F6]/30"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t('dashboard.savingsGoalPlaceholder')}
@@ -161,7 +161,7 @@ export default function SavingsPlan({ month, year }: Props) {
           <button
             onClick={handleSave}
             disabled={saving}
-             className="px-md py-sm rounded-lg bg-primary text-on-primary text-label-caps font-label-caps hover:opacity-90 disabled:opacity-50"
+             className="h-11 rounded-md bg-[#3B82F6] px-4 text-sm font-medium text-white hover:bg-[#2563EB] disabled:opacity-50"
           >
             {saving ? t('dashboard.loading') : t('common.save')}
           </button>
