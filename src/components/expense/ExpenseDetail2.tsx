@@ -49,6 +49,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
     const { categories } = useCategories();
     const { t } = useTranslation()
     const categoryById = Object.fromEntries(categories.map(c => [c.id, c]));
+    const isLegacySaving = expense?.type === 'saving';
 
     const [editing, setEditing] = useState(false);
     const [merchant, setMerchant] = useState('');
@@ -128,6 +129,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
     };
 
     const handleSave = async () => {
+        if (isLegacySaving) return;
         setSaving(true);
         try {
             const updated: Expense = {
@@ -153,6 +155,7 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
     };
 
     const handleConfirmPayment = async () => {
+        if (isLegacySaving) return;
         setSaving(true);
         try {
             const updated: Expense = { ...expense, status: 'paid', partialAmount: undefined };
@@ -190,6 +193,12 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                 </div>
 
                 <div className="hide-scrollbar flex-1 space-y-4 overflow-y-auto sm:space-y-6">
+                    {isLegacySaving && (
+                        <p className="rounded-md border border-white/[0.08] bg-[#1B202B] px-3 py-2 text-sm text-[#9CA3AF]">
+                            {t('expense.legacySavingReadonly')}
+                        </p>
+                    )}
+
                     {/* Header */}
                     <div className="flex items-center gap-md">
                         <CategoryIcon
@@ -245,8 +254,12 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
                             )}
                         </div>
                         <div>
-                            <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">{t('expense.statusLabel')}</p>
-                            {editing ? (
+                            <p className="text-label-caps font-label-caps text-on-surface-variant uppercase mb-xs">
+                                {isLegacySaving ? t('expense.legacySavingLabel') : t('expense.statusLabel')}
+                            </p>
+                            {isLegacySaving ? (
+                                <span className="text-body-sm text-on-surface-variant">{t('expense.typeSaving')}</span>
+                            ) : editing ? (
                                 <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3">
                                     <button className={statusBtnClass('paid')} onClick={() => setStatus('paid')} type="button">{t('expense.paid')}</button>
                                     <button className={statusBtnClass('pending')} onClick={() => setStatus('pending')} type="button">{t('expense.pending')}</button>
@@ -394,7 +407,14 @@ export default function ExpenseDetail2({ isOpen, onClose, expense }: ExpenseDeta
 
                 {/* Footer actions */}
                 <div className="flex gap-3 border-t border-outline-variant pt-4 sm:gap-4 sm:pt-6">
-                    {editing ? (
+                    {isLegacySaving ? (
+                        <button
+                            className="flex-1 py-md border border-outline-variant rounded-lg font-bold hover:bg-surface-container transition-colors"
+                            onClick={onClose}
+                        >
+                            {t('common.close')}
+                        </button>
+                    ) : editing ? (
                         <>
                             <button
                                 className="flex-1 py-md border border-outline-variant rounded-lg font-bold hover:bg-surface-container transition-colors"

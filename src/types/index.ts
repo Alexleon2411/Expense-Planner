@@ -11,7 +11,7 @@ export type Expense = {
   kind?: 'fixed' | 'variable'
 }
 
-export type DraftExpense = Omit<Expense, 'id'>
+export type DraftExpense = Omit<Expense, 'id' | 'type'>
 
 type ValuePiece = Date | null;
 export type Value = ValuePiece | [ValuePiece, ValuePiece];

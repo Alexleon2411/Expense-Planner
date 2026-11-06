@@ -327,16 +327,16 @@ export default function Statistics({ fixedExpenses = [] }: Props = {}) {
   if (loading) return <p className="text-center py-8 text-on-surface-variant">{t('common.loading')}</p>
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="bg-surface-container-lowest shadow-lg rounded-lg p-4 sm:p-6">
+    <div className="space-y-4">
+      <section className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
         <div className="flex flex-col gap-4 mb-6">
           <div className="grid grid-cols-2 gap-2 sm:flex">
             {(['daily', 'weekly', 'monthly', 'yearly'] as Period[]).map((p) => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-2 sm:px-4 py-2 rounded-lg font-bold text-xs sm:text-sm uppercase ${
-                  period === p ? 'bg-blue-600 text-white' : 'bg-surface-container-high text-on-surface hover:bg-surface-container-highest'
+                className={`min-h-11 rounded-md px-2 text-xs font-medium transition-colors sm:px-4 sm:text-sm ${
+                  period === p ? 'bg-[#3B82F6] text-white' : 'bg-[#1B202B] text-[#9CA3AF] hover:bg-white/[0.06] hover:text-[#F9FAFB]'
                 }`}
               >
                  {p === 'daily' ? t('statistics.daily') : p === 'weekly' ? t('statistics.weekly') : p === 'monthly' ? t('statistics.monthly') : t('statistics.yearly')}
@@ -346,7 +346,7 @@ export default function Statistics({ fixedExpenses = [] }: Props = {}) {
           <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
             {period === 'daily' && (
               <select
-                className="w-full bg-surface-container-low p-2 border rounded"
+                className="h-11 w-full rounded-md border border-white/[0.08] bg-[#1B202B] px-3 text-sm text-[#F9FAFB]"
                 value={selectedDay}
                 onChange={(e) => setDay(Number(e.target.value))}
               >
@@ -356,7 +356,7 @@ export default function Statistics({ fixedExpenses = [] }: Props = {}) {
               </select>
             )}
             <select
-              className="w-full bg-surface-container-low p-2 border rounded"
+              className="h-11 w-full rounded-md border border-white/[0.08] bg-[#1B202B] px-3 text-sm text-[#F9FAFB]"
               value={month}
               onChange={(e) => setMonth(Number(e.target.value))}
             >
@@ -366,7 +366,7 @@ export default function Statistics({ fixedExpenses = [] }: Props = {}) {
             </select>
             <input
               type="number"
-              className="w-full bg-surface-container-low p-2 border rounded sm:w-20"
+              className="h-11 w-full rounded-md border border-white/[0.08] bg-[#1B202B] px-3 font-mono text-sm tabular-nums text-[#F9FAFB] sm:w-24"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
               min={2020}
@@ -377,26 +377,26 @@ export default function Statistics({ fixedExpenses = [] }: Props = {}) {
 
         {overview && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-            <div className="bg-blue-50 p-3 sm:p-4 rounded-lg text-center">
+            <div className="rounded-lg bg-[#1B202B] p-3 text-center sm:p-4">
                <p className="text-sm text-on-surface-variant">{t('statistics.budget')}</p>
-              <p className="text-2xl font-black text-blue-600">{formatCurrecy(overview.budgeted)}</p>
+              <p className="font-mono text-xl font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(overview.budgeted)}</p>
             </div>
-            <div className="bg-green-50 p-3 sm:p-4 rounded-lg text-center">
+            <div className="rounded-lg bg-[#1B202B] p-3 text-center sm:p-4">
                <p className="text-sm text-on-surface-variant">{t('statistics.spent')}</p>
-              <p className="text-2xl font-black text-green-600">{formatCurrecy(overviewSpent)}</p>
+              <p className="font-mono text-xl font-semibold tabular-nums text-[#60A5FA]">{formatCurrecy(overviewSpent)}</p>
               {paidFixed && paidFixed.total > 0 && (
                  <p className="text-xs text-on-surface-variant mt-1">{t('statistics.includesFixed', { amount: formatCurrecy(paidFixed.total) })}</p>
               )}
             </div>
-            <div className="bg-orange-50 p-3 sm:p-4 rounded-lg text-center">
+            <div className="rounded-lg bg-[#1B202B] p-3 text-center sm:p-4">
                <p className="text-sm text-on-surface-variant">{t('statistics.available')}</p>
-              <p className="text-2xl font-black text-orange-600">{formatCurrecy(overviewRemaining)}</p>
+              <p className="font-mono text-xl font-semibold tabular-nums text-[#34D399]">{formatCurrecy(overviewRemaining)}</p>
             </div>
           </div>
         )}
-      </div>
+      </section>
 
-      <div className="bg-surface-container-lowest shadow-lg rounded-lg p-4 sm:p-6">
+      <section className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="min-w-0">
              <h3 className="text-lg sm:text-xl font-bold mb-4">{t('statistics.byCategory')}</h3>
@@ -430,12 +430,12 @@ export default function Statistics({ fixedExpenses = [] }: Props = {}) {
             )}
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="bg-surface-container-lowest shadow-lg rounded-lg p-4 sm:p-6">
+      <section className="rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
         <h3 className="text-lg sm:text-xl font-bold mb-4">{trendTitle}</h3>
         {renderTrend()}
-      </div>
+      </section>
     </div>
   )
 }

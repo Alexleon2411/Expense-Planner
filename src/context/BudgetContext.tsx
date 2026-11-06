@@ -38,7 +38,10 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
   const [apiLoading, setApiLoading] = useState(false)
   const [syncingBudget, setSyncingBudget] = useState(false)
 
-  const totalExpense = useMemo(() => state.expenses.reduce((total, expense) => expense.amount + total, 0), [state.expenses])
+  const totalExpense = useMemo(
+    () => state.expenses.reduce((total, expense) => expense.type === 'saving' ? total : expense.amount + total, 0),
+    [state.expenses],
+  )
   const reminderBudget = state.budget - totalExpense
 
   const now = new Date()
@@ -147,7 +150,6 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
         comment: expense.comment,
         status: expense.status,
         partialAmount: expense.partialAmount,
-        type: expense.type ?? 'expense',
       })
     } catch (error) {
       console.log('Error al crear el gasto en el servidor, se creará localmente', error)
@@ -169,7 +171,6 @@ export const BudgetProvider = ({ children }: BudgetProviderProps) => {
         comment: expense.comment,
         status: expense.status,
         partialAmount: expense.partialAmount,
-        type: expense.type ?? 'expense',
       })
     } catch (error) {
       console.log('Error al actualizar el gasto en el servidor, se actualizará localmente', error)
