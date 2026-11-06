@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { plansApi } from '../api'
-import type { SavingPlanResponse, SavingProgressResponse } from '../api/plans'
+import type {
+  SavingContributionResponse,
+  SavingPlanResponse,
+  SavingProgressResponse,
+} from '../api/plans'
 import { formatCurrecy } from '../helpers'
 
 type Props = {
@@ -38,6 +42,11 @@ export default function SavingsPlan({ month, year }: Props) {
   const [plans, setPlans] = useState<SavingPlanResponse[]>([])
   const [selectedPlanId, setSelectedPlanId] = useState<string | undefined>()
   const [progress, setProgress] = useState<SavingProgressResponse | null>(null)
+  const [contributions, setContributions] = useState<SavingContributionResponse[]>([])
+  const [loadingContributions, setLoadingContributions] = useState(false)
+  const [contributionsError, setContributionsError] = useState(false)
+  const [contributionReloadKey, setContributionReloadKey] = useState(0)
+  const [deletingContributionId, setDeletingContributionId] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
   const [input, setInput] = useState('')
   const [nameInput, setNameInput] = useState('')
@@ -77,14 +86,37 @@ export default function SavingsPlan({ month, year }: Props) {
     if (loadedPeriod !== periodKey) return
     if (!selectedPlanId) {
       setProgress(null)
+      setContributions([])
+      setLoadingContributions(false)
+      setContributionsError(false)
       return
     }
     let cancelled = false
-    plansApi.getProgressForPlan(selectedPlanId)
-      .then((next) => { if (!cancelled) setProgress(next) })
-      .catch(() => { if (!cancelled) setProgress(null) })
+    setLoadingContributions(true)
+    setContributionsError(false)
+    setContributions([])
+    setProgress(null)
+    Promise.all([
+      plansApi.getProgressForPlan(selectedPlanId),
+      plansApi.getContributions(selectedPlanId),
+    ])
+      .then(([nextProgress, nextContributions]) => {
+        if (cancelled) return
+        setProgress(nextProgress)
+        setContributions(nextContributions)
+      })
+      .catch((error) => {
+        if (cancelled) return
+        console.error('Error loading saving plan contributions', error)
+        setProgress(null)
+        setContributions([])
+        setContributionsError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingContributions(false)
+      })
     return () => { cancelled = true }
-  }, [month, year, periodKey, loadedPeriod, selectedPlanId])
+  }, [month, year, periodKey, loadedPeriod, selectedPlanId, contributionReloadKey])
 
   const refreshProgress = useCallback(async (planId: string) => {
     try {
@@ -126,6 +158,24 @@ export default function SavingsPlan({ month, year }: Props) {
       setProgress(null)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDeleteContribution = async (contributionId: string) => {
+    if (
+      !selectedPlanId
+      || deletingContributionId
+      || !window.confirm(t('dashboard.savingContributionDeleteConfirm'))
+    ) return
+    setDeletingContributionId(contributionId)
+    try {
+      await plansApi.deleteContribution(selectedPlanId, contributionId)
+      setContributions((current) => current.filter((contribution) => contribution.id !== contributionId))
+      await refreshProgress(selectedPlanId)
+    } catch (error) {
+      console.error('Error deleting saving plan contribution', error)
+    } finally {
+      setDeletingContributionId(null)
     }
   }
 
@@ -219,6 +269,68 @@ export default function SavingsPlan({ month, year }: Props) {
           style={{ width: `${Math.min(pct, 100)}%` }}
         />
       </div>
+
+      {selectedPlan && (
+        <section className="mb-md min-h-0" aria-labelledby="saving-contribution-history-title">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h3 id="saving-contribution-history-title" className="text-sm font-semibold text-[#F9FAFB]">
+              {t('dashboard.savingContributionHistory')}
+            </h3>
+            <span className="text-xs tabular-nums text-[#9CA3AF]">{contributions.length}</span>
+          </div>
+          {loadingContributions ? (
+            <p className="py-2 text-sm text-[#9CA3AF]">{t('common.loading')}</p>
+          ) : contributionsError ? (
+            <div className="flex items-center justify-between gap-3 py-2">
+              <p className="text-sm text-[#F87171]">{t('dashboard.savingContributionLoadError')}</p>
+              <button
+                type="button"
+                onClick={() => setContributionReloadKey((key) => key + 1)}
+                className="shrink-0 text-sm font-medium text-[#F9FAFB] underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6]"
+              >
+                {t('dashboard.savingContributionRetry')}
+              </button>
+            </div>
+          ) : contributions.length === 0 ? (
+            <p className="rounded-md border border-dashed border-white/[0.12] px-3 py-3 text-sm text-[#9CA3AF]">
+              {t('dashboard.savingContributionEmpty')}
+            </p>
+          ) : (
+            <ul className="max-h-48 divide-y divide-white/[0.08] overflow-y-auto">
+              {contributions.map((contribution) => (
+                <li key={contribution.id} className="flex items-start justify-between gap-3 py-3 first:pt-1">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-[#F9FAFB]">{contribution.name}</p>
+                    <p className="mt-1 text-xs text-[#9CA3AF]">
+                      {formatPlanDate(contribution.date, i18n.language)}
+                    </p>
+                    {contribution.comment && (
+                      <p className="mt-1 break-words text-xs text-[#9CA3AF]">{contribution.comment}</p>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <span className="font-mono text-sm font-semibold tabular-nums text-[#60A5FA]">
+                      {formatCurrecy(contribution.amount)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void handleDeleteContribution(contribution.id)}
+                      disabled={deletingContributionId === contribution.id}
+                      aria-label={t('dashboard.savingContributionDelete')}
+                      title={t('dashboard.savingContributionDelete')}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-md text-[#F87171] transition-colors hover:bg-white/[0.06] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6]"
+                    >
+                      <span aria-hidden="true" className="material-symbols-outlined text-[18px]">
+                        {deletingContributionId === contribution.id ? 'progress_activity' : 'delete'}
+                      </span>
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
 
       {editing ? (
         <div className="mt-auto space-y-2">

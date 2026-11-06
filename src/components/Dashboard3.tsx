@@ -644,12 +644,12 @@ export default function Dashboard3() {
               </div>
             ) : (
               <>
-                <section className="col-span-12 flex flex-col justify-between rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-4 sm:p-5">
+                <section className="col-span-12 flex flex-col justify-between rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-6 sm:p-5">
                   <div>
                     <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('dashboard.totalExpenses')}</p>
                     <h3 className="font-mono text-2xl font-semibold tabular-nums text-[#F9FAFB]">{formatCurrecy(totalSpent)}</h3>
                   </div>
-                  <div className="mt-md flex items-center gap-sm">
+                  <div className="mt-md flex flex-wrap items-center gap-sm">
                     <div className={`flex items-center gap-xs px-sm py-1 rounded-full ${
                       momChange >= 0 ? 'bg-secondary-container/20 text-on-secondary-container' : 'bg-error/10 text-error'
                     }`}>
@@ -661,7 +661,7 @@ export default function Dashboard3() {
                     <span className="text-body-sm text-on-surface-variant">{t('dashboard.lastMonth')}</span>
                   </div>
                 </section>
-                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-4 sm:p-5">
+                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-6 sm:p-5">
                   <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('dashboard.highestCategory')}</p>
                   <div className="flex items-center gap-md mt-sm">
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center">
@@ -684,7 +684,7 @@ export default function Dashboard3() {
                     </div>
                   </div>
                 </section>
-                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 md:col-span-4 sm:p-5">
+                <section className="col-span-12 rounded-lg border border-white/[0.08] bg-[#14171F] p-4 sm:p-5">
                   <SavingsPlan month={selectedMonth} year={selectedYear} />
                 </section>
 

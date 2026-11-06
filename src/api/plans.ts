@@ -4,11 +4,23 @@ export interface SavingPlanResponse {
   id: string;
   name?: string;
   amount: number;
+  savedAmount: number;
   month: number;
   year: number;
   startDate: string;
   endDate: string;
   userId: string;
+}
+
+export interface SavingContributionResponse {
+  id: string;
+  planId: string;
+  name: string;
+  amount: number;
+  date: string;
+  comment?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SavingProgressResponse {
@@ -68,4 +80,28 @@ export async function getProgress(month: number, year: number, planId?: string) 
 export async function getProgressForPlan(planId: string) {
   const { data } = await api.get<SavingProgressResponse>(`/plans/progress?planId=${encodeURIComponent(planId)}`);
   return data;
+}
+
+export async function getContributions(planId: string) {
+  const { data } = await api.get<SavingContributionResponse[]>(`/plans/${encodeURIComponent(planId)}/contributions`);
+  return data;
+}
+
+export async function createContribution(planId: string, contribution: {
+  name: string;
+  amount: number;
+  date: string;
+  comment?: string;
+}) {
+  const { data } = await api.post<SavingContributionResponse>(
+    `/plans/${encodeURIComponent(planId)}/contributions`,
+    contribution,
+  );
+  return data;
+}
+
+export async function deleteContribution(planId: string, contributionId: string) {
+  await api.delete(
+    `/plans/${encodeURIComponent(planId)}/contributions/${encodeURIComponent(contributionId)}`,
+  );
 }

@@ -82,7 +82,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
         status: t(statusInfo.key),
         icon: categoryById[expense.category]?.icon || null,
         categoryColor: categoryById[expense.category]?.color || null,
-        displayAmount: `-${formatAmount(expense.amount)}`,
+        displayAmount: `${expense.type === 'saving' ? '+' : '-'}${formatAmount(expense.amount)}`,
         statusLabel: t(statusInfo.key),
         statusClassName: statusInfo.className,
         rawStatus: expense.status || 'pending',
@@ -94,6 +94,7 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
 
   const startEditing = (row: Row, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (expenses.some((expense) => expense.id === row.id && expense.type === 'saving')) return;
     setEditingId(row.id);
     setEditStatus(row.rawStatus as EditStatus);
     setEditPartialAmount(row.partialAmount ? String(row.partialAmount) : '');
@@ -225,8 +226,10 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                            <button className="px-sm py-xs rounded bg-surface-container-high text-xs hover:bg-surface-container-highest" onClick={cancelEditing} type="button">{t('common.cancel')}</button>
                         </div>
                       </div>
-                    ) : (
-                      <button
+                     ) : expense?.type === 'saving' ? (
+                       <span className="text-xs text-[#9CA3AF]">{t('expense.legacySavingLabel')}</span>
+                     ) : (
+                       <button
                         type="button"
                         className={`${statusPillClassName} ${row.statusClassName} transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B82F6]`}
                         onClick={(e) => startEditing(row, e)}
@@ -236,15 +239,15 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      onClick={(e) => expense && handleDelete(expense, e)}
+                     {expense?.type !== 'saving' && <button
+                       type="button"
+                       onClick={(e) => expense && handleDelete(expense, e)}
                       title={t('expense.delete')}
                       aria-label={t('expense.delete')}
                       className="p-xs rounded-full text-error hover:bg-error/10 transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[18px]">delete</span>
-                    </button>
+                       <span className="material-symbols-outlined text-[18px]">delete</span>
+                     </button>}
                   </td>
                 </tr>
               );
@@ -313,6 +316,11 @@ export default function TableRecentTransactions({ expenses, onRowClick, hasMore,
                        <button className="flex-1 px-sm py-xs rounded bg-green-600 text-white text-xs font-bold disabled:opacity-50" onClick={() => saveStatus(expense)} disabled={saving || (editStatus === 'partial' && (!editPartialAmount || parseFloat(editPartialAmount) <= 0))} type="button">{saving ? '...' : t('expense.saveStatus')}</button>
                        <button className="px-sm py-xs rounded bg-surface-container-high text-xs" onClick={cancelEditing} type="button">{t('common.cancel')}</button>
                     </div>
+                  </div>
+                ) : expense.type === 'saving' ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-[#9CA3AF]">{t('expense.legacySavingLabel')}</span>
+                    <span className="text-body-xs text-on-surface-variant">{t('expense.details')}</span>
                   </div>
                 ) : (
                   <div className="flex items-center justify-between gap-3">

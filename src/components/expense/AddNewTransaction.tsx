@@ -1,9 +1,11 @@
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useBudget } from "../../hooks/useBudget"
 import { useCategories } from "../../hooks/useCategories"
 import { scanReceipt } from "../../services/receiptScanner"
 import { useTranslation } from 'react-i18next'
 import { parseInputDate, toDateOnly } from '../../helpers'
+import { plansApi } from '../../api'
+import type { SavingPlanResponse } from '../../api/plans'
 
 interface AddNewTrasactionProps {
     isOpen: boolean;
@@ -35,10 +37,45 @@ export default function AddNewTrasaction({
     const [partialAmount, setPartialAmount] = useState(0);
     const [comment, setComment] = useState('');
     const [saving, setSaving] = useState(false);
+    const [savingPlans, setSavingPlans] = useState<SavingPlanResponse[]>([]);
+    const [selectedSavingPlanId, setSelectedSavingPlanId] = useState('');
+    const [loadingSavingPlans, setLoadingSavingPlans] = useState(false);
     const [receiptFile, setReceiptFile] = useState<File | null>(null);
     const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
     const [scanning, setScanning] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (!isOpen || type !== 'saving') return;
+        if (!date) {
+            setSavingPlans([]);
+            setSelectedSavingPlanId('');
+            setLoadingSavingPlans(false);
+            return;
+        }
+
+        let cancelled = false;
+        setLoadingSavingPlans(true);
+        plansApi.getPlansForPeriod(date, date)
+            .then((plans) => {
+                if (cancelled) return;
+                setSavingPlans(plans);
+                setSelectedSavingPlanId((current) =>
+                    plans.some((plan) => plan.id === current) ? current : plans[0]?.id ?? ''
+                );
+            })
+            .catch((error) => {
+                if (cancelled) return;
+                console.error('Error loading saving plans for transaction date', error);
+                setSavingPlans([]);
+                setSelectedSavingPlanId('');
+            })
+            .finally(() => {
+                if (!cancelled) setLoadingSavingPlans(false);
+            });
+
+        return () => { cancelled = true; };
+    }, [isOpen, type, date]);
 
     if (!isOpen) return null;
 
@@ -75,6 +112,10 @@ export default function AddNewTrasaction({
         setCategory(initialCategory);
         setAmount(initialAmount || 0);
         setDate(toDateOnly(new Date()));
+        setType('expense');
+        setSavingPlans([]);
+        setSelectedSavingPlanId('');
+        setLoadingSavingPlans(false);
         setStatus(null);
         setPartialAmount(0);
         setComment('');
@@ -105,7 +146,7 @@ export default function AddNewTrasaction({
             if (result.merchant) setMerchant(result.merchant);
             if (result.amount > 0) setAmount(result.amount);
             if (result.date) setDate(result.date);
-            if (result.category) {
+            if (result.category && type === 'expense') {
                 const matched = categories.find(c => c.name.toLowerCase() === result.category.toLowerCase());
                 setCategory(matched?.id || '');
             }
@@ -123,24 +164,40 @@ export default function AddNewTrasaction({
     };
 
     const handleSave = async () => {
-        if (!merchant.trim() || !category || amount <= 0) return;
+        const selectedSavingPlan = savingPlans.find((plan) => plan.id === selectedSavingPlanId);
+        if (
+            !merchant.trim()
+            || !date
+            || amount <= 0
+            || (type === 'expense' && !category)
+            || (type === 'saving' && !selectedSavingPlan)
+        ) return;
         setSaving(true);
         try {
-            await addExpense({
-                expenseName: merchant.trim(),
-                amount,
-                category,
-                date: parseInputDate(date),
-                status: status || 'pending',
-                partialAmount: status === 'partial' ? partialAmount : undefined,
-                comment: comment.trim() || undefined,
-                type,
-            });
+            if (type === 'saving') {
+                if (!selectedSavingPlan) return;
+                await plansApi.createContribution(selectedSavingPlan.id, {
+                    name: merchant.trim(),
+                    amount,
+                    date,
+                    comment: comment.trim() || undefined,
+                });
+            } else {
+                await addExpense({
+                    expenseName: merchant.trim(),
+                    amount,
+                    category,
+                    date: parseInputDate(date),
+                    status: status || 'pending',
+                    partialAmount: status === 'partial' ? partialAmount : undefined,
+                    comment: comment.trim() || undefined,
+                });
+            }
             resetForm();
             onClose();
             onExpenseCreated?.();
         } catch (error) {
-            console.error(t('expense.createError'), error);
+            console.error(type === 'saving' ? 'Error creating saving contribution' : t('expense.createError'), error);
         } finally {
             setSaving(false);
         }
@@ -211,11 +268,15 @@ export default function AddNewTrasaction({
 
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <label htmlFor="transaction-merchant" className="block min-w-0">
-                                    <span className={fieldLabelClassName}>{t('expense.merchant')}</span>
+                                    <span className={fieldLabelClassName}>
+                                        {type === 'saving' ? t('expense.savingContributionName') : t('expense.merchant')}
+                                    </span>
                                     <input
                                         id="transaction-merchant"
                                         className={fieldClassName}
-                                        placeholder={t('expense.merchant')}
+                                        placeholder={type === 'saving'
+                                            ? t('expense.savingContributionPlaceholder')
+                                            : t('expense.merchant')}
                                         type="text"
                                         autoComplete="off"
                                         value={merchant}
@@ -224,24 +285,61 @@ export default function AddNewTrasaction({
                                     />
                                 </label>
 
-                                <label htmlFor="transaction-category" className="block min-w-0">
-                                    <span className={fieldLabelClassName}>{t('expense.category')}</span>
-                                    <span className="relative block">
-                                        <select
-                                            id="transaction-category"
-                                            className={`${fieldClassName} appearance-none pr-10`}
-                                            value={category}
-                                            onChange={(e) => setCategory(e.target.value)}
-                                            required
-                                        >
-                                            <option value="">{t('expense.select')}</option>
-                                            {categories.map((c) => (
-                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                            ))}
-                                        </select>
-                                        <span aria-hidden="true" className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-[#9CA3AF]">expand_more</span>
-                                    </span>
-                                </label>
+                                {type === 'expense' ? (
+                                    <label htmlFor="transaction-category" className="block min-w-0">
+                                        <span className={fieldLabelClassName}>{t('expense.category')}</span>
+                                        <span className="relative block">
+                                            <select
+                                                id="transaction-category"
+                                                className={`${fieldClassName} appearance-none pr-10`}
+                                                value={category}
+                                                onChange={(e) => setCategory(e.target.value)}
+                                                required
+                                            >
+                                                <option value="">{t('expense.select')}</option>
+                                                {categories.map((c) => (
+                                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                                ))}
+                                            </select>
+                                            <span aria-hidden="true" className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-[#9CA3AF]">expand_more</span>
+                                        </span>
+                                    </label>
+                                ) : (
+                                    <div className="min-w-0">
+                                        <span id="transaction-saving-plan-label" className={fieldLabelClassName}>
+                                            {t('dashboard.savingsPlans', 'Planes de ahorro')}
+                                        </span>
+                                            {loadingSavingPlans ? (
+                                                <span className="flex h-11 items-center gap-2 text-sm text-[#9CA3AF]">
+                                                    <span aria-hidden="true" className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                                                    {t('common.loading')}
+                                                </span>
+                                            ) : savingPlans.length > 0 ? (
+                                                <span className="relative block">
+                                                    <select
+                                                        id="transaction-saving-plan"
+                                                        aria-labelledby="transaction-saving-plan-label"
+                                                        className={`${fieldClassName} appearance-none pr-10`}
+                                                        value={selectedSavingPlanId}
+                                                        onChange={(e) => setSelectedSavingPlanId(e.target.value)}
+                                                        required
+                                                    >
+                                                        {savingPlans.map((plan) => (
+                                                            <option key={plan.id} value={plan.id}>
+                                                                {plan.name || t('dashboard.savingsDefaultName')}
+                                                                {' · '}{plan.startDate.slice(0, 10)} – {plan.endDate.slice(0, 10)}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <span aria-hidden="true" className="material-symbols-outlined pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[18px] text-[#9CA3AF]">expand_more</span>
+                                                </span>
+                                            ) : (
+                                                <p className="flex min-h-11 items-center rounded-md border border-dashed border-white/[0.12] px-3 text-xs text-[#9CA3AF]">
+                                                    {t('dashboard.savingsPlansEmpty', 'Crea un plan de ahorro para esta fecha')}
+                                                </p>
+                                            )}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -271,10 +369,13 @@ export default function AddNewTrasaction({
                                         type="date"
                                         value={date}
                                         onChange={(e) => setDate(e.target.value)}
+                                        required
                                     />
                                 </label>
                             </div>
 
+                            {type === 'expense' && (
+                                <>
                             <fieldset className="space-y-2">
                                 <legend className={fieldLabelClassName}>{t('expense.status')}</legend>
                                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -401,6 +502,22 @@ export default function AddNewTrasaction({
                                     />
                                 </section>
                             )}
+                                </>
+                            )}
+
+                            {type === 'saving' && (
+                                <label htmlFor="transaction-comment" className="block">
+                                    <span className={fieldLabelClassName}>{t('expense.savingContributionNote')}</span>
+                                    <textarea
+                                        id="transaction-comment"
+                                        className={`${fieldClassName} min-h-24 resize-y`}
+                                        placeholder={t('expense.savingContributionNotePlaceholder')}
+                                        rows={3}
+                                        value={comment}
+                                        onChange={(e) => setComment(e.target.value)}
+                                    />
+                                </label>
+                            )}
                         </div>
 
                         <footer className="flex shrink-0 flex-col-reverse gap-2 border-t border-white/[0.08] p-4 sm:flex-row sm:justify-end sm:px-6 sm:py-4">
@@ -414,7 +531,7 @@ export default function AddNewTrasaction({
                             <button
                                 type="submit"
                                 className="min-h-11 flex-1 rounded-md bg-[#3B82F6] px-4 text-sm font-medium text-white transition-colors hover:bg-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#60A5FA] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
-                                disabled={saving || !merchant.trim() || !category || amount <= 0}
+                                disabled={saving || !merchant.trim() || !date || (type === 'expense' ? !category : loadingSavingPlans || !selectedSavingPlanId) || amount <= 0}
                             >
                                 {saving ? t('budget.saving') : t('expense.saveTransaction')}
                             </button>
