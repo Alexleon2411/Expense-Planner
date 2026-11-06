@@ -52,6 +52,20 @@ export default {
         'on-secondary-container': 'rgb(var(--c-on-secondary-container) / <alpha-value>)',
         'primary-fixed-dim': 'rgb(var(--c-primary-fixed-dim) / <alpha-value>)',
         'surface-variant': 'rgb(var(--c-surface-variant) / <alpha-value>)',
+        ui: {
+          canvas: 'rgb(var(--ui-canvas) / <alpha-value>)',
+          surface: 'rgb(var(--ui-surface) / <alpha-value>)',
+          elevated: 'rgb(var(--ui-elevated) / <alpha-value>)',
+          border: 'var(--ui-border)',
+          control: 'rgb(var(--ui-control) / <alpha-value>)',
+          fg: 'rgb(var(--ui-fg) / <alpha-value>)',
+          'fg-muted': 'rgb(var(--ui-fg-muted) / <alpha-value>)',
+          accent: 'rgb(var(--ui-accent) / <alpha-value>)',
+          'on-accent': 'rgb(var(--ui-on-accent) / <alpha-value>)',
+          success: 'rgb(var(--ui-success) / <alpha-value>)',
+          warning: 'rgb(var(--ui-warning) / <alpha-value>)',
+          danger: 'rgb(var(--ui-danger) / <alpha-value>)',
+        },
       },
       borderRadius: {
         DEFAULT: '0.25rem',
@@ -77,6 +91,16 @@ export default {
         'headline-md': ['Inter', 'sans-serif'],
         'body-md': ['Inter', 'sans-serif'],
         'data-mono': ['JetBrains Mono', 'monospace'],
+      },
+      fontSize: {
+        'ui-label': ['11px', { lineHeight: '16px', letterSpacing: '0.06em', fontWeight: '600' }],
+        'ui-caption': ['12px', { lineHeight: '16px' }],
+        'ui-table': ['13px', { lineHeight: '20px' }],
+        'ui-body': ['14px', { lineHeight: '20px' }],
+        'ui-title': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'ui-heading': ['20px', { lineHeight: '28px', fontWeight: '600' }],
+        'ui-metric': ['28px', { lineHeight: '32px', fontWeight: '600' }],
+        'ui-display': ['32px', { lineHeight: '40px', fontWeight: '600' }],
       },
       keyframes: {
         fadeIn: {

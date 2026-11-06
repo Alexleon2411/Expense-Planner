@@ -1,0 +1,35 @@
+/*
+ * Tokens del informe. Van en canales RGB para que Tailwind admita
+ * modificadores de opacidad (bg-ui-success/[.12]). El borde se guarda
+ * completo porque es un rgba decorativo sin modificadores.
+ * El tema oscuro lo activa la clase .dark que ya gestiona ThemeContext.
+ */
+:root {
+  --ui-canvas: 246 247 249;
+  --ui-surface: 255 255 255;
+  --ui-elevated: 241 243 246;
+  --ui-border: rgb(15 23 42 / 0.1);
+  --ui-control: 133 140 155;
+  --ui-fg: 11 13 17;
+  --ui-fg-muted: 91 99 116;
+  --ui-accent: 37 99 235;
+  --ui-on-accent: 255 255 255;
+  --ui-success: 4 120 87;
+  --ui-warning: 146 64 14;
+  --ui-danger: 185 28 28;
+}
+
+.dark {
+  --ui-canvas: 11 13 17;
+  --ui-surface: 20 23 31;
+  --ui-elevated: 27 32 43;
+  --ui-border: rgb(255 255 255 / 0.08);
+  --ui-control: 100 107 124;
+  --ui-fg: 249 250 251;
+  --ui-fg-muted: 156 163 175;
+  --ui-accent: 96 165 250;
+  --ui-on-accent: 11 13 17;
+  --ui-success: 52 211 153;
+  --ui-warning: 251 191 36;
+  --ui-danger: 248 113 113;
+}

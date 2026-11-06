@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { parseInputDate, toDateOnly } from '../../helpers'
 import { plansApi } from '../../api'
 import type { SavingPlanResponse } from '../../api/plans'
+import '../../i18n/addTransactionResources'
 
 interface AddNewTrasactionProps {
     isOpen: boolean;
@@ -151,7 +152,7 @@ export default function AddNewTrasaction({
                 setCategory(matched?.id || '');
             }
         } catch (error) {
-            console.error(t('upload.scanError'), error);
+            console.error(t('addTransaction.scanError'), error);
         } finally {
             setScanning(false);
         }
@@ -197,7 +198,7 @@ export default function AddNewTrasaction({
             onClose();
             onExpenseCreated?.();
         } catch (error) {
-            console.error(type === 'saving' ? 'Error creating saving contribution' : t('expense.createError'), error);
+            console.error(type === 'saving' ? 'Error creating saving contribution' : t('addTransaction.createError'), error);
         } finally {
             setSaving(false);
         }
@@ -224,7 +225,7 @@ export default function AddNewTrasaction({
                 >
                     <header className="flex shrink-0 items-center justify-between border-b border-white/[0.08] px-4 py-3 sm:px-6">
                         <h2 id="add-transaction-title" className="text-lg font-semibold">
-                            {t('expense.addTransaction')}
+                            {t('addTransaction.title')}
                         </h2>
                         <button
                             type="button"
@@ -253,7 +254,7 @@ export default function AddNewTrasaction({
                                     onClick={() => setType('expense')}
                                 >
                                     <span aria-hidden="true" className="material-symbols-outlined text-[18px]">shopping_bag</span>
-                                    <span className="truncate">{t('expense.typeExpense')}</span>
+                                    <span className="truncate">{t('addTransaction.typeExpense')}</span>
                                 </button>
                                 <button
                                     type="button"
@@ -262,21 +263,21 @@ export default function AddNewTrasaction({
                                     onClick={() => setType('saving')}
                                 >
                                     <span aria-hidden="true" className="material-symbols-outlined text-[18px]">savings</span>
-                                    <span className="truncate">{t('expense.typeSaving')}</span>
+                                    <span className="truncate">{t('addTransaction.typeSaving')}</span>
                                 </button>
                             </div>
 
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <label htmlFor="transaction-merchant" className="block min-w-0">
                                     <span className={fieldLabelClassName}>
-                                        {type === 'saving' ? t('expense.savingContributionName') : t('expense.merchant')}
+                                        {type === 'saving' ? t('addTransaction.savingContributionName') : t('addTransaction.merchant')}
                                     </span>
                                     <input
                                         id="transaction-merchant"
                                         className={fieldClassName}
                                         placeholder={type === 'saving'
-                                            ? t('expense.savingContributionPlaceholder')
-                                            : t('expense.merchant')}
+                                            ? t('addTransaction.savingContributionPlaceholder')
+                                            : t('addTransaction.merchant')}
                                         type="text"
                                         autoComplete="off"
                                         value={merchant}
@@ -287,7 +288,7 @@ export default function AddNewTrasaction({
 
                                 {type === 'expense' ? (
                                     <label htmlFor="transaction-category" className="block min-w-0">
-                                        <span className={fieldLabelClassName}>{t('expense.category')}</span>
+                                        <span className={fieldLabelClassName}>{t('addTransaction.category')}</span>
                                         <span className="relative block">
                                             <select
                                                 id="transaction-category"
@@ -296,7 +297,7 @@ export default function AddNewTrasaction({
                                                 onChange={(e) => setCategory(e.target.value)}
                                                 required
                                             >
-                                                <option value="">{t('expense.select')}</option>
+                                                <option value="">{t('addTransaction.select')}</option>
                                                 {categories.map((c) => (
                                                     <option key={c.id} value={c.id}>{c.name}</option>
                                                 ))}
@@ -307,7 +308,7 @@ export default function AddNewTrasaction({
                                 ) : (
                                     <div className="min-w-0">
                                         <span id="transaction-saving-plan-label" className={fieldLabelClassName}>
-                                            {t('dashboard.savingsPlans', 'Planes de ahorro')}
+                                            {t('addTransaction.savingsPlans')}
                                         </span>
                                             {loadingSavingPlans ? (
                                                 <span className="flex h-11 items-center gap-2 text-sm text-[#9CA3AF]">
@@ -326,7 +327,7 @@ export default function AddNewTrasaction({
                                                     >
                                                         {savingPlans.map((plan) => (
                                                             <option key={plan.id} value={plan.id}>
-                                                                {plan.name || t('dashboard.savingsDefaultName')}
+                                                                {plan.name || t('addTransaction.savingsDefaultName')}
                                                                 {' · '}{plan.startDate.slice(0, 10)} – {plan.endDate.slice(0, 10)}
                                                             </option>
                                                         ))}
@@ -335,7 +336,7 @@ export default function AddNewTrasaction({
                                                 </span>
                                             ) : (
                                                 <p className="flex min-h-11 items-center rounded-md border border-dashed border-white/[0.12] px-3 text-xs text-[#9CA3AF]">
-                                                    {t('dashboard.savingsPlansEmpty', 'Crea un plan de ahorro para esta fecha')}
+                                                    {t('addTransaction.savingsPlansEmpty')}
                                                 </p>
                                             )}
                                     </div>
@@ -344,13 +345,13 @@ export default function AddNewTrasaction({
 
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <label htmlFor="transaction-amount" className="block min-w-0">
-                                    <span className={fieldLabelClassName}>{t('expense.amountLabel')}</span>
+                                    <span className={fieldLabelClassName}>{t('addTransaction.amountLabel')}</span>
                                     <span className="relative block">
                                         <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#9CA3AF]">€</span>
                                         <input
                                             id="transaction-amount"
                                             className={`${fieldClassName} pl-9 font-mono tabular-nums`}
-                                            placeholder={t('expense.amountPlaceholder')}
+                                            placeholder={t('addTransaction.amountPlaceholder')}
                                             step="0.01"
                                             min="0"
                                             type="number"
@@ -362,7 +363,7 @@ export default function AddNewTrasaction({
                                 </label>
 
                                 <label htmlFor="transaction-date" className="block min-w-0">
-                                    <span className={fieldLabelClassName}>{t('expense.date')}</span>
+                                    <span className={fieldLabelClassName}>{t('addTransaction.date')}</span>
                                     <input
                                         id="transaction-date"
                                         className={fieldClassName}
@@ -377,7 +378,7 @@ export default function AddNewTrasaction({
                             {type === 'expense' && (
                                 <>
                             <fieldset className="space-y-2">
-                                <legend className={fieldLabelClassName}>{t('expense.status')}</legend>
+                                <legend className={fieldLabelClassName}>{t('addTransaction.status')}</legend>
                                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                                     <button
                                         className={statusButtonClasses('paid')}
@@ -386,7 +387,7 @@ export default function AddNewTrasaction({
                                         type="button"
                                     >
                                         <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[16px]">check_circle</span>
-                                        <span>{t('expense.paid')}</span>
+                                        <span>{t('addTransaction.paid')}</span>
                                     </button>
                                     <button
                                         className={statusButtonClasses('pending')}
@@ -395,7 +396,7 @@ export default function AddNewTrasaction({
                                         type="button"
                                     >
                                         <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[16px]">schedule</span>
-                                        <span>{t('expense.pending')}</span>
+                                        <span>{t('addTransaction.pending')}</span>
                                     </button>
                                     <button
                                         className={statusButtonClasses('partial')}
@@ -404,7 +405,7 @@ export default function AddNewTrasaction({
                                         type="button"
                                     >
                                         <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[16px]">incomplete_circle</span>
-                                        <span>{t('expense.partial')}</span>
+                                        <span>{t('addTransaction.partial')}</span>
                                     </button>
                                 </div>
                             </fieldset>
@@ -412,13 +413,13 @@ export default function AddNewTrasaction({
                             {status === 'partial' && (
                                 <div className="space-y-3 rounded-lg border border-white/[0.08] bg-[#1B202B] p-3 sm:p-4">
                                     <label htmlFor="transaction-partial-amount" className="block">
-                                        <span className={fieldLabelClassName}>{t('expense.paidSoFar')}</span>
+                                        <span className={fieldLabelClassName}>{t('addTransaction.paidSoFar')}</span>
                                         <span className="relative block">
                                             <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#9CA3AF]">€</span>
                                             <input
                                                 id="transaction-partial-amount"
                                                 className={`${fieldClassName} pl-9 font-mono tabular-nums`}
-                                                placeholder={t('expense.amountPlaceholder')}
+                                                placeholder={t('addTransaction.amountPlaceholder')}
                                                 step="0.01"
                                                 type="number"
                                                 min="0"
@@ -429,15 +430,15 @@ export default function AddNewTrasaction({
                                         </span>
                                     </label>
                                     <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-[#0B0D11] px-3 py-2 text-sm">
-                                        <span className="text-[#9CA3AF]">{t('expense.remaining')}</span>
+                                        <span className="text-[#9CA3AF]">{t('addTransaction.remaining')}</span>
                                         <span className="font-mono tabular-nums text-[#FBBF24]">€{Math.max(0, amount - partialAmount).toFixed(2)}</span>
                                     </div>
                                     <label htmlFor="transaction-comment" className="block">
-                                        <span className={fieldLabelClassName}>{t('expense.paymentComments')}</span>
+                                        <span className={fieldLabelClassName}>{t('addTransaction.paymentComments')}</span>
                                         <textarea
                                             id="transaction-comment"
                                             className={`${fieldClassName} min-h-24 resize-y`}
-                                            placeholder={t('expense.partialCommentPlaceholder')}
+                                            placeholder={t('addTransaction.partialCommentPlaceholder')}
                                             rows={3}
                                             value={comment}
                                             onChange={(e) => setComment(e.target.value)}
@@ -448,7 +449,7 @@ export default function AddNewTrasaction({
 
                             {status !== 'partial' && (
                                 <section className="space-y-2">
-                                    <h3 className={fieldLabelClassName}>{t('expense.receipt')}</h3>
+                                    <h3 className={fieldLabelClassName}>{t('addTransaction.receipt')}</h3>
                                     {scanning ? (
                                         <div className="flex items-center gap-3 rounded-md border border-white/[0.08] bg-[#1B202B] p-3">
                                             <span aria-hidden="true" className="material-symbols-outlined animate-spin text-[#3B82F6]">sync</span>
@@ -507,11 +508,11 @@ export default function AddNewTrasaction({
 
                             {type === 'saving' && (
                                 <label htmlFor="transaction-comment" className="block">
-                                    <span className={fieldLabelClassName}>{t('expense.savingContributionNote')}</span>
+                                    <span className={fieldLabelClassName}>{t('addTransaction.savingContributionNote')}</span>
                                     <textarea
                                         id="transaction-comment"
                                         className={`${fieldClassName} min-h-24 resize-y`}
-                                        placeholder={t('expense.savingContributionNotePlaceholder')}
+                                        placeholder={t('addTransaction.savingContributionNotePlaceholder')}
                                         rows={3}
                                         value={comment}
                                         onChange={(e) => setComment(e.target.value)}
@@ -533,7 +534,7 @@ export default function AddNewTrasaction({
                                 className="min-h-11 flex-1 rounded-md bg-[#3B82F6] px-4 text-sm font-medium text-white transition-colors hover:bg-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#60A5FA] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
                                 disabled={saving || !merchant.trim() || !date || (type === 'expense' ? !category : loadingSavingPlans || !selectedSavingPlanId) || amount <= 0}
                             >
-                                {saving ? t('budget.saving') : t('expense.saveTransaction')}
+                                {saving ? t('budget.saving') : t('addTransaction.save')}
                             </button>
                         </footer>
                     </form>

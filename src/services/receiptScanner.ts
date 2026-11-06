@@ -1,4 +1,5 @@
 import { createWorker } from 'tesseract.js';
+import { scanReceiptImage } from '../api/receipts';
 
 export interface ReceiptData {
   merchant: string;
@@ -7,11 +8,6 @@ export interface ReceiptData {
   category: string;
   rawText: string;
 }
-
-const ABACUS_AI_URL = (import.meta.env.VITE_ABACUS_AI_URL as string) || 'https://routellm.abacus.ai/v1';
-const ABACUS_AI_RAW_KEY = (import.meta.env.VITE_ABACUS_AI_KEY as string | undefined)?.trim() || '';
-const ABACUS_AI_KEY = ABACUS_AI_RAW_KEY && !ABACUS_AI_RAW_KEY.startsWith('YOUR_') ? ABACUS_AI_RAW_KEY : undefined;
-const ABACUS_AI_MODEL = (import.meta.env.VITE_ABACUS_AI_MODEL as string) || 'route-llm';
 
 const VALID_CATEGORIES = ['Ahorro', 'Comida', 'Casa', 'Gastos Varios', 'Ocio', 'Salud', 'Suscripciones'];
 
@@ -95,90 +91,16 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-function parseAIJson(content: string): Record<string, unknown> {
-  const cleaned = content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-  try {
-    const obj = JSON.parse(cleaned);
-    return obj && typeof obj === 'object' ? (obj as Record<string, unknown>) : {};
-  } catch {
-    const match = cleaned.match(/\{[\s\S]*\}/);
-    if (match) {
-      try {
-        return JSON.parse(match[0]);
-      } catch {
-        return {};
-      }
-    }
-  }
-  return {};
-}
-
-function closestCategory(raw: string): string {
-  const lower = raw.toLowerCase();
-  const exact = VALID_CATEGORIES.find(c => c.toLowerCase() === lower);
-  if (exact) return exact;
-  const partial = VALID_CATEGORIES.find(c => lower.includes(c.toLowerCase()) || c.toLowerCase().includes(lower));
-  if (partial) return partial;
-  return 'Gastos Varios';
-}
-
 async function scanWithAI(file: File): Promise<ReceiptData> {
-  if (!ABACUS_AI_KEY) throw new Error('Missing Abacus AI key');
-
   const imageUrl = await fileToDataUrl(file);
-
-  const response = await fetch(`${ABACUS_AI_URL}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${ABACUS_AI_KEY}`,
-    },
-    body: JSON.stringify({
-      model: ABACUS_AI_MODEL,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: `You are a receipt analyzer. Look at the receipt image and extract the purchase information.
-
-Return ONLY valid JSON in this exact format (no markdown, no extra text):
-{"merchant": "store name", "amount": 12.5, "category": "one of the categories"}
-
-Rules:
-- merchant: the store/merchant name shown on the receipt
-- amount: the total amount spent, as a number
-- category: exactly one of: ${VALID_CATEGORIES.join(', ')}`,
-            },
-            { type: 'image_url', image_url: { url: imageUrl } },
-          ],
-        },
-      ],
-      temperature: 0,
-    }),
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Abacus AI request failed: ${response.status} ${text}`);
-  }
-
-  const data = await response.json();
-  const content: string = data.choices?.[0]?.message?.content ?? '';
-  const parsed = parseAIJson(content);
-
-  const merchant = String(parsed.merchant ?? '').trim();
-  const rawAmount = Number(parsed.amount);
-  const amount = isNaN(rawAmount) || rawAmount <= 0 ? 0 : rawAmount;
-  const category = closestCategory(String(parsed.category ?? '').trim());
+  const result = await scanReceiptImage(imageUrl);
 
   return {
-    merchant,
-    amount,
+    merchant: result.merchant,
+    amount: result.amount,
     date: new Date().toISOString().split('T')[0],
-    category,
-    rawText: content,
+    category: result.category,
+    rawText: '',
   };
 }
 
@@ -206,12 +128,10 @@ async function scanWithOCR(file: File): Promise<ReceiptData> {
 }
 
 export async function scanReceipt(file: File): Promise<ReceiptData> {
-  if (ABACUS_AI_KEY) {
-    try {
-      return await scanWithAI(file);
-    } catch (error) {
-      console.error('AI receipt scan failed, falling back to OCR:', error);
-    }
+  try {
+    return await scanWithAI(file);
+  } catch (error) {
+    console.error('AI receipt scan failed, falling back to OCR:', error);
   }
   return scanWithOCR(file);
 }

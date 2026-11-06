@@ -1,20 +1,73 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { statsApi, expensesApi } from '../api'
 import type { OverviewResponse, CategoryBreakdown, DailyData, MonthlyTrend, YearlyStats } from '../api/stats'
 import { useCategories } from '../hooks/useCategories'
+import { useRevealMotion } from '../hooks/useMotion'
 import { formatCurrecy } from '../helpers'
+import { downloadCsv, toCsv } from '../helpers/csv'
+import { BUDGET_STATUS, budgetLevel } from '../helpers/budget'
+import '../styles/ui-tokens.css'
+import '../i18n/reportsPageResources'
+import AllTransactionsModal from './AllTransactionsModal'
 import CategoryIcon from './CategoryIcon'
 import DetailedBreakdownReport from './DetailedBreakdownReport'
-import AllTransactionsModal from './AllTransactionsModal'
-import { useTranslation } from 'react-i18next'
+import AddNewTrasaction from './expense/AddNewTransaction'
+import ActionMenu from './ui/ActionMenu'
+import ActivityList, { type ActivityItem } from './ui/ActivityList'
+import AnimatedValue from './ui/AnimatedValue'
+import BarChart, { type BarChartItem } from './ui/BarChart'
+import Button from './ui/Button'
+import Card from './ui/Card'
+import DataTable, { type DataTableColumn } from './ui/DataTable'
+import EmptyState from './ui/EmptyState'
+import KpiCard from './ui/KpiCard'
+import MeterBar from './ui/MeterBar'
+import MetricRow from './ui/MetricRow'
+import PageHeader from './ui/PageHeader'
+import PeriodPicker from './ui/PeriodPicker'
+import Skeleton from './ui/Skeleton'
+import Sparkline from './ui/Sparkline'
+import StatusBadge, { type StatusTone } from './ui/StatusBadge'
+
 const YEARS = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
+
+const PACE_TEXT = { fast: 'text-ui-warning', steady: 'text-ui-fg', slow: 'text-ui-success' } as const
+const PACE_LABEL = {
+  fast: 'reportsPage.pace.fast',
+  steady: 'reportsPage.pace.steady',
+  slow: 'reportsPage.pace.slow',
+} as const
+
+type Pace = keyof typeof PACE_TEXT
+
+function paceOf(dailyRate: number): Pace {
+  if (dailyRate > 5) return 'fast'
+  if (dailyRate > 3) return 'steady'
+  return 'slow'
+}
+
+function directionOf(current: number, previous: number): { tone: StatusTone; icon: string } {
+  if (current > previous) return { tone: 'warning', icon: 'trending_up' }
+  if (current < previous) return { tone: 'success', icon: 'trending_down' }
+  return { tone: 'neutral', icon: 'trending_flat' }
+}
+
+function monthlyValues(trend: Map<number, number>) {
+  return Array.from({ length: 12 }, (_, index) => trend.get(index + 1) ?? 0)
+}
+
+function cumulative(values: number[]) {
+  return values.reduce<number[]>((acc, value) => [...acc, (acc[acc.length - 1] ?? 0) + value], [])
+}
 
 export default function Report2() {
   const now = new Date()
+  const today = now.getDate()
   const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1)
   const [selectedYear, setSelectedYear] = useState(now.getFullYear())
-  const monthName = (month: number) => new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(new Date(selectedYear, month - 1, 1))
 
   const [overview, setOverview] = useState<OverviewResponse | null>(null)
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown[]>([])
@@ -26,13 +79,19 @@ export default function Report2() {
   const [recentExpenses, setRecentExpenses] = useState<{ id: string; expenseName: string; amount: number; category: string; date: Date }[]>([])
   const [showBreakdown, setShowBreakdown] = useState(false)
   const [showAllTransactions, setShowAllTransactions] = useState(false)
+  const [showNewTransaction, setShowNewTransaction] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+  const [updatedAt, setUpdatedAt] = useState<Date | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   const { categories } = useCategories()
 
   const daysInMonth = new Date(selectedYear, selectedMonth, 0).getDate()
   const isCurrent = now.getFullYear() === selectedYear && now.getMonth() + 1 === selectedMonth
   const daysElapsed = isCurrent ? now.getDate() : daysInMonth
+  const daysRemaining = daysInMonth - daysElapsed
 
   useEffect(() => {
     setLoading(true)
@@ -63,10 +122,17 @@ export default function Report2() {
             date: new Date(e.date),
           })),
         )
+        setError(false)
+        setUpdatedAt(new Date())
       })
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
-  }, [selectedMonth, selectedYear])
+  }, [selectedMonth, selectedYear, refreshKey])
+
+  const hasData = overview !== null
+  const showError = error && !loading
+  const showSkeleton = !hasData && loading
+  const showContent = hasData && !showError
 
   const totalSpent = overview?.totalSpent ?? 0
   const budgeted = overview?.budgeted ?? 0
@@ -74,6 +140,8 @@ export default function Report2() {
   const avgDaily = daysElapsed > 0 ? totalSpent / daysElapsed : 0
   const predictedEom = avgDaily * daysInMonth
   const dailyRate = budgeted > 0 ? ((totalSpent / daysElapsed) / budgeted) * 100 : 0
+  const budgetStatus = BUDGET_STATUS[budgetLevel(totalSpent, budgeted)]
+  const pace = paceOf(dailyRate)
 
   const currentTrendByMonth = useMemo(() => {
     const map = new Map<number, number>()
@@ -91,16 +159,28 @@ export default function Report2() {
     ? (prevTrendByMonth.get(12) ?? 0)
     : (currentTrendByMonth.get(selectedMonth - 1) ?? 0)
   const monthlyChange = prevMonthTotal > 0 ? ((totalSpent - prevMonthTotal) / prevMonthTotal) * 100 : 0
+  const monthDirection = directionOf(totalSpent, prevMonthTotal)
 
   const yearToDate = yearlyStats?.total ?? 0
   const prevYearTotal = prevYearStats?.total ?? 0
   const yearlyChange = prevYearTotal > 0 ? ((yearToDate - prevYearTotal) / prevYearTotal) * 100 : 0
+  const yearDirection = directionOf(yearToDate, prevYearTotal)
 
-  const getCategoryInfo = (categoryId: string) => {
-    return categories.find((c) => c.id === categoryId)
-  }
-
-  const today = now.getDate()
+  const formats = useMemo(
+    () => ({
+      percentDelta: new Intl.NumberFormat(lang, { style: 'percent', maximumFractionDigits: 1, signDisplay: 'exceptZero' }),
+      percent: new Intl.NumberFormat(lang, { style: 'percent', maximumFractionDigits: 1 }),
+      percentInt: new Intl.NumberFormat(lang, { style: 'percent', maximumFractionDigits: 0 }),
+      monthName: new Intl.DateTimeFormat(lang, { month: 'long' }),
+      shortDay: new Intl.DateTimeFormat(lang, { weekday: 'short', day: 'numeric' }),
+      longDay: new Intl.DateTimeFormat(lang, { weekday: 'long', day: 'numeric', month: 'long' }),
+      shortDate: new Intl.DateTimeFormat(lang, { day: 'numeric', month: 'short' }),
+      time: new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit', hour12: false }),
+      csvAmount: new Intl.NumberFormat(lang, { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false }),
+      csvPercent: new Intl.NumberFormat(lang, { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false }),
+    }),
+    [lang],
+  )
 
   const weekDays = useMemo(() => {
     const byDay = new Map<number, number>()
@@ -112,352 +192,444 @@ export default function Report2() {
     monday.setHours(0, 0, 0, 0)
 
     return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(monday)
-      d.setDate(monday.getDate() + i)
-      const inMonth = d.getMonth() === selectedMonth - 1
-      const dayNum = d.getDate()
-      return {
-        label: new Intl.DateTimeFormat(i18n.language, { weekday: 'short', day: 'numeric' }).format(d),
-        inMonth,
-        current: inMonth ? (byDay.get(dayNum) ?? 0) : 0,
-        previous: 0,
-      }
+      const date = new Date(monday)
+      date.setDate(monday.getDate() + i)
+      const inMonth = date.getMonth() === selectedMonth - 1
+      return { date, inMonth, total: inMonth ? (byDay.get(date.getDate()) ?? 0) : 0 }
     })
   }, [dailyData, isCurrent, today, daysInMonth, selectedYear, selectedMonth])
 
-  const maxDailyTotal = useMemo(() => {
-    if (weekDays.length === 0) return 1
-    return Math.max(...weekDays.map((d) => d.current))
-  }, [weekDays])
+  const weekTotal = weekDays.reduce((sum, day) => sum + day.total, 0)
+  const weekMax = Math.max(0, ...weekDays.map((day) => day.total))
+  const weekRangeLabel = t('reportsPage.weekly.range', {
+    from: formats.shortDate.format(weekDays[0].date),
+    to: formats.shortDate.format(weekDays[6].date),
+  })
 
-  const mergedCategoryBreakdown = useMemo(() => {
-    return categoryBreakdown.filter((c) => c.total > 0)
-  }, [categoryBreakdown])
+  const chartItems: BarChartItem[] = weekDays.map((day) => {
+    const dayLong = formats.longDay.format(day.date)
+    let displayValue: string | undefined
+    if (day.inMonth) displayValue = day.total > 0 ? formatCurrecy(day.total) : '—'
+    return {
+      id: String(day.date.getTime()),
+      label: formats.shortDay.format(day.date),
+      srLabel: day.inMonth
+        ? `${dayLong}: ${formatCurrecy(day.total)}`
+        : `${dayLong}: ${t('reportsPage.weekly.outsideMonth')}`,
+      value: day.total,
+      displayValue,
+      disabled: !day.inMonth,
+      highlighted: isCurrent && day.inMonth && day.date.getDate() === today,
+    }
+  })
 
-  const sortedByValue = useMemo(() => {
-    return [...mergedCategoryBreakdown].sort((a, b) => b.total - a.total)
-  }, [mergedCategoryBreakdown])
+  const mergedCategoryBreakdown = useMemo(() => categoryBreakdown.filter((c) => c.total > 0), [categoryBreakdown])
 
-  const sortedByCount = useMemo(() => {
-    return [...mergedCategoryBreakdown].sort((a, b) => b.count - a.count)
-  }, [mergedCategoryBreakdown])
+  const sortedByValue = useMemo(
+    () => [...mergedCategoryBreakdown].sort((a, b) => b.total - a.total),
+    [mergedCategoryBreakdown],
+  )
 
-  const maxValue = sortedByValue.length > 0 ? Math.max(...sortedByValue.map((c) => c.total)) : 1
-  const maxCount = sortedByCount.length > 0 ? Math.max(...sortedByCount.map((c) => c.count)) : 1
+  const categoriesTotal = sortedByValue.reduce((sum, c) => sum + c.total, 0)
+  const categoriesCount = sortedByValue.reduce((sum, c) => sum + c.count, 0)
 
-  if (loading) {
-    return (
-      <div className="min-h-screen pb-xl flex items-center justify-center">
-        <p className="text-body-lg text-on-surface-variant">{t('reports.loading')}</p>
-      </div>
+  const getCategoryInfo = (categoryId: string) => categories.find((c) => c.id === categoryId)
+
+  const monthlySeries = monthlyValues(currentTrendByMonth)
+  const monthsElapsedInYear = selectedYear === now.getFullYear() ? now.getMonth() + 1 : 12
+  const ytdCurrent = cumulative(monthlySeries.slice(0, monthsElapsedInYear))
+  const ytdPrevious = cumulative(monthlyValues(prevTrendByMonth))
+
+  const activityItems: ActivityItem[] = recentExpenses.map((expense) => {
+    const category = getCategoryInfo(expense.category)
+    return {
+      id: expense.id,
+      icon: category
+        ? <CategoryIcon icon={category.icon} color={category.color} name={category.name} size="sm" />
+        : undefined,
+      title: expense.expenseName,
+      meta: `${category?.name || expense.category} · ${formats.shortDate.format(expense.date)}`,
+      value: `${expense.amount >= 0 ? '-' : '+'}${formatCurrecy(Math.abs(expense.amount))}`,
+    }
+  })
+
+  const revealKey = loading || !updatedAt ? '' : `${selectedYear}-${selectedMonth}-${updatedAt.getTime()}`
+  useRevealMotion(contentRef, revealKey)
+
+  const categoryColumns: DataTableColumn<CategoryBreakdown>[] = [
+    {
+      key: 'category',
+      header: t('reportsPage.table.category'),
+      cell: (row) => {
+        const info = getCategoryInfo(row.category)
+        return (
+          <div className="flex min-w-0 items-center gap-2">
+            <CategoryIcon icon={info?.icon} color={info?.color} name={info?.name || row.category} size="sm" />
+            <span className="truncate font-medium">{info?.name || row.category}</span>
+          </div>
+        )
+      },
+      footer: t('reportsPage.table.total'),
+    },
+    {
+      key: 'amount',
+      header: t('reportsPage.table.amount'),
+      align: 'right',
+      cell: (row) => formatCurrecy(row.total),
+      footer: formatCurrecy(categoriesTotal),
+    },
+    {
+      key: 'share',
+      header: t('reportsPage.table.share'),
+      align: 'right',
+      cell: (row) => {
+        const share = categoriesTotal > 0 ? row.total / categoriesTotal : 0
+        return (
+          <div className="flex items-center justify-end gap-3">
+            <div className="w-20 sm:w-24">
+              <MeterBar value={share * 100} />
+            </div>
+            <span className="w-14 text-right">{formats.percent.format(share)}</span>
+          </div>
+        )
+      },
+      footer: formats.percent.format(categoriesTotal > 0 ? 1 : 0),
+    },
+    {
+      key: 'count',
+      header: t('reportsPage.table.count'),
+      align: 'right',
+      cell: (row) => row.count,
+      footer: categoriesCount,
+    },
+  ]
+
+  const handleExportCsv = () => {
+    if (sortedByValue.length === 0) return
+    const separator = formats.csvPercent.formatToParts(1.5).find((part) => part.type === 'decimal')?.value === ','
+      ? ';'
+      : ','
+    const rows = [
+      [
+        t('reportsPage.table.category'),
+        t('reportsPage.table.amount'),
+        t('reportsPage.table.share'),
+        t('reportsPage.table.count'),
+      ],
+      ...sortedByValue.map((cat) => [
+        getCategoryInfo(cat.category)?.name || cat.category,
+        formats.csvAmount.format(cat.total),
+        formats.csvPercent.format((cat.total / categoriesTotal) * 100),
+        String(cat.count),
+      ]),
+      [
+        t('reportsPage.table.total'),
+        formats.csvAmount.format(categoriesTotal),
+        formats.csvPercent.format(100),
+        String(categoriesCount),
+      ],
+    ]
+    downloadCsv(
+      `gastos-por-categoria-${selectedYear}-${String(selectedMonth).padStart(2, '0')}.csv`,
+      toCsv(rows, separator),
     )
   }
 
+  const actions = (
+    <>
+      <div className="hidden items-center gap-2 md:flex">
+        <Button variant="secondary" icon="summarize" onClick={() => setShowBreakdown(true)}>
+          {t('reportsPage.actions.detailed')}
+        </Button>
+        <Button variant="secondary" icon="download" onClick={handleExportCsv} disabled={sortedByValue.length === 0}>
+          {t('reportsPage.actions.exportCsv')}
+        </Button>
+      </div>
+      <div className="md:hidden">
+        <ActionMenu
+          label={t('reportsPage.actions.more')}
+          items={[
+            {
+              key: 'detailed',
+              label: t('reportsPage.actions.detailed'),
+              icon: 'summarize',
+              onSelect: () => setShowBreakdown(true),
+            },
+            {
+              key: 'export',
+              label: t('reportsPage.actions.exportCsv'),
+              icon: 'download',
+              onSelect: handleExportCsv,
+            },
+          ]}
+        />
+      </div>
+      <Button variant="primary" icon="add" onClick={() => setShowNewTransaction(true)}>
+        {t('reportsPage.actions.newTransaction')}
+      </Button>
+    </>
+  )
+
+  const addTransactionAction = (
+    <Button variant="primary" icon="add" onClick={() => setShowNewTransaction(true)}>
+      {t('reportsPage.actions.newTransaction')}
+    </Button>
+  )
+
   return (
-    <div>
-      <main className="min-h-screen pb-xl">
-        <div className="p-container-margin max-w-7xl mx-auto space-y-gutter">
-          <div className="mb-xl">
-            <div className="text-center py-xl relative overflow-hidden rounded-xl bg-primary-container text-on-primary-container">
-              <div className="relative z-10">
-                <h2 className="text-headline-lg font-xl mb-xs">{t('reports.title')}</h2>
-                <p className="text-lg opacity-80 max-w-2xl mx-auto">{t('reports.subtitle')}</p>
-              </div>
+    <div className="min-h-screen bg-ui-canvas text-ui-fg">
+      <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 px-4 pb-10 pt-6 md:px-6">
+        <PageHeader
+          title={t('reportsPage.title')}
+          meta={updatedAt ? t('reportsPage.updatedAt', { time: formats.time.format(updatedAt) }) : undefined}
+          controls={
+            <PeriodPicker
+              month={selectedMonth}
+              year={selectedYear}
+              years={YEARS}
+              formatMonth={(month) => formats.monthName.format(new Date(selectedYear, month - 1, 1))}
+              labels={{
+                month: t('reportsPage.period.month'),
+                year: t('reportsPage.period.year'),
+                previous: t('reportsPage.period.previous'),
+                next: t('reportsPage.period.next'),
+              }}
+              onChange={(period) => {
+                setSelectedMonth(period.month)
+                setSelectedYear(period.year)
+              }}
+            />
+          }
+          actions={actions}
+        />
+
+        <p role="status" className="sr-only">
+          {loading ? t('reportsPage.loading') : ''}
+        </p>
+
+        {showError && (
+          <div
+            role="alert"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ui-border bg-ui-surface p-5"
+          >
+            <div className="flex items-center gap-3">
+              <span aria-hidden="true" className="material-symbols-outlined text-[20px] text-ui-danger">
+                error
+              </span>
+              <p className="text-ui-body font-medium text-ui-fg">{t('reportsPage.error.title')}</p>
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-2 mt-4">
-              <div className="relative">
-                <select
-                  className="mr-1 appearance-none pl-md pr-xl py-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-medium focus:ring-2 focus:ring-primary"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <option key={m} value={m}>{monthName(m)}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-xs top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+            <Button variant="secondary" icon="refresh" onClick={() => setRefreshKey((key) => key + 1)}>
+              {t('reportsPage.error.retry')}
+            </Button>
+          </div>
+        )}
+
+        {showSkeleton && (
+          <div aria-busy="true" className="flex flex-col gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {[0, 1, 2, 3].map((item) => (
+                <Skeleton key={item} className="h-[136px]" />
+              ))}
+            </div>
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+              <div className="flex flex-col gap-4 xl:col-span-8">
+                <Skeleton className="h-[300px]" />
+                <Skeleton className="h-[320px]" />
               </div>
-              <div className="relative">
-                <select
-                  className="mr-1 appearance-none pl-md pr-xl py-xs bg-surface-container-lowest border border-outline-variant rounded-lg text-body-sm font-medium focus:ring-2 focus:ring-primary w-24"
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                >
-                  {YEARS.map((year) => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-xs top-1/2 -translate-y-1/2 pointer-events-none text-outline">expand_more</span>
+              <div className="flex flex-col gap-4 xl:col-span-4">
+                <Skeleton className="h-[260px]" />
+                <Skeleton className="h-[360px]" />
               </div>
             </div>
           </div>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
-            <div className="bento-card">
-              <div className="flex justify-between items-start mb-xs">
-                <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.totalBalance')}</p>
-                <span className="text-secondary material-symbols-outlined text-sm">account_balance</span>
-              </div>
-              <h2 className="text-headline-lg font-bold text-primary font-data-mono mb-2">{formatCurrecy(totalSpent)}</h2>
-              <div className="flex items-center gap-1 text-secondary text-body-sm">
-                <span className="material-symbols-outlined text-[16px]">trending_up</span> +{monthlyChange.toFixed(1)}% <span className="text-on-surface-variant ml-1 font-normal">vs last month</span>
-              </div>
+        {showContent && (
+          <div
+            ref={contentRef}
+            aria-busy={loading}
+            className={`flex flex-col gap-4 transition-opacity duration-200 ${loading ? 'opacity-60' : ''}`}
+          >
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4" style={{ perspective: '1200px' }}>
+              <KpiCard
+                label={t('reportsPage.kpi.totalSpent')}
+                value={<AnimatedValue value={totalSpent} format={formatCurrecy} reveal={revealKey} />}
+                badge={
+                  prevMonthTotal > 0 ? (
+                    <StatusBadge tone={monthDirection.tone} icon={monthDirection.icon}>
+                      {formats.percentDelta.format(monthlyChange / 100)}
+                    </StatusBadge>
+                  ) : undefined
+                }
+                footer={prevMonthTotal > 0 ? t('reportsPage.kpi.vsPrevMonth') : t('reportsPage.kpi.noPrevMonth')}
+              />
+              <KpiCard
+                label={t('reportsPage.kpi.avgDaily')}
+                value={<AnimatedValue value={avgDaily} format={formatCurrecy} reveal={revealKey} />}
+                footer={
+                  budgeted > 0
+                    ? t('reportsPage.kpi.dailyShare', { value: formats.percent.format(dailyRate / 100) })
+                    : t('reportsPage.kpi.noBudget')
+                }
+              />
+              <KpiCard
+                label={t('reportsPage.kpi.budgetUsage')}
+                value={formats.percentInt.format(budgetPct / 100)}
+                badge={
+                  <StatusBadge tone={budgetStatus.tone} icon={budgetStatus.icon}>
+                    {t(budgetStatus.label)}
+                  </StatusBadge>
+                }
+                meter={
+                  <MeterBar
+                    value={Math.min(budgetPct, 100)}
+                    tone={budgetStatus.tone}
+                    label={t('reportsPage.kpi.budgetUsage')}
+                  />
+                }
+                footer={
+                  budgeted > 0
+                    ? t('reportsPage.kpi.budgetOf', { spent: formatCurrecy(totalSpent), budget: formatCurrecy(budgeted) })
+                    : t('reportsPage.kpi.noBudget')
+                }
+              />
+              <KpiCard
+                label={t('reportsPage.kpi.velocity')}
+                value={budgeted > 0 ? <span className={PACE_TEXT[pace]}>{t(PACE_LABEL[pace])}</span> : '—'}
+                footer={
+                  budgeted > 0
+                    ? t('reportsPage.kpi.paceNote', { value: formats.percent.format(dailyRate / 100) })
+                    : t('reportsPage.kpi.noBudget')
+                }
+              />
             </div>
-            <div className="bento-card">
-              <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.avgDaily')}</p>
-              <h2 className="text-headline-lg font-bold text-on-surface font-data-mono mb-2">{formatCurrecy(avgDaily)}</h2>
-              <div className="flex items-center gap-1 text-error text-body-sm">
-                <span className="material-symbols-outlined text-[16px]">trending_up</span> +{dailyRate.toFixed(1)}% <span className="text-on-surface-variant ml-1 font-normal">of daily budget</span>
-              </div>
-            </div>
-            <div className="bento-card">
-              <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.budgetUtilization')}</p>
-              <div className="flex items-baseline gap-2 mb-2">
-                <h2 className="text-headline-lg font-bold text-on-surface font-data-mono">{budgetPct}%</h2>
-                <span className="text-body-sm text-on-surface-variant">({formatCurrecy(totalSpent)} / {formatCurrecy(budgeted)})</span>
-              </div>
-              <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-                <div className="bg-primary h-full" style={{ width: `${Math.min(budgetPct, 100)}%` }}></div>
-              </div>
-            </div>
-            <div className="bento-card">
-              <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.velocity')}</p>
-              <div className="flex items-center gap-2 mb-2">
-                <h2 className="text-headline-lg font-bold text-secondary font-data-mono">
-                  {dailyRate > 5 ? t('reports.fast') : dailyRate > 3 ? t('reports.steady') : t('reports.slow')}
-                </h2>
-                <span className="material-symbols-outlined text-secondary">bolt</span>
-              </div>
-              <p className="text-body-sm text-on-surface-variant">{t('reports.consuming', { value: dailyRate.toFixed(1) })}</p>
-            </div>
-          </div>
 
-          <div className="grid grid-cols-12 gap-gutter">
-            <div className="col-span-12 lg:col-span-8 bento-card">
-              <div className="flex justify-between items-center mb-lg">
-                <div>
-                   <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.weekly')}</p>
-                   <h3 className="text-headline-md">{t('reports.weekTrend')}</h3>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 text-body-sm text-on-surface-variant mr-4">
-                     <span className="w-3 h-3 bg-primary rounded-full"></span> {t('reports.thisWeek')}
-                  </div>
-                </div>
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+              <div className="flex min-w-0 flex-col gap-4 xl:col-span-8">
+                <Card
+                  eyebrow={t('reportsPage.weekly.title')}
+                  title={weekRangeLabel}
+                  titleId="report-weekly-title"
+                  actions={
+                    <div className="text-right">
+                      <p className="text-ui-caption text-ui-fg-muted">{t('reportsPage.weekly.total')}</p>
+                      <p className="text-ui-body font-semibold tabular-nums text-ui-fg">{formatCurrecy(weekTotal)}</p>
+                    </div>
+                  }
+                >
+                  {weekTotal === 0 && (
+                    <p className="mb-3 text-ui-caption text-ui-fg-muted">{t('reportsPage.weekly.empty')}</p>
+                  )}
+                  <BarChart
+                    items={chartItems}
+                    max={weekMax}
+                    ariaLabel={t('reportsPage.weekly.chartLabel')}
+                    formatAxis={formatCurrecy}
+                  />
+                </Card>
+
+                <Card title={t('reportsPage.table.title')} titleId="report-table-title">
+                  <DataTable
+                    caption={t('reportsPage.table.caption')}
+                    columns={categoryColumns}
+                    rows={sortedByValue}
+                    getRowKey={(row) => row.category}
+                    empty={
+                      <EmptyState
+                        icon="donut_small"
+                        title={t('reportsPage.table.empty')}
+                        action={addTransactionAction}
+                      />
+                    }
+                  />
+                </Card>
               </div>
-              <div className="h-64 w-full flex items-end justify-between gap-4 px-4 border-b border-outline-variant/30">
-                {weekDays.map((day, i) => {
-                  const pct = maxDailyTotal > 0 ? (day.current / maxDailyTotal) * 100 : 0
-                  return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full">
-                      <div className="relative w-full flex-1 flex flex-col items-center justify-end">
-                        <div
-                          className={`w-full rounded-t-sm relative z-10 cursor-pointer ${
-                            day.inMonth ? 'bg-primary hover:opacity-80' : 'bg-outline-variant/30'
-                          }`}
-                          style={{ height: `${Math.max(pct, day.inMonth ? 2 : 1)}%` }}
+
+              <div className="flex min-w-0 flex-col gap-4 xl:col-span-4">
+                <Card title={t('reportsPage.compare.title')} titleId="report-compare-title">
+                  <MetricRow
+                    label={t('reportsPage.compare.month')}
+                    value={formatCurrecy(totalSpent)}
+                    badge={
+                      prevMonthTotal > 0 ? (
+                        <StatusBadge tone={monthDirection.tone} icon={monthDirection.icon}>
+                          {formats.percentDelta.format(monthlyChange / 100)}
+                        </StatusBadge>
+                      ) : undefined
+                    }
+                    note={
+                      prevMonthTotal > 0
+                        ? t('reportsPage.compare.prevMonth', { amount: formatCurrecy(prevMonthTotal) })
+                        : t('reportsPage.kpi.noPrevMonth')
+                    }
+                    visual={
+                      <Sparkline series={[{ values: monthlySeries, tone: 'accent' }]} highlightIndex={selectedMonth - 1} />
+                    }
+                  />
+                  <MetricRow
+                    label={t('reportsPage.compare.year')}
+                    value={formatCurrecy(yearToDate)}
+                    badge={
+                      prevYearTotal > 0 ? (
+                        <StatusBadge tone={yearDirection.tone} icon={yearDirection.icon}>
+                          {formats.percentDelta.format(yearlyChange / 100)}
+                        </StatusBadge>
+                      ) : undefined
+                    }
+                    note={
+                      prevYearTotal > 0
+                        ? t('reportsPage.compare.prevYear', { amount: formatCurrecy(prevYearTotal) })
+                        : t('reportsPage.compare.noPrevYear')
+                    }
+                    visual={
+                      <Sparkline
+                        series={[
+                          { values: ytdCurrent, tone: 'accent' },
+                          { values: ytdPrevious, tone: 'muted' },
+                        ]}
+                      />
+                    }
+                  />
+                  <MetricRow
+                    label={t('reportsPage.compare.forecast')}
+                    value={formatCurrecy(predictedEom)}
+                    note={
+                      daysRemaining > 0
+                        ? t('reportsPage.compare.forecastNote', { count: daysRemaining })
+                        : t('reportsPage.compare.monthClosed')
+                    }
+                  />
+                </Card>
+
+                <Card title={t('reportsPage.activity.title')} titleId="report-activity-title">
+                  {activityItems.length > 0 ? (
+                    <>
+                      <ActivityList items={activityItems} />
+                      <div className="mt-3 border-t border-ui-border pt-3">
+                        <Button
+                          variant="ghost"
+                          icon="list_alt"
+                          className="w-full"
+                          onClick={() => setShowAllTransactions(true)}
                         >
-                          {day.current > 0 && (
-                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-on-surface text-surface text-[10px] px-2 py-1 rounded shadow-lg whitespace-nowrap">
-                              {formatCurrecy(day.current)}
-                            </div>
-                          )}
-                        </div>
+                          {t('reportsPage.activity.viewAll')}
+                        </Button>
                       </div>
-                      <span className={`text-label-caps ${day.inMonth ? 'text-on-surface-variant' : 'text-outline'}`}>{day.label}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-
-            <div className="col-span-12 lg:col-span-4 bento-card flex flex-col">
-               <p className="text-label-caps font-label-caps text-on-surface-variant mb-lg">{t('reports.comparison')}</p>
-              <div className="space-y-lg flex-1">
-                <div className="p-md bg-surface-container-low rounded-xl">
-                  <div className="flex justify-between items-center mb-sm">
-                     <p className="text-body-sm font-medium">{t('reports.monthlyContrast')}</p>
-                    <span className={`px-2 py-0.5 text-[10px] rounded font-bold ${
-                      monthlyChange >= 0 ? 'bg-secondary/10 text-secondary' : 'bg-error/10 text-error'
-                    }`}>
-                       {monthlyChange >= 0 ? t('reports.up') : t('reports.down')} {Math.abs(monthlyChange).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <p className="text-headline-md font-data-mono">{formatCurrecy(totalSpent)}</p>
-                       <p className="text-[10px] text-on-surface-variant">{monthName(selectedMonth)} {selectedYear}</p>
-                    </div>
-                    <div className="h-10 w-24">
-                      <svg className="w-full h-full" viewBox="0 0 100 40">
-                        <path d="M0 35 L20 30 L40 32 L60 20 L80 15 L100 5" fill="none" stroke="#006c49" strokeWidth="2" vectorEffect="non-scaling-stroke"></path>
-                      </svg>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-body-sm font-data-mono text-on-surface-variant">
-                         {prevMonthTotal > 0 ? formatCurrecy(prevMonthTotal) : t('dashboard.noDataShort')}
-                      </p>
-                       <p className="text-[10px] text-on-surface-variant">{t('reports.previous')}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-md bg-surface-container-low rounded-xl">
-                  <div className="flex justify-between items-center mb-sm">
-                     <p className="text-body-sm font-medium">{t('reports.yearlyPerformance')}</p>
-                    <span className={`px-2 py-0.5 text-[10px] rounded font-bold ${
-                      yearlyChange >= 0 ? 'bg-secondary/10 text-secondary' : 'bg-error/10 text-error'
-                    }`}>
-                       {yearlyChange >= 0 ? t('reports.up') : t('reports.down')} {Math.abs(yearlyChange).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <p className="text-headline-md font-data-mono">{formatCurrecy(yearToDate)}</p>
-                      <p className="text-[10px] text-on-surface-variant">YTD {selectedYear}</p>
-                    </div>
-                    <div className="h-10 w-24">
-                      <svg className="w-full h-full" viewBox="0 0 100 40">
-                        <path d="M0 5 L20 15 L40 10 L60 25 L80 20 L100 35" fill="none" stroke="#ba1a1a" strokeWidth="2" vectorEffect="non-scaling-stroke"></path>
-                      </svg>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-body-sm font-data-mono text-on-surface-variant">
-                         {prevYearTotal > 0 ? formatCurrecy(prevYearTotal) : t('dashboard.noDataShort')}
-                      </p>
-                      <p className="text-[10px] text-on-surface-variant">YTD {selectedYear - 1}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-lg pt-md border-t border-outline-variant">
-                 <p className="text-[10px] text-on-surface-variant italic">{t('reports.updated', { time: now.toLocaleTimeString(i18n.language) })}</p>
+                    </>
+                  ) : (
+                    <EmptyState
+                      icon="receipt_long"
+                      title={t('reportsPage.activity.empty')}
+                      action={addTransactionAction}
+                    />
+                  )}
+                </Card>
               </div>
             </div>
           </div>
-
-          <div className="grid grid-cols-12 gap-gutter">
-            <div className="col-span-12 lg:col-span-8 bento-card">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-xl">
-                <div>
-                  <div className="flex justify-between items-center mb-lg">
-                <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.byValue')}</p>
-                    <span className="material-symbols-outlined text-sm text-on-surface-variant">info</span>
-                  </div>
-                  <div className="space-y-md">
-                    {sortedByValue.slice(0, 5).map((cat) => {
-                      const pct = maxValue > 0 ? (cat.total / maxValue) * 100 : 0
-                      return (
-                        <div key={cat.category}>
-                          <div className="flex justify-between text-body-sm mb-xs">
-                            <span className="font-medium">{getCategoryInfo(cat.category)?.name || cat.category}</span>
-                            <span className="font-data-mono">{formatCurrecy(cat.total)}</span>
-                          </div>
-                          <div className="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
-                            <div className="bg-primary h-full" style={{ width: `${pct}%` }}></div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                    {sortedByValue.length === 0 && (
-                      <p className="text-body-sm text-on-surface-variant">No expense data for this month.</p>
-                    )}
-                  </div>
-                  <div className="mt-xl p-md bg-primary-container rounded-lg">
-                      <p className="text-label-caps text-on-primary-container mb-1">{t('reports.predicted')}</p>
-                    <p className="text-headline-md font-bold text-on-primary-container font-data-mono">{formatCurrecy(predictedEom)}</p>
-                      <p className="text-body-sm text-on-primary-container">{t('reports.daysRemaining', { count: daysInMonth - daysElapsed })}</p>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between items-center mb-lg">
-                    <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.byVolume')}</p>
-                    <span className="material-symbols-outlined text-sm text-on-surface-variant">receipt</span>
-                  </div>
-                  <div className="space-y-6">
-                    {sortedByCount.slice(0, 5).map((cat) => {
-                      const pct = maxCount > 0 ? (cat.count / maxCount) * 100 : 0
-                      return (
-                        <div key={cat.category} className="flex items-center gap-md">
-                          <span className="text-body-sm w-20 text-on-surface-variant truncate">
-                            {getCategoryInfo(cat.category)?.name || cat.category}
-                          </span>
-                          <div className="flex-1 bg-surface-container-high h-6 rounded flex items-center px-2">
-                            <div className="bg-secondary h-4 rounded-sm" style={{ width: `${pct}%` }}></div>
-                            <span className="ml-2 text-[10px] font-bold">{cat.count}</span>
-                          </div>
-                        </div>
-                      )
-                    })}
-                    {sortedByCount.length === 0 && (
-                      <p className="text-body-sm text-on-surface-variant">{t('reports.noVolume')}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setShowBreakdown(true)}
-                    className="mt-8 w-full border border-outline-variant py-2 rounded text-body-sm font-bold hover:bg-surface-container-low transition-colors"
-                  >
-                    Detailed Breakdown Report
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-span-12 lg:col-span-4 bento-card">
-              <div className="flex justify-between items-center mb-lg">
-                  <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.recentActivities')}</p>
-                <button className="text-on-surface-variant hover:text-primary">
-                  <span className="material-symbols-outlined">filter_list</span>
-                </button>
-              </div>
-              <div className="space-y-sm max-h-[360px] overflow-y-auto custom-scrollbar pr-xs">
-                {recentExpenses.length > 0 ? recentExpenses.map((expense) => {
-                  const cat = getCategoryInfo(expense.category)
-                  const dateStr = expense.date instanceof Date
-                    ? expense.date.toLocaleDateString(i18n.language, { month: 'short', day: 'numeric' })
-                    : ''
-                  return (
-                    <div key={expense.id} className="flex items-center justify-between p-sm hover:bg-surface-container-low rounded-lg transition-colors border-b border-outline-variant/30 last:border-0">
-                      <div className="flex items-center gap-md">
-                        <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center">
-                          {/* <span 
-                            className="material-symbols-outlined text-primary text-[18px]">
-                              {cat?.icon || 'receipt'}
-                            </span> */}
-                            {cat && (
-                              <CategoryIcon 
-                               icon={cat?.icon}
-                               color={cat?.color}
-                               name={cat!.name}
-                                size="sm"
-                              />
-                            )}
-                        </div>
-                        <div>
-                          <p className="font-bold text-on-surface text-body-sm">{expense.expenseName}</p>
-                          <p className="text-on-surface-variant text-[11px]">{cat?.name || expense.category} &middot; {dateStr}</p>
-                        </div>
-                      </div>
-                      <span className={`font-data-mono font-bold text-sm ${expense.amount >= 0 ? 'text-error' : 'text-secondary'}`}>
-                        {expense.amount >= 0 ? '-' : '+'}{formatCurrecy(Math.abs(expense.amount))}
-                      </span>
-                    </div>
-                  )
-                }) : (
-                   <p className="text-body-sm text-on-surface-variant text-center py-4">{t('reports.noRecent')}</p>
-                )}
-              </div>
-              <div className="mt-lg pt-lg border-t border-outline-variant text-center">
-                <button
-                  className="text-primary font-bold text-body-sm hover:underline"
-                  onClick={() => setShowAllTransactions(true)}
-                >
-                   {t('dashboard.viewAll')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </main>
+
       <DetailedBreakdownReport
         isOpen={showBreakdown}
         onClose={() => setShowBreakdown(false)}
@@ -469,6 +641,11 @@ export default function Report2() {
         onClose={() => setShowAllTransactions(false)}
         month={selectedMonth}
         year={selectedYear}
+      />
+      <AddNewTrasaction
+        isOpen={showNewTransaction}
+        onClose={() => setShowNewTransaction(false)}
+        onExpenseCreated={() => setRefreshKey((key) => key + 1)}
       />
     </div>
   )

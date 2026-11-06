@@ -1,16 +1,25 @@
-import { Fragment, useEffect, useMemo, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { statsApi, expensesApi } from '../api'
 import type { OverviewResponse, CategoryBreakdown, DailyData } from '../api/stats'
 import type { ExpenseResponse } from '../api/expenses'
 import { useCategories } from '../hooks/useCategories'
 import { useFixedExpenses } from '../hooks/useFixedExpenses'
-
 import { formatCurrecy } from '../helpers'
-import CategoryIcon from './CategoryIcon'
-import AllTransactions from './AllTransactions'
+import { BUDGET_STATUS, budgetLevel } from '../helpers/budget'
 import { buildTransactions } from '../helpers/transactions'
-import { useTranslation } from 'react-i18next'
+import '../i18n/reportsPageResources'
+import AllTransactions from './AllTransactions'
+import CategoryIcon from './CategoryIcon'
+import Button from './ui/Button'
+import Card from './ui/Card'
+import DataTable, { type DataTableColumn } from './ui/DataTable'
+import DialogShell from './ui/DialogShell'
+import EmptyState from './ui/EmptyState'
+import KpiCard from './ui/KpiCard'
+import MeterBar from './ui/MeterBar'
+import Skeleton from './ui/Skeleton'
+import StatusBadge from './ui/StatusBadge'
 
 interface DetailedBreakdownReportProps {
   isOpen: boolean
@@ -31,6 +40,18 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
   const { fixedExpenses } = useFixedExpenses()
   const { t, i18n } = useTranslation()
   const monthLabel = new Intl.DateTimeFormat(i18n.language, { month: 'long' }).format(new Date(year, month - 1, 1))
+  const dayFormat = useMemo(
+    () => new Intl.DateTimeFormat(i18n.language, { weekday: 'short', day: 'numeric', month: 'short' }),
+    [i18n.language],
+  )
+  const shareFormat = useMemo(
+    () => new Intl.NumberFormat(i18n.language, { style: 'percent', maximumFractionDigits: 1 }),
+    [i18n.language],
+  )
+  const percentFormat = useMemo(
+    () => new Intl.NumberFormat(i18n.language, { style: 'percent', maximumFractionDigits: 0 }),
+    [i18n.language],
+  )
 
   useEffect(() => {
     if (!isOpen) return
@@ -58,6 +79,7 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
   const totalCount = overview?.totalExpenses ?? 0
   const budgeted = overview?.budgeted ?? 0
   const budgetPct = budgeted > 0 ? Math.round((totalSpent / budgeted) * 100) : 0
+  const status = BUDGET_STATUS[budgetLevel(totalSpent, budgeted)]
 
   const mergedCategories = useMemo(() => {
     return [...categoryBreakdown]
@@ -65,7 +87,8 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
       .sort((a, b) => b.total - a.total)
   }, [categoryBreakdown])
 
-  const maxCategoryTotal = mergedCategories.length > 0 ? mergedCategories[0].total : 1
+  const categoriesTotal = mergedCategories.reduce((sum, c) => sum + c.total, 0)
+  const categoriesCount = mergedCategories.reduce((sum, c) => sum + c.count, 0)
 
   const dayRows = useMemo(() => {
     return dailyData
@@ -89,206 +112,202 @@ export default function DetailedBreakdownReport({ isOpen, onClose, month, year }
     [expenses, fixedExpenses, month, year],
   )
 
-  return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-[300]" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-5xl transform overflow-hidden rounded-2xl bg-surface shadow-xl transition-all flex flex-col max-h-[90vh] text-left">
-                <div className="flex items-center justify-between px-lg py-md border-b border-outline-variant bg-surface-container-low">
-                  <div className="flex items-center gap-md">
-                    <span className="material-symbols-outlined text-primary">bar_chart</span>
-                    <div>
-                      <h2 className="text-headline-md font-bold text-on-surface">{t('reports.detailed')}</h2>
-                      <p className="text-body-sm text-on-surface-variant">{monthLabel} {year}</p>
-                    </div>
-                  </div>
-                  <button
-                    className="p-xs hover:bg-surface-container rounded-full transition-colors"
-                    onClick={onClose}
-                  >
-                    <span className="material-symbols-outlined">close</span>
-                  </button>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-lg space-y-gutter">
-                  {loading ? (
-                    <div className="flex items-center justify-center py-24">
-                        <p className="text-body-lg text-on-surface-variant">{t('reports.loading')}</p>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-gutter">
-                        <div className="bg-surface-container-low rounded-xl p-md">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.totalSpent')}</p>
-                          <p className="text-headline-md font-bold text-primary font-data-mono">{formatCurrecy(totalSpent)}</p>
-                        </div>
-                        <div className="bg-surface-container-low rounded-xl p-md">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.transactions')}</p>
-                          <p className="text-headline-md font-bold text-on-surface font-data-mono">{totalCount}</p>
-                          <p className="text-body-sm text-on-surface-variant">{t('reports.categories', { count: mergedCategories.length, unit: mergedCategories.length === 1 ? t('reports.category') : t('reports.categoriesPlural') })}</p>
-                        </div>
-                        <div className="bg-surface-container-low rounded-xl p-md">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.budgetUtilization')}</p>
-                          <div className="flex items-baseline gap-2">
-                            <p className="text-headline-md font-bold text-on-surface font-data-mono">{budgetPct}%</p>
-                            <span className="text-body-sm text-on-surface-variant">{t('reports.of', { amount: formatCurrecy(budgeted) })}</span>
-                          </div>
-                          <div className="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden mt-2">
-                            <div className="bg-primary h-full" style={{ width: `${Math.min(budgetPct, 100)}%` }}></div>
-                          </div>
-                        </div>
-                        <div className="bg-surface-container-low rounded-xl p-md">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant mb-xs">{t('reports.average')}</p>
-                          <p className="text-headline-md font-bold text-secondary font-data-mono">
-                            {totalCount > 0 ? formatCurrecy(totalSpent / totalCount) : formatCurrecy(0)}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-12 gap-gutter">
-                        <div className="col-span-12 lg:col-span-5 bento-card">
-                          <div className="flex justify-between items-center mb-lg">
-                            <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.breakdownCategory')}</p>
-                            <span className="material-symbols-outlined text-sm text-on-surface-variant">donut_small</span>
-                          </div>
-                          <div className="space-y-sm max-h-[320px] overflow-y-auto custom-scrollbar pr-xs">
-                            {mergedCategories.map((cat) => {
-                              const info = getCategoryInfo(cat.category)
-                              const share = totalSpent > 0 ? ((cat.total / totalSpent) * 100).toFixed(1) : '0.0'
-                              return (
-                                <div key={cat.category} className="py-sm border-b border-outline-variant/40 last:border-0">
-                                  <div className="flex items-center gap-md">
-                                    <CategoryIcon icon={info?.icon} color={info?.color} name={info?.name || cat.category} size="sm" />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="flex justify-between items-baseline gap-sm">
-                                        <p className="text-body-sm font-medium truncate">{info?.name || cat.category}</p>
-                                        <span className="text-body-sm font-data-mono">{formatCurrecy(cat.total)}</span>
-                                      </div>
-                                      <div className="flex items-center gap-md mt-xs">
-                                        <div className="flex-1 bg-surface-container-high h-1.5 rounded-full overflow-hidden">
-                                          <div className="bg-primary h-full" style={{ width: `${(cat.total / maxCategoryTotal) * 100}%` }}></div>
-                                        </div>
-                                        <span className="text-[10px] text-on-surface-variant whitespace-nowrap">
-                                           {t('reports.count', { count: cat.count, unit: cat.count === 1 ? t('reports.item') : t('reports.items') })} &middot; {share}%
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )
-                            })}
-                            {mergedCategories.length === 0 && (
-                              <p className="text-body-sm text-on-surface-variant text-center py-6">{t('reports.noPeriod')}</p>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="col-span-12 lg:col-span-7 bento-card">
-                          <div className="flex justify-between items-center mb-lg">
-                            <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.breakdownDay')}</p>
-                            <span className="material-symbols-outlined text-sm text-on-surface-variant">calendar_month</span>
-                          </div>
-                          <div className="max-h-[320px] overflow-y-auto custom-scrollbar pr-xs">
-                            {dayRows.map((row) => {
-                              const dayExpenses = expensesForDay(row.day)
-                              const isExpanded = expandedDay === row.day
-                              return (
-                                <div key={row.day} className="border-b border-outline-variant/40 last:border-0">
-                                  <button
-                                    className="w-full flex items-center gap-md py-sm rounded-lg hover:bg-surface-container-low px-xs transition-colors"
-                                    onClick={() => setExpandedDay(isExpanded ? null : row.day)}
-                                  >
-                                    <span className="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
-                                      <span className="text-body-sm font-bold text-on-surface">{row.day}</span>
-                                    </span>
-                                    <div className="flex-1 text-left min-w-0">
-                                      <p className="text-body-sm font-medium">{t('reports.day', { day: row.day })}</p>
-                                      <p className="text-[11px] text-on-surface-variant">{t('reports.count', { count: row.count, unit: row.count === 1 ? t('reports.transaction') : t('reports.transactionsPlural') })}</p>
-                                    </div>
-                                    <span className="text-body-sm font-data-mono font-semibold">{formatCurrecy(row.total)}</span>
-                                    <span className="material-symbols-outlined text-on-surface-variant text-[18px]">
-                                      {isExpanded ? 'expand_less' : 'expand_more'}
-                                    </span>
-                                  </button>
-                                  {isExpanded && (
-                                    <div className="pb-sm pl-12 space-y-xs">
-                                      {dayExpenses.map((e) => {
-                                        const info = getCategoryInfo(e.category)
-                                        return (
-                                          <div key={e.key} className="flex items-center gap-md py-xs">
-                                            <CategoryIcon icon={info?.icon} color={info?.color} name={info?.name || e.category} size="sm" />
-                                            <p className="flex-1 text-body-sm truncate">{e.name}</p>
-                                            {e.isFixed && (
-                                               <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold uppercase bg-secondary/10 text-secondary">{t('reports.fixed')}</span>
-                                            )}
-                                            <span className="text-body-sm font-data-mono">{formatCurrecy(e.amount)}</span>
-                                          </div>
-                                        )
-                                      })}
-                                      {dayExpenses.length === 0 && (
-                                        <p className="text-body-sm text-on-surface-variant">{t('reports.noDay')}</p>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            })}
-                            {dayRows.length === 0 && (
-                              <p className="text-body-sm text-on-surface-variant text-center py-6">{t('reports.noPeriod')}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="bento-card">
-                        <div className="flex justify-between items-center mb-lg">
-                          <p className="text-label-caps font-label-caps text-on-surface-variant">{t('reports.allTransactions')}</p>
-                          <span className="material-symbols-outlined text-sm text-on-surface-variant">receipt_long</span>
-                        </div>
-                        <AllTransactions transactions={transactions} />
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="px-lg py-md border-t border-outline-variant flex items-center justify-between">
-                  <p className="text-body-sm text-on-surface-variant">
-                    {t('reports.reportTransactions', { count: transactions.length, unit: transactions.length === 1 ? t('reports.transaction') : t('reports.transactionsPlural') })}
-                  </p>
-                  <button
-                    className="px-md py-sm bg-primary text-on-primary rounded-lg font-bold hover:opacity-90 transition-opacity"
-                    onClick={onClose}
-                  >
-                    {t('reports.close')}
-                  </button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
+  const categoryColumns: DataTableColumn<CategoryBreakdown>[] = [
+    {
+      key: 'category',
+      header: t('reportsPage.table.category'),
+      cell: (row) => {
+        const info = getCategoryInfo(row.category)
+        return (
+          <div className="flex min-w-0 items-center gap-2">
+            <CategoryIcon icon={info?.icon} color={info?.color} name={info?.name || row.category} size="sm" />
+            <span className="truncate font-medium">{info?.name || row.category}</span>
           </div>
+        )
+      },
+      footer: t('reportsPage.table.total'),
+    },
+    {
+      key: 'amount',
+      header: t('reportsPage.table.amount'),
+      align: 'right',
+      cell: (row) => formatCurrecy(row.total),
+      footer: formatCurrecy(categoriesTotal),
+    },
+    {
+      key: 'share',
+      header: t('reportsPage.table.share'),
+      align: 'right',
+      cell: (row) => {
+        const share = categoriesTotal > 0 ? row.total / categoriesTotal : 0
+        return (
+          <div className="flex items-center justify-end gap-3">
+            <div className="w-20">
+              <MeterBar value={share * 100} />
+            </div>
+            <span className="w-12 text-right">{shareFormat.format(share)}</span>
+          </div>
+        )
+      },
+      footer: shareFormat.format(categoriesTotal > 0 ? 1 : 0),
+    },
+    {
+      key: 'count',
+      header: t('reportsPage.table.count'),
+      align: 'right',
+      cell: (row) => row.count,
+      footer: categoriesCount,
+    },
+  ]
+
+  return (
+    <DialogShell
+      open={isOpen}
+      onClose={onClose}
+      size="xl"
+      title={t('reportsPage.modal.detailedTitle')}
+      subtitle={`${monthLabel} ${year}`}
+      closeLabel={t('reportsPage.close')}
+      footer={
+        <>
+          <p className="text-ui-caption tabular-nums text-ui-fg-muted">
+            {t('reportsPage.modal.transactionsCount', { count: transactions.length })}
+          </p>
+          <Button variant="secondary" onClick={onClose}>
+            {t('reportsPage.close')}
+          </Button>
+        </>
+      }
+    >
+      {loading ? (
+        <div aria-busy="true" className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((card) => (
+              <Skeleton key={card} className="h-[136px]" />
+            ))}
+          </div>
+          <Skeleton className="h-72" />
+          <Skeleton className="h-72" />
         </div>
-      </Dialog>
-    </Transition>
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiCard label={t('reportsPage.kpi.totalSpent')} value={formatCurrecy(totalSpent)} />
+            <KpiCard
+              label={t('reportsPage.modal.transactions')}
+              value={totalCount}
+              footer={t('reportsPage.modal.categoriesCount', { count: mergedCategories.length })}
+            />
+            <KpiCard
+              label={t('reportsPage.kpi.budgetUsage')}
+              value={percentFormat.format(budgetPct / 100)}
+              badge={
+                <StatusBadge tone={status.tone} icon={status.icon}>
+                  {t(status.label)}
+                </StatusBadge>
+              }
+              meter={
+                <MeterBar value={Math.min(budgetPct, 100)} tone={status.tone} label={t('reportsPage.kpi.budgetUsage')} />
+              }
+              footer={
+                budgeted > 0
+                  ? t('reportsPage.kpi.budgetOf', { spent: formatCurrecy(totalSpent), budget: formatCurrecy(budgeted) })
+                  : t('reportsPage.kpi.noBudget')
+              }
+            />
+            <KpiCard
+              label={t('reportsPage.modal.average')}
+              value={formatCurrecy(totalCount > 0 ? totalSpent / totalCount : 0)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <Card title={t('reportsPage.table.title')} titleId="detailed-categories-title" className="lg:col-span-7">
+              <DataTable
+                caption={t('reportsPage.table.caption')}
+                columns={categoryColumns}
+                rows={mergedCategories}
+                getRowKey={(row) => row.category}
+                empty={<EmptyState icon="donut_small" title={t('reportsPage.table.empty')} />}
+              />
+            </Card>
+
+            <Card title={t('reportsPage.modal.byDay')} titleId="detailed-days-title" className="lg:col-span-5">
+              {dayRows.length === 0 ? (
+                <EmptyState icon="calendar_month" title={t('reportsPage.table.empty')} />
+              ) : (
+                <div className="flex max-h-[360px] flex-col overflow-y-auto">
+                  {dayRows.map((row) => {
+                    const dayExpenses = expensesForDay(row.day)
+                    const isExpanded = expandedDay === row.day
+                    const panelId = `detailed-day-${row.day}`
+                    return (
+                      <div key={row.day} className="border-b border-ui-border last:border-b-0">
+                        <button
+                          type="button"
+                          aria-expanded={isExpanded}
+                          aria-controls={isExpanded ? panelId : undefined}
+                          onClick={() => setExpandedDay(isExpanded ? null : row.day)}
+                          className="flex min-h-[56px] w-full items-center gap-3 rounded-md px-2 py-2 text-left hover:bg-ui-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-accent"
+                        >
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-ui-elevated text-ui-body font-semibold tabular-nums text-ui-fg">
+                            {row.day}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-ui-body font-medium text-ui-fg">
+                              {dayFormat.format(new Date(year, month - 1, row.day))}
+                            </span>
+                            <span className="block text-ui-caption tabular-nums text-ui-fg-muted">
+                              {t('reportsPage.modal.transactionsCount', { count: row.count })}
+                            </span>
+                          </span>
+                          <span className="shrink-0 text-ui-body font-semibold tabular-nums text-ui-fg">
+                            {formatCurrecy(row.total)}
+                          </span>
+                          <span aria-hidden="true" className="material-symbols-outlined shrink-0 text-[18px] text-ui-fg-muted">
+                            {isExpanded ? 'expand_less' : 'expand_more'}
+                          </span>
+                        </button>
+                        {isExpanded && (
+                          <ul id={panelId} className="flex flex-col gap-1 pb-3 pl-14 pr-2">
+                            {dayExpenses.length === 0 && (
+                              <li className="text-ui-caption text-ui-fg-muted">{t('reportsPage.modal.noDayExpenses')}</li>
+                            )}
+                            {dayExpenses.map((expense) => {
+                              const info = getCategoryInfo(expense.category)
+                              return (
+                                <li key={expense.key} className="flex items-center gap-2 py-1">
+                                  <CategoryIcon
+                                    icon={info?.icon}
+                                    color={info?.color}
+                                    name={info?.name || expense.category}
+                                    size="sm"
+                                  />
+                                  <span className="min-w-0 flex-1 truncate text-ui-body">{expense.name}</span>
+                                  {expense.isFixed && (
+                                    <StatusBadge icon="event_repeat">{t('reportsPage.type.fixed')}</StatusBadge>
+                                  )}
+                                  <span className="shrink-0 text-ui-body tabular-nums text-ui-fg">
+                                    {formatCurrecy(expense.amount)}
+                                  </span>
+                                </li>
+                              )
+                            })}
+                          </ul>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <Card title={t('reportsPage.modal.allTitle')} titleId="detailed-transactions-title">
+            <AllTransactions transactions={transactions} />
+          </Card>
+        </div>
+      )}
+    </DialogShell>
   )
 }
